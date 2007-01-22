@@ -1,0 +1,55 @@
+<META name="GENERATOR" content="Boa Constructor - HelpBook">
+<UL>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="Contents.htm">
+<PARAM name="Name" value="Contents">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="Expset.htm">
+<PARAM name="Name" value="Experiment setup">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="Preproc.htm">
+<PARAM name="Name" value="Spectral pre-processing">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="Pca.htm">
+<PARAM name="Name" value="Principal components analysis (PCA)">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="Plsr.htm">
+<PARAM name="Name" value="Partial least squares regression (PLSR)">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="Dfa.htm">
+<PARAM name="Name" value="Discriminant function analysis (DFA)">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="Gadpls.htm">
+<PARAM name="Name" value="GA discriminant PLSR">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="Gadfa.htm">
+<PARAM name="Name" value="GA DFA">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="Gaplsc.htm">
+<PARAM name="Name" value="GA PLS calibration">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="Cluster2.htm">
+<PARAM name="Name" value="Cluster Analysis">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="workex.htm">
+<PARAM name="Name" value="Worked Examples">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="GetStart.htm">
+<PARAM name="Name" value="Getting Started">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<PARAM name="Local" value="Intro.htm">
+<PARAM name="Name" value="Introduction">
+</OBJECT>
+</UL>
