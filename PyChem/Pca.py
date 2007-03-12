@@ -2,6 +2,7 @@
 
 import string
 
+import psyco
 import scipy
 import wx
 import wx.lib.agw.buttonpanel as bp
