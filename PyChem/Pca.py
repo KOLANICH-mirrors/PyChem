@@ -1,9 +1,11 @@
 # Boa:FramePanel:Pca
 
+import os
 import string
 
 import psyco
 import scipy
+
 import wx
 import wx.lib.agw.buttonpanel as bp
 import wx.lib.buttons
@@ -29,6 +31,20 @@ from . import chemometrics
 	ID_NUMPCS1,
 	ID_NUMPCS2,
 ] = [wx.NewIdRef() for _init_btnpanel_ctrls in range(6)]
+
+[
+	wxID_WXEXPORTDIALOG,
+	wxID_WXEXPORTDIALOGBTNBROWSE,
+	wxID_WXEXPORTDIALOGBTNCANCEL,
+	wxID_WXEXPORTDIALOGBTNOK,
+	wxID_WXEXPORTDIALOGCBEXPEIGS,
+	wxID_WXEXPORTDIALOGCBEXPPCLOADS,
+	wxID_WXEXPORTDIALOGCBEXPPERVAR,
+	wxID_WXEXPORTDIALOGCBEXPSCORES,
+	wxID_WXEXPORTDIALOGSTHCLUSTER,
+	wxID_WXEXPORTDIALOGTCSAVEPCABROWSE,
+	wxID_WXEXPORTDIALOGWDPCAEXPORT,
+] = [wx.NewIdRef() for _init_export_ctrls in range(11)]
 
 
 def errorBox(window, error):
@@ -344,7 +360,23 @@ class TitleBar(bp.ButtonPanel):
 		self.runPca()
 
 	def OnBtnExportPcaResultsButton(self, event):
-		event.Skip()
+		dlg = wxExportDialog(self)
+		try:
+			dlg.ShowModal()
+			if dlg.GetButtonEvent() == 1:
+				if dlg.GetPath() is None:
+					dlg = wx.MessageDialog(self, "Please select directory", "Error!", wx.OK | wx.ICON_ERROR)
+					try:
+						dlg.ShowModal()
+					finally:
+						dlg.Destroy()
+				else:
+					dlg.SaveScores(self.data["pcscores"])
+					dlg.SaveLoadings(scipy.transpose(self.data["pcloads"]))
+					dlg.SaveEigs(self.data["pceigs"])
+					dlg.SavePerVar(self.data["pcpervar"])
+		finally:
+			dlg.Destroy()
 
 	def OnCbxPcaType(self, event):
 		if self.cbxPcaType.GetValue() == 1:
@@ -446,3 +478,155 @@ class TitleBar(bp.ButtonPanel):
 	def OnSpnNumPcs2(self, event):
 		self.plotPcaScores()
 		self.plotPcaLoads()
+
+
+class wxExportDialog(wx.Dialog):
+	def _init_export_ctrls(self, prnt):
+		# generated method, don't edit
+		wx.Dialog.__init__(self, id=wxID_WXEXPORTDIALOG, name="wx.ExportDialog", parent=prnt, pos=wx.Point(530, 255), size=wx.Size(220, 220), style=wx.DEFAULT_DIALOG_STYLE, title="Export Results")
+		self.SetClientSize(wx.Size(220, 220))
+		self.SetToolTip("")
+		self.Center(wx.BOTH)
+
+		self.wdPcaExport = wx.Window(id=wxID_WXEXPORTDIALOGWDPCAEXPORT, name="wdPcaExport", parent=self, pos=wx.Point(0, 0), size=wx.Size(228, 254), style=wx.TAB_TRAVERSAL)
+		self.wdPcaExport.SetToolTip("")
+
+		self.cbExpScores = wx.CheckBox(id=wxID_WXEXPORTDIALOGCBEXPSCORES, label="Export principal component scores", name="cbExpScores", parent=self.wdPcaExport, pos=wx.Point(16, 56), size=wx.Size(184, 13), style=0)
+		self.cbExpScores.SetValue(False)
+		self.cbExpScores.SetToolTip("")
+
+		self.tcSavePcaBrowse = wx.TextCtrl(id=wxID_WXEXPORTDIALOGTCSAVEPCABROWSE, name="tcSavePcaBrowse", parent=self.wdPcaExport, pos=wx.Point(16, 16), size=wx.Size(112, 21), style=0, value="")
+		self.tcSavePcaBrowse.SetToolTip("")
+
+		self.btnBrowse = wx.Button(id=wxID_WXEXPORTDIALOGBTNBROWSE, label="Browse...", name="btnBrowse", parent=self.wdPcaExport, pos=wx.Point(136, 16), size=wx.Size(75, 23), style=0)
+		self.btnBrowse.SetToolTip("")
+		self.btnBrowse.Bind(wx.EVT_BUTTON, self.OnBtnBrowseButton, id=wxID_WXEXPORTDIALOGBTNBROWSE)
+
+		self.cbExpEigs = wx.CheckBox(id=wxID_WXEXPORTDIALOGCBEXPEIGS, label="Export eigenvalues", name="cbExpEigs", parent=self.wdPcaExport, pos=wx.Point(16, 120), size=wx.Size(192, 13), style=0)
+		self.cbExpEigs.SetValue(False)
+		self.cbExpEigs.SetToolTip("")
+
+		self.cbExpPerVar = wx.CheckBox(id=wxID_WXEXPORTDIALOGCBEXPPERVAR, label="Export cumulative % variance", name="cbExpPerVar", parent=self.wdPcaExport, pos=wx.Point(16, 152), size=wx.Size(192, 13), style=0)
+		self.cbExpPerVar.SetValue(False)
+		self.cbExpPerVar.SetToolTip("")
+
+		self.cbExpPcLoads = wx.CheckBox(id=wxID_WXEXPORTDIALOGCBEXPPCLOADS, label="Export principal component loadings", name="cbExpPcLoads", parent=self.wdPcaExport, pos=wx.Point(16, 88), size=wx.Size(200, 13), style=0)
+		self.cbExpPcLoads.SetValue(False)
+		self.cbExpPcLoads.SetToolTip("")
+
+		self.btnOK = wx.Button(id=wxID_WXEXPORTDIALOGBTNOK, label="OK", name="btnOK", parent=self.wdPcaExport, pos=wx.Point(16, 184), size=wx.Size(75, 23), style=0)
+		self.btnOK.SetToolTip("")
+		self.btnOK.Bind(wx.EVT_BUTTON, self.OnBtnOKButton, id=wxID_WXEXPORTDIALOGBTNOK)
+
+		self.btnCancel = wx.Button(id=wxID_WXEXPORTDIALOGBTNCANCEL, label="Cancel", name="btnCancel", parent=self.wdPcaExport, pos=wx.Point(128, 184), size=wx.Size(75, 23), style=0)
+		self.btnCancel.SetToolTip("")
+		self.btnCancel.Bind(wx.EVT_BUTTON, self.OnBtnCancelButton, id=wxID_WXEXPORTDIALOGBTNCANCEL)
+
+		self.stHcluster = wx.StaticText(id=wxID_WXEXPORTDIALOGSTHCLUSTER, label="The dendrogram will be saved as Hcluster.cdt & Hcluster.gtr in a format suitable for display using Alok Saldanhas Java TreeView program (http://genome-www.stanford.edu)", name="stHcluster", parent=self.wdPcaExport, pos=wx.Point(16, 80), size=wx.Size(183, 72), style=0)
+		self.stHcluster.Show(False)
+
+	def __init__(self, parent, type="PCA"):
+		self._init_export_ctrls(parent)
+		self.Path = None
+
+		if type == "PCA":
+			self.cbExpScores.SetLabel("Export principal component scores")
+			self.cbExpPcLoads.SetLabel("Export principal component loadings")
+			self.cbExpEigs.SetLabel("Export eigenvalues")
+			self.cbExpPerVar.SetLabel("Export cumulative % variance")
+			self.stHcluster.Show(0)
+			self.scoresave = "PCscores.txt"
+			self.loadsave = "PCloadings.txt"
+			self.eigsave = "PCeigenvalues.txt"
+			self.explvar = "PCexplvar.txt"
+		if type == "DFA":
+			self.cbExpScores.SetLabel("Export discriminant function scores")
+			self.cbExpPcLoads.SetLabel("Export discriminant function loadings")
+			self.cbExpEigs.SetLabel("Export eigenvalues")
+			self.cbExpPerVar.Show(0)
+			self.stHcluster.Show(0)
+			self.scoresave = "DFscores.txt"
+			self.loadsave = "DFloadings.txt"
+			self.eigsave = "DFeigenvalues.txt"
+		if type == "PLS":
+			self.cbExpScores.SetLabel("Export PLS model")
+			self.cbExpPcLoads.SetLabel("Export PLS loadings")
+			self.cbExpEigs.SetLabel("Export PLS error")
+			self.cbExpPerVar.Show(0)
+			self.stHcluster.Show(0)
+			self.scoresave = "PLSmodel.txt"
+			self.loadsave = "PLSloadings.txt"
+			self.eigsave = "PLSerror.txt"
+		if type == "HCLUSTER":
+			self.stHcluster.Show(1)
+			self.cbExpScores.SetLabel("Save HCA outputs")
+			self.cbExpScores.SetValue(1)
+			self.cbExpPcLoads.Show(0)
+			self.cbExpEigs.Show(0)
+			self.cbExpPerVar.Show(0)
+		if type == "GA":
+			self.cbExpScores.SetLabel("Export chromosomes")
+			self.cbExpPcLoads.SetLabel("Export fitness scores")
+			self.cbExpEigs.SetLabel("Export opt. curves")
+			self.cbExpPerVar.Show(0)
+			self.stHcluster.Show(0)
+			self.scoresave = "chroms.txt"
+			self.loadsave = "scores.txt"
+			self.eigsave = "curves.txt"
+
+	def OnBtnBrowseButton(self, event):
+		dlg = wx.DirDialog(self)
+		try:
+			if dlg.ShowModal() == wx.ID_OK:
+				dir = dlg.GetPath()
+				self.tcSavePcaBrowse.SetValue(dir)
+				self.Path = dir
+		finally:
+			dlg.Destroy()
+
+	def OnBtnOKButton(self, event):
+		self.OK = 1
+		self.Close()
+
+	def OnBtnCancelButton(self, event):
+		self.OK = 0
+		self.Close()
+
+	def GetButtonEvent(self):
+		return self.OK
+
+	def SaveScores(self, scores):
+		if self.cbExpScores.GetValue() == 1:
+			f = file(os.path.join(self.Path, self.scoresave), "w")
+			scipy.io.write_array(f, scores)
+			f.close()
+
+	def SaveLoadings(self, loadings):
+		if self.cbExpPcLoads.GetValue() == 1:
+			f = file(os.path.join(self.Path, self.loadsave), "w")
+			scipy.io.write_array(f, loadings)
+			f.close()
+
+	def SaveEigs(self, eigs):
+		if self.cbExpEigs.GetValue() == 1:
+			f = file(os.path.join(self.Path, self.eigsave), "w")
+			scipy.io.write_array(f, eigs)
+			f.close()
+
+	def SavePerVar(self, pervar):
+		if self.cbExpPerVar.GetValue() == 1:
+			f = file(os.path.join(self.Path, self.explvar), "w")
+			scipy.io.write_array(f, pervar)
+			f.close()
+
+	def GetPath(self):
+		return self.Path
+
+	def CreateVarList(self, num):
+		list = []
+		for i in range(num):
+			list.append(str(i + 1))
+		return list
+
+	def SaveHcluster(self, path, xdata, names, expid, clusters, linkdist):
+		Bio.Cluster.data.writeclusterfiles(join((path, "//Hcluster"), ""), scipy.transpose(xdata), self.CreateVarList(xdata.shape[1]), expid, mask=None, geneclusters=scipy.zeros((xdata.shape[1], 2), "l"), genelinkdist=scipy.zeros((xdata.shape[1],), "d"), expclusters=np.array(clusters, "l"), explinkdist=linkdist)

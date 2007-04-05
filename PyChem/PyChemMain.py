@@ -552,17 +552,24 @@ class PyChemMain(wx.Frame):
 					item.set("key", "int")
 					item.text = str(each)
 
-			# save string and boolean ctrl values
+			# save spin, string and boolean ctrl values
 			Controls = ET.SubElement(locals()[workspace], "Controls")
 
-			stringCtrls = ["plExpset.indTitleBar.stcRangeFrom", "plExpset.indTitleBar.stcRangeTo"]
+			# spin controls
+			spinCtrls = ["plGadfa.TitleBar.dlg.spnGaMaxFac", "plGadfa.TitleBar.dlg.spnGaMaxGen", "plGadfa.TitleBar.dlg.spnGaVarsFrom", "plGadfa.TitleBar.dlg.spnGaVarsTo", "plGadfa.TitleBar.dlg.spnGaNoInds", "plGadfa.TitleBar.dlg.spnGaNoRuns", "plGadfa.TitleBar.dlg.spnGaRepUntil"]
+
+			for each in spinCtrls:
+				name = each.split(".")[len(each.split(".")) - 1]
+				locals()[name] = ET.SubElement(Controls, each)
+				locals()[name].set("key", "int")
+				locals()[name].text = getByPath(self, each).GetValue()
+
+			# string controls
+			stringCtrls = ["plExpset.indTitleBar.stcRangeFrom", "plExpset.indTitleBar.stcRangeTo", "plGadfa.TitleBar.dlg.stGaXoverRate", "plGadfa.TitleBar.dlg.stGaMutRate", "plGadfa.TitleBar.dlg.stGaInsRate"]
 
 			##			  , 'stPls2',
 			##			  'stPls12', 'stPls1','stPls9', 'stPls4', 'stPls5', 'stPls6', 'stPlsFac',
-			##			  'stPls7', 'stPls8', 'stPls13', 'stDfaVarsFrom', 'stDfaVarsTo',
-			##			  'stDfaNoInds', 'stDfaNoRuns', 'stDfaXoverRate', 'stDfaMutRate',
-			##			  'stDfaInsRate', 'stDfaMaxDfs', 'stDfaMaxGen', 'stDfaRepUntil',
-			##			  'stDfaSavePc', 'stPlscVarFrom', 'stPlscVarTo', 'stPlscNoInds',
+			##			  'stPls7', 'stPls8', 'stPls13', 'stPlscVarFrom', 'stPlscVarTo', 'stPlscNoInds',
 			##			  'stPlscNoRuns', 'stPlscXoverRate', 'stPlscMutRate', 'stPlscInsRate',
 			##			  'stPlscMaxFac', 'stPlscMaxGen', 'stPlscRepUntil', 'stPlscSavePer']
 
@@ -581,15 +588,14 @@ class PyChemMain(wx.Frame):
 				locals()[name].set("key", "str")
 				locals()[name].text = getByPath(self, each).GetValue()
 
-			boolCtrls = ["plCluster.titleBar.dlg.rbKmeans", "plCluster.titleBar.dlg.rbKmedian", "plCluster.titleBar.dlg.rbKmedoids", "plCluster.titleBar.dlg.rbHcluster", "plCluster.titleBar.dlg.rbSingleLink", "plCluster.titleBar.dlg.rbMaxLink", "plCluster.titleBar.dlg.rbAvLink", "plCluster.titleBar.dlg.rbCentLink", "plCluster.titleBar.dlg.rbEuclidean", "plCluster.titleBar.dlg.rbCorrelation", "plCluster.titleBar.dlg.rbAbsCorr", "plCluster.titleBar.dlg.rbUncentredCorr", "plCluster.titleBar.dlg.rbAbsUncentCorr", "plCluster.titleBar.dlg.rbSpearmans", "plCluster.titleBar.dlg.rbKendalls", "plCluster.titleBar.dlg.rbHarmonicEuc", "plCluster.titleBar.dlg.rbCityBlock", "plCluster.titleBar.dlg.cbUseClass", "plCluster.titleBar.dlg.rbPlotName", "plCluster.titleBar.dlg.rbPlotColours"]
+			boolCtrls = ["plCluster.titleBar.dlg.rbKmeans", "plCluster.titleBar.dlg.rbKmedian", "plCluster.titleBar.dlg.rbKmedoids", "plCluster.titleBar.dlg.rbHcluster", "plCluster.titleBar.dlg.rbSingleLink", "plCluster.titleBar.dlg.rbMaxLink", "plCluster.titleBar.dlg.rbAvLink", "plCluster.titleBar.dlg.rbCentLink", "plCluster.titleBar.dlg.rbEuclidean", "plCluster.titleBar.dlg.rbCorrelation", "plCluster.titleBar.dlg.rbAbsCorr", "plCluster.titleBar.dlg.rbUncentredCorr", "plCluster.titleBar.dlg.rbAbsUncentCorr", "plCluster.titleBar.dlg.rbSpearmans", "plCluster.titleBar.dlg.rbKendalls", "plCluster.titleBar.dlg.rbHarmonicEuc", "plCluster.titleBar.dlg.rbCityBlock", "plCluster.titleBar.dlg.cbUseClass", "plCluster.titleBar.dlg.rbPlotName", "plCluster.titleBar.dlg.rbPlotColours", "plGadfa.TitleBar.dlg.cbGaRepUntil", "plGadfa.TitleBar.dlg.cbGaMaxGen", "plGadfa.TitleBar.dlg.cbGaMut", "plGadfa.TitleBar.dlg.cbGaXover"]
 
 			##			  'cbPls1', 'cbPls2', 'cbPls3', 'cbPls4', 'cbPls5',
 			##			  'cbDfaXover', 'cbDfaMut', 'cbDfaMaxGen', 'cbDfaRepUntil', 'cbDfaSavePc',
 			##			  'cbPlscXover', 'cbPlscMut', 'cbPlscMaxGen', 'cbPlscRepUntil', 'cbPlscSavePer',
 
-			name = each.split(".")[len(each.split(".")) - 1]
-
 			for each in boolCtrls:
+				name = each.split(".")[len(each.split(".")) - 1]
 				locals()[name] = ET.SubElement(Controls, each)
 				locals()[name].set("key", "bool")
 				locals()[name].text = str(getByPath(self, each).GetValue())

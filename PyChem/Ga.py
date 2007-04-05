@@ -12,7 +12,7 @@ from wx.lib.anchors import LayoutAnchors
 
 from . import chemometrics, fitfun, genetic, process
 from .chemometrics import _index
-from .Pca import plotLine, plotStem, plotText
+from .Pca import plotLine, plotStem, plotText, wxExportDialog
 from .Plsr import PlotPlsModel
 
 
@@ -333,13 +333,33 @@ class TitleBar(bp.ButtonPanel):
 		self.runGa(varfrom=self.dlg.spnGaVarsFrom.GetValue(), varto=self.dlg.spnGaVarsTo.GetValue(), inds=self.dlg.spnGaNoInds.GetValue(), runs=self.dlg.spnGaNoRuns.GetValue(), xovr=float(self.dlg.stGaXoverRate.GetValue()), mutr=float(self.dlg.stGaMutRate.GetValue()), insr=float(self.dlg.stGaInsRate.GetValue()), maxf=self.dlg.spnGaMaxFac.GetValue(), mgen=self.dlg.spnGaMaxGen.GetValue(), rgen=self.dlg.spnGaRepUntil.GetValue())
 
 	def OnBtnexportgaButton(self, event):
-		event.Skip()
+		dlg = wxExportDialog(self, "GA")
+		try:
+			dlg.ShowModal()
+			if dlg.GetButtonEvent() == 1:
+				if dlg.GetPath() is None:
+					dlg = wx.MessageDialog(self, "Please select directory", "Error!", wx.OK | wx.ICON_ERROR)
+					dlg.Show()
+				else:
+					dlg.SaveScores(self.data["gadfachroms"])
+					dlg.SaveLoadings(scipy.reshape(self.data["gadfascores"], (len(self.data["gadfascores"]), 1)))
+					dlg.SaveEigs(self.data["gadfacurves"])
+		finally:
+			dlg.Destroy()
 
 	def OnSpnGascorefromSpinctrl(self, event):
+		# GA scores plot
 		gaOrdPlot = plotText(self.parent.plcGaPlot, self.data["gadfadfscores"], self.data["validation"], self.data["class"], self.data["label"], self.spnGaScoreFrom.GetValue() - 1, self.spnGaScoreTo.GetValue() - 1, "", "Discriminant Function")
 
+		# DF loadings
+		exec("drawGaLoad = self.dlg.plotGaLoads(self.dlg.currentChrom,self.data['ga" + self.type.lower() + self.type.lower() + "loads'],self.parent.plcGaSpecLoad,self.spnGaScoreFrom.GetValue()-1)")
+
 	def OnSpnGascoretoSpinctrl(self, event):
+		# GA scores plot
 		gaOrdPlot = plotText(self.parent.plcGaPlot, self.data["gadfadfscores"], self.data["validation"], self.data["class"], self.data["label"], self.spnGaScoreFrom.GetValue() - 1, self.spnGaScoreTo.GetValue() - 1, "", "Discriminant Function")
+
+		# DF loadings
+		exec("drawGaLoad = self.dlg.plotGaLoads(self.dlg.currentChrom,self.data['ga" + self.type.lower() + self.type.lower() + "loads'],self.parent.plcGaSpecLoad,self.spnGaScoreFrom.GetValue()-1)")
 
 	def OnCbxfeature1(self, event):
 		gaFeatPlot = self.dlg.PlotGaVariables(self.parent.plcGaFeatPlot)
@@ -787,6 +807,7 @@ class selParam(wx.Frame):
 		chromId = chromId.split("[")[0]
 		chromId = int(chromId.split("#")[1]) - 1
 		currentChrom = self.chroms[chromId].tolist()
+		self.currentChrom = currentChrom
 
 		##		  if chkValid > 10.0**-5:
 		# Re-Running DFA
@@ -1051,9 +1072,12 @@ class selParam(wx.Frame):
 		# PCA & DFA loadings using stem
 		if width == 4:
 			plotVals = scipy.concatenate((scipy.take(self.prnt.data["xaxis"], chrom)[:, nA], scipy.reshape(loads[:, loadCol], (len(loads), 1))), 1)
-			plotOut = plotStem(canvas, plotVals, "", xLabel, "", width)
 		else:
 			plotVals = scipy.concatenate((scipy.take(self.prnt.data["xaxis"], chrom)[:, nA], scipy.reshape(scipy.transpose(loads)[:, loadCol], (loads.shape[1], 1))), 1)
+
+		if self.prnt.spnGaScoreFrom.GetValue() != self.prnt.spnGaScoreTo.GetValue():
+			plotOut = plotText(canvas, loads, None, None, plotVals[:, 0], self.prnt.spnGaScoreFrom.GetValue() - 1, self.prnt.spnGaScoreTo.GetValue() - 1, "DF Loadings", "DF Loading", 0)
+		else:
 			plotOut = plotStem(canvas, plotVals, "", xLabel, "", width)
 
 		return plotOut

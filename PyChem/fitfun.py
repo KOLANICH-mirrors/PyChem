@@ -40,7 +40,7 @@ def call_dfa(chrom, xdata, mask, groups, names, DFs):
 	for x in range(len(chrom)):
 		if _remdup(chrom[x]) == 0:
 			# extract vars from xdata
-			slice = __slice__(xdata, chrom[x])
+			slice = meancent(__slice__(xdata, chrom[x]))
 
 			# split in to training and test
 			tr_slice, cv_slice, ts_slice, tr_grp, cv_grp, ts_grp, tr_nm, cv_nm, ts_nm = __split__(slice, groups, mask, names)
@@ -70,7 +70,7 @@ def call_dfa(chrom, xdata, mask, groups, names, DFs):
 def rerun_dfa(chrom, xdata, mask, groups, names, DFs):
 	"""Run DFA in min app"""
 	# extract vars from xdata
-	slice = __slice__(xdata, chrom)
+	slice = meancent(__slice__(xdata, chrom))
 
 	# split in to training and test
 	tr_slice, cv_slice, ts_slice, tr_grp, cv_grp, ts_grp, tr_nm, cv_nm, ts_nm = __split__(slice, groups, mask, names)
