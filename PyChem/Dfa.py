@@ -407,7 +407,8 @@ class TitleBar(bp.ButtonPanel):
 
 			PlotCircles = wx.lib.plot.PlotGraphics([Circles, Centres], "Mean group centres with 95% confidence intervals", "Discriminant Function " + str(col1 + 1), "Discriminant Function " + str(col2 + 1))
 
-			canvas.Draw(PlotCircles, self.parent.plcDFAscores.GetXCurrentRange(), self.parent.plcDFAscores.GetYCurrentRange())  # ,xAxis=axisRange,yAxis=axisRange)
+			canvas.Draw(PlotCircles)  # ,self.parent.plcDFAscores.GetXCurrentRange(),
+			##					  self.parent.plcDFAscores.GetYCurrentRange())#,xAxis=axisRange,yAxis=axisRange)
 
 			self.DrawCvaError = [PlotCircles, self.parent.plcDFAscores.GetXCurrentRange(), self.parent.plcDFAscores.GetYCurrentRange()]
 

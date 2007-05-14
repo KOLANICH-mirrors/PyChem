@@ -247,11 +247,9 @@ class TitleBar(bp.ButtonPanel):
 		self.parent.parent.parent.GetExperimentDetails()
 
 	def OnBtnSetProcButton(self, event):
-		height = self.parent.parent.parent.GetSize()[1]
-		self.dlg.SetSize(wx.Size(200, height))
-		self.dlg.SetPosition(wx.Point(0, int((wx.GetDisplaySize()[1] - height) / 2.0)))
-		self.parent.parent.parent.SetSize(wx.Size(wx.GetDisplaySize()[0] - 200, height))
-		self.parent.parent.parent.SetPosition(wx.Point(200, int((wx.GetDisplaySize()[1] - height) / 2.0)))
+		height = wx.GetDisplaySize()[1]
+		self.dlg.SetSize(wx.Size(250, height))
+		self.dlg.SetPosition(wx.Point(0, 0))
 		self.dlg.Iconize(False)
 		self.dlg.Show()
 

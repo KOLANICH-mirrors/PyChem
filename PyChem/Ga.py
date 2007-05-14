@@ -321,13 +321,11 @@ class TitleBar(bp.ButtonPanel):
 		bpArt.SetColor(bp.BP_SELECTION_PEN_COLOUR, wx.Colour(206, 206, 195))
 
 	def OnBtnbtnSetParamsButton(self, event):
-		height = self.parent.parent.parent.GetSize()[1]
-		self.dlg.SetSize(wx.Size(200, height))
-		self.dlg.SetPosition(wx.Point(0, int((wx.GetDisplaySize()[1] - height) / 2.0)))
-		self.parent.parent.parent.SetSize(wx.Size(wx.GetDisplaySize()[0] - 200, height))
-		self.parent.parent.parent.SetPosition(wx.Point(200, int((wx.GetDisplaySize()[1] - height) / 2.0)))
-		self.dlg.Show()
+		height = wx.GetDisplaySize()[1]
+		self.dlg.SetSize(wx.Size(250, height))
+		self.dlg.SetPosition(wx.Point(0, 0))
 		self.dlg.Iconize(False)
+		self.dlg.Show()
 
 	def OnBtnrungaButton(self, event):
 		self.runGa(varfrom=self.dlg.spnGaVarsFrom.GetValue(), varto=self.dlg.spnGaVarsTo.GetValue(), inds=self.dlg.spnGaNoInds.GetValue(), runs=self.dlg.spnGaNoRuns.GetValue(), xovr=float(self.dlg.stGaXoverRate.GetValue()), mutr=float(self.dlg.stGaMutRate.GetValue()), insr=float(self.dlg.stGaInsRate.GetValue()), maxf=self.dlg.spnGaMaxFac.GetValue(), mgen=self.dlg.spnGaMaxGen.GetValue(), rgen=self.dlg.spnGaRepUntil.GetValue())
@@ -809,6 +807,16 @@ class selParam(wx.Frame):
 		currentChrom = self.chroms[chromId].tolist()
 		self.currentChrom = currentChrom
 
+		# Plot frequency of variable selection for no. vars
+		# Get chrom data and error data for each child
+		Chroms = []
+		VarsId = self.treGaResults.GetItemParent(currentItem)
+		NoVars = self.treGaResults.GetItemText(VarsId)
+		NoVars = int(NoVars.split(" ")[0])
+
+		# adjust chrom length if mutliple var subsets used
+		currentChrom = currentChrom[0:NoVars]
+
 		##		  if chkValid > 10.0**-5:
 		# Re-Running DFA
 		# set no. DFs
@@ -839,16 +847,6 @@ class selParam(wx.Frame):
 
 			# plot pls model
 			plsModel = PlotPlsModel(self, self.prnt.parent.plcGaPlot, np.array(self.prnt.data["class"])[:, nA], predy, predyv, predyt, self.prnt.data["validation"][:, nA], RMSEPT, Lvs)
-
-		# Plot frequency of variable selection for no. vars
-		# Get chrom data and error data for each child
-		Chroms = []
-		VarsId = self.treGaResults.GetItemParent(currentItem)
-		NoVars = self.treGaResults.GetItemText(VarsId)
-		NoVars = int(NoVars.split(" ")[0])
-
-		# adjust chrom length if mutliple var subsets used
-		currentChrom = currentChrom[0:NoVars]
 
 		##			  if self.cbDfaSavePc.GetValue() is False:
 		NoRuns = int(self.spnGaNoRuns.GetValue())
@@ -1076,7 +1074,7 @@ class selParam(wx.Frame):
 			plotVals = scipy.concatenate((scipy.take(self.prnt.data["xaxis"], chrom)[:, nA], scipy.reshape(scipy.transpose(loads)[:, loadCol], (loads.shape[1], 1))), 1)
 
 		if self.prnt.spnGaScoreFrom.GetValue() != self.prnt.spnGaScoreTo.GetValue():
-			plotOut = plotText(canvas, loads, None, None, plotVals[:, 0], self.prnt.spnGaScoreFrom.GetValue() - 1, self.prnt.spnGaScoreTo.GetValue() - 1, "DF Loadings", "DF Loading", 0)
+			plotOut = plotText(canvas, loads, scipy.zeros((len(loads), 1)), None, plotVals[:, 0], self.prnt.spnGaScoreFrom.GetValue() - 1, self.prnt.spnGaScoreTo.GetValue() - 1, "DF Loadings", "DF Loading", 0)
 		else:
 			plotOut = plotStem(canvas, plotVals, "", xLabel, "", width)
 

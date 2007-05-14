@@ -3,7 +3,6 @@
 import os
 import string
 
-import psyco
 import scipy
 
 import wx
@@ -14,6 +13,7 @@ from scipy import newaxis as nA
 from wx.lib.anchors import LayoutAnchors
 
 from . import chemometrics
+from .chemometrics import _index
 
 [
 	wxID_PCA,
@@ -107,23 +107,29 @@ def plotText(plotCanvas, coords, mask, cLass, text, col1, col2, tit, axis, usema
 		xL = " ".join((axis, str(col1 + 1)))
 		yL = " ".join((axis, str(col2 + 1)))
 
-	plotText, PlotMarker = [], []
-	for i in range(len(coords)):
-		col = "black"
-		if usemask == 1:
-			# set text colour - black=train, blue=val, red=test
-			if int(scipy.reshape(mask[i], ())) == 1:
-				col = "blue"
-			elif int(scipy.reshape(mask[i], ())) == 2:
-				col = "red"
+	# make label text
+	nt = []
+	for i in range(len(text)):
+		nt.append(str(text[i]))
+	text = nt
+
+	plotText = []
+	colours = ["black", "blue", "red"]
+	if usemask == 1:
+		colRange = 3
+	else:
+		colRange = 1
+
+	# set text colour - black=train, blue=val, red=test
+	for getColour in range(colRange):
+		idx = _index(mask, getColour)
 
 		if (coords.shape[1] > 1) & (col1 != col2) is True:
 			# plot 2d
-			plotText.append(wx.lib.plot.PolyMarker((coords[i, col1], coords[i, col2]), marker="text", names=str(text[i]), text_colour=col))
-
+			plotText.append(wx.lib.plot.PolyMarker(scipy.take(scipy.take(coords, [col1, col2], 1), idx, 0), marker="text", labels=scipy.take(text, idx, 0), text_colour=colours[getColour]))
 		else:
 			# plot 1d
-			plotText.append(wx.lib.plot.PolyMarker((cLass[i], coords[i, col1]), marker="text", names=str(text[i]), text_colour=col))
+			plotText.append(wx.lib.plot.PolyMarker(scipy.take(scipy.concatenate((np.array(cLass)[:, nA], scipy.take(coords, [col1], 1)), 1), idx, 0), marker="text", labels=scipy.take(text, idx, 0), text_colour=colours[getColour]))
 
 	if (coords.shape[1] > 1) & (col1 != col2) is True:
 		draw_plotText = wx.lib.plot.PlotGraphics(plotText, tit, xLabel=xL, yLabel=yL)
@@ -137,7 +143,7 @@ def plotText(plotCanvas, coords, mask, cLass, text, col1, col2, tit, axis, usema
 		plotTextXaxis = (min(cLass), max(cLass))
 		plotTextYaxis = (min(coords[:, col1]), max(coords[:, col1]))
 
-	plotCanvas.Draw(draw_plotText, xAxis=plotTextXaxis, yAxis=plotTextYaxis)
+	plotCanvas.Draw(draw_plotText)  # ,xAxis=plotTextXaxis,yAxis=plotTextYaxis)
 
 	return [draw_plotText, plotTextXaxis, plotTextYaxis]
 
