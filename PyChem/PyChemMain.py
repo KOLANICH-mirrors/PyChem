@@ -93,6 +93,13 @@ def create(parent):
 	wxID_WXSAVEWORKSPACEDIALOGLBSAVEWORKSPACE,
 ] = [wx.NewIdRef() for _init_savews_ctrls in range(6)]
 
+[
+	MNUGRIDCOPY,
+	MNUGRIDPASTE,
+	MNUGRIDDELETECOL,
+	MNUGRIDRENAMECOL,
+] = [wx.NewIdRef() for _init_grid_menu_Items in range(4)]
+
 
 def errorBox(window, error):
 	dlg = wx.MessageDialog(window, "".join(("The following error occured:\n\n", error)), "Error!", wx.OK | wx.ICON_ERROR)
@@ -219,6 +226,18 @@ class PyChemMain(wx.Frame):
 		parent.AddPage(imageId=-1, page=self.plGadfa, select=False, text="GA - Discriminant Function Analysis")
 		parent.AddPage(imageId=-1, page=self.plGapls, select=False, text="GA - PLSR Calibration")
 
+	def _init_grid_menu_Items(self, parent):
+		# generated method, don't edit
+
+		parent.Append(help="", id=MNUGRIDCOPY, kind=wx.ITEM_NORMAL, text="Copy")
+		parent.Append(help="", id=MNUGRIDPASTE, kind=wx.ITEM_NORMAL, text="Paste")
+		parent.Append(help="", id=MNUGRIDRENAMECOL, kind=wx.ITEM_NORMAL, text="Rename column")
+		parent.Append(help="", id=MNUGRIDDELETECOL, kind=wx.ITEM_NORMAL, text="Delete column")
+		self.Bind(wx.EVT_MENU, self.OnMnuGridCopy, id=MNUGRIDCOPY)
+		self.Bind(wx.EVT_MENU, self.OnMnuGridPaste, id=MNUGRIDPASTE)
+		self.Bind(wx.EVT_MENU, self.OnMnuGridRenameColumn, id=MNUGRIDRENAMECOL)
+		self.Bind(wx.EVT_MENU, self.OnMnuGridDeleteColumn, id=MNUGRIDDELETECOL)
+
 	def _init_utils(self):
 		# generated method, don't edit
 		self.mnuMain = wx.MenuBar()
@@ -229,10 +248,13 @@ class PyChemMain(wx.Frame):
 
 		self.mnuHelp = wx.Menu(title="")
 
+		self.gridMenu = wx.Menu(title="")
+
 		self._init_coll_mnuMain_Menus(self.mnuMain)
 		self._init_coll_mnuFile_Items(self.mnuFile)
 		self._init_coll_mnuTools_Items(self.mnuTools)
 		self._init_coll_mnuHelp_Items(self.mnuHelp)
+		self._init_grid_menu_Items(self.gridMenu)
 
 	def _init_ctrls(self, prnt):
 		# generated method, don't edit
@@ -258,6 +280,7 @@ class PyChemMain(wx.Frame):
 
 		self.plExpset = expSetup.expSetup(id=wxID_PYCHEMMAINPLEXPSET, name="plExpset", parent=self.nbMain, pos=wx.Point(0, 0), size=wx.Size(1008, 635), style=wx.TAB_TRAVERSAL)
 		self.plExpset.SetToolTip("")
+		self.plExpset.getFrame(self)
 
 		self.plPreproc = plotSpectra.plotSpectra(id=wxID_PYCHEMMAINPLPREPROC, name="plPreproc", parent=self.nbMain, pos=wx.Point(0, 0), size=wx.Size(1008, 635), style=wx.TAB_TRAVERSAL)
 		self.plPreproc.SetToolTip("")
@@ -459,8 +482,100 @@ class PyChemMain(wx.Frame):
 	def OnMnuToolsMnugaplscMenu(self, event):
 		self.nbMain.SetSelection(7)
 
+	def OnMnuGridDeleteColumn(self, event):
+		grid = self.data["gridsel"]
+		col = grid.GetGridCursorCol()
+		if col != 0:
+			count = {"Label": 0, "Class": 0, "Validation": 0}
+			heads = []
+			for i in range(1, grid.GetNumberCols()):
+				count[grid.GetCellValue(0, i)] += 1
+				heads.append(grid.GetColLabelValue(i))
+			this = count[grid.GetCellValue(0, col)]
+			if this > 1:
+				dlg = wx.MessageDialog(self, "Are you sure you want to delete the column?", "Confirm", wx.OK | wx.CANCEL | wx.ICON_WARNING)
+				try:
+					if dlg.ShowModal() == wx.ID_OK:
+						grid.DeleteCols(col)
+						# restore col headings
+						del heads[col - 1]
+						for i in range(1, len(heads) + 1):
+							grid.SetColLabelValue(i, heads[i - 1])
+				finally:
+					dlg.Destroy()
+
+	def OnMnuGridRenameColumn(self, event):
+		grid = self.data["gridsel"]
+		col = grid.GetGridCursorCol()
+		dlg = wx.TextEntryDialog(self, "", "Enter new column heading", "")
+		try:
+			if dlg.ShowModal() == wx.ID_OK:
+				answer = dlg.GetValue()
+				col = grid.GetGridCursorCol()
+				grid.SetColLabelValue(col, answer)
+		finally:
+			dlg.Destroy()
+
+	def OnMnuGridPaste(self, event):
+		# Paste cells
+		grid = self.data["gridsel"]
+		wx.TheClipboard.Open()
+		Data = wx.TextDataObject("")
+		wx.TheClipboard.GetData(Data)
+		wx.TheClipboard.Close()
+		Data = Data.GetText()
+		X = grid.GetGridCursorRow()
+		Y = grid.GetGridCursorCol()
+		if grid == self.plExpset.grdNames:
+			if X < 2:
+				X = 2
+			if Y < 1:
+				Y = 1
+		elif grid == self.plExpset.grdIndLabels:
+			if X < 1:
+				X = 1
+			if Y < 1:
+				Y = 1
+		Data = Data.split("\n")
+		for i in range(len(Data)):
+			if X + i < grid.GetNumberRows():
+				for j in range(len(Data[0].split("\t"))):
+					if Y + j < grid.GetNumberCols():
+						item = Data[i].split("\r")[0]
+						item = item.split("\t")[j]
+						grid.SetCellValue(X + i, Y + j, item)
+
+	def OnMnuGridCopy(self, event):
+		grid = self.data["gridsel"]
+
+		From = grid.GetSelectionBlockTopLeft()
+		To = grid.GetSelectionBlockBottomRight()
+		row = grid.GetGridCursorRow()
+		col = grid.GetGridCursorCol()
+
+		if len(From) > 0:
+			From = From[0]
+			To = To[0]
+		else:
+			From = (row, col)
+			To = (row, col)
+
+		Data = ""
+		for i in range(From[0], To[0] + 1):
+			for j in range(From[1], To[1] + 1):
+				if j < To[1]:
+					Data = Data + grid.GetCellValue(i, j) + "\t"
+				else:
+					Data = Data + grid.GetCellValue(i, j)
+			if i < To[0]:
+				Data = Data + "\n"
+
+		wx.TheClipboard.Open()
+		wx.TheClipboard.SetData(wx.TextDataObject(Data))
+		wx.TheClipboard.Close()
+
 	def Reset(self, case=0):
-		varList = "'proc':None,'class':None,'label':None," + "'split':None,'processlist':[],'xaxis':None," + "'class':None,'label':None,'validation':None," + "'pcscores':None,'pcloads':None,'pcpervar':None," + "'pceigs':None,'pcadata':None,'niporsvd':None," + "'indlabels':None,'plsloads':None,'pcatype':None," + "'dfscores':None,'dfloads':None,'dfeigs':None," + "'sampleidx':None,'variableidx':None," + "'rawtrunc':None,'proctrunc':None," + "'gadfachroms':None,'gadfascores':None," + "'gadfacurves':None,'gaplschroms':None," + "'gaplsscores':None,'gaplscurves':None," + "'gadfadfscores':None,'gadfadfloads':None," + "'gaplsplsloads':None"
+		varList = "'proc':None,'class':None,'label':None," + "'split':None,'processlist':[],'xaxis':None," + "'class':None,'label':None,'validation':None," + "'pcscores':None,'pcloads':None,'pcpervar':None," + "'pceigs':None,'pcadata':None,'niporsvd':None," + "'indlabels':None,'plsloads':None,'pcatype':None," + "'dfscores':None,'dfloads':None,'dfeigs':None," + "'sampleidx':None,'variableidx':None," + "'rawtrunc':None,'proctrunc':None," + "'gadfachroms':None,'gadfascores':None," + "'gadfacurves':None,'gaplschroms':None," + "'gaplsscores':None,'gaplscurves':None," + "'gadfadfscores':None,'gadfadfloads':None," + "'gaplsplsloads':None,'gridsel':None"
 
 		if case == 0:
 			exec('self.data = {"raw":None,"exppath":None,' + varList + "}")

@@ -232,6 +232,7 @@ class expSetup(wx.Panel):
 		self.grdNames.SetDefaultCellBackgroundColour(wx.Colour(255, 255, 255))
 		self.grdNames.Enable(False)
 		self.grdNames.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.OnGrdNamesEditorShown)
+		self.grdNames.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnGrdNamesRightDown)
 		self.grdNames.CreateGrid(1, 3)
 
 		# variable id input
@@ -249,6 +250,7 @@ class expSetup(wx.Panel):
 		self.grdIndLabels.SetDefaultCellBackgroundColour(wx.Colour(255, 255, 255))
 		self.grdIndLabels.Enable(False)
 		self.grdIndLabels.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.OnGrdIndLabelsEditorShown)
+		self.grdIndLabels.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnGrdIndLabelsRightDown)
 		self.grdIndLabels.CreateGrid(100, 1)
 
 		self.pnl.AddFoldPanelWindow(self.depparamsitem, self.grdNames, fpb.FPB_ALIGN_WIDTH)
@@ -256,6 +258,20 @@ class expSetup(wx.Panel):
 
 		self.depTitleBar.getGrid(self.grdNames)
 		self.indTitleBar.getGrid(self.grdIndLabels)
+
+	def getFrame(self, frameParent):
+		frameParent._init_utils()
+		self.frameParent = frameParent
+
+	def OnGrdIndLabelsRightDown(self, event):
+		pt = event.GetPosition()
+		self.indTitleBar.data["gridsel"] = self.grdIndLabels
+		self.frameParent.PopupMenu(self.frameParent.gridMenu, pt)
+
+	def OnGrdNamesRightDown(self, event):
+		pt = event.GetPosition()
+		self.depTitleBar.data["gridsel"] = self.grdNames
+		self.frameParent.PopupMenu(self.frameParent.gridMenu, pt)
 
 	def OnGrdNamesEditorShown(self, event):
 		if (self.grdNames.GetGridCursorCol() == 0) & (self.grdNames.GetGridCursorRow() == 1) is True:
