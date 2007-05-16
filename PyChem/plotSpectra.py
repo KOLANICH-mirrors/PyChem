@@ -11,9 +11,7 @@ from wx.lib.anchors import LayoutAnchors
 
 from . import process
 
-[
-	wxID_PLOTSPECTRA,
-] = [wx.NewIdRef() for _init_ctrls in range(1)]
+[IDPLOTSPEC] = [wx.NewIdRef() for _init_ctrls in range(1)]
 
 [
 	wxID_SELFUN,
@@ -23,7 +21,7 @@ from . import process
 	wxID_SELFUNBTNSPECTRAUP,
 	wxID_SELFUNLBSPECTRA1,
 	wxID_SELFUNLBSPECTRA2,
-] = [wx.NewIdRef() for _init_ctrls in range(7)]
+] = [wx.NewIdRef() for _init_selfun_ctrls in range(7)]
 
 
 def errorBox(window, error):
@@ -67,21 +65,20 @@ class plotSpectra(wx.Panel):
 
 	def _init_ctrls(self, prnt):
 		# generated method, don't edit
-		wx.Panel.__init__(self, id=wxID_PLOTSPECTRA, name="plotSpectra", parent=prnt, pos=wx.Point(88, 116), size=wx.Size(757, 538), style=wx.TAB_TRAVERSAL)
+		wx.Panel.__init__(self, id=-1, name="plotSpectra", parent=prnt, pos=wx.Point(88, 116), size=wx.Size(757, 538), style=wx.TAB_TRAVERSAL)
 		self.SetClientSize(wx.Size(749, 504))
 		self.SetBackgroundColour(wx.Colour(167, 167, 243))
 		self.SetToolTip("")
 		self.SetAutoLayout(True)
 
-		self.plcSpectraRaw = wx.lib.plot.PlotCanvas(id=-1, name="plcSpectraRaw", parent=self, pos=wx.Point(272, 0), size=wx.Size(20, 20), style=0)
-		self.plcSpectraRaw.enableLegend = False
+		self.plcSpectraRaw = wx.lib.plot.PlotCanvas(id=IDPLOTSPEC, name="plcSpectraRaw", parent=self, pos=wx.Point(272, 0), size=wx.Size(20, 20), style=0)
 		self.plcSpectraRaw.enableZoom = True
 		self.plcSpectraRaw.fontSizeTitle = 12
 		self.plcSpectraRaw.SetToolTip("")
 		self.plcSpectraRaw.fontSizeAxis = 10
 		self.plcSpectraRaw.SetConstraints(LayoutAnchors(self.plcSpectraRaw, True, True, True, True))
 		self.plcSpectraRaw.SetAutoLayout(True)
-		self.plcSpectraRaw.Bind(wx.EVT_RIGHT_DOWN, self.OnPlcspectrarawRightDown, id=-1)
+		self.plcSpectraRaw.Bind(wx.EVT_RIGHT_DOWN, self.OnPlcSpectraRawRightDown, id=IDPLOTSPEC)
 
 		self.titleBar = TitleBar(self, id=-1, text="Spectral Preprocessing", style=bp.BP_USE_GRADIENT, alignment=bp.BP_ALIGN_LEFT, canvasList=[self.plcSpectraRaw])
 
@@ -92,13 +89,18 @@ class plotSpectra(wx.Panel):
 
 		self.parent = parent
 
-	def OnPlcspectrarawRightDown(self, event):
-		event.Skip()
-
 	def Reset(self):
 		curve = wx.lib.plot.PolyLine([[0, 0], [1, 1]], colour="white", width=1, style=wx.TRANSPARENT)
 		curve = wx.lib.plot.PlotGraphics([curve], "Experimental Data", "Arbitrary", "Arbitrary")
 		self.plcSpectraRaw.Draw(curve)
+
+	def getFrame(self, frameParent):
+		self.frameParent = frameParent
+
+	def OnPlcSpectraRawRightDown(self, event):
+		pt = event.GetPosition()
+		self.titleBar.data["plotsel"] = self.plcSpectraRaw
+		self.frameParent.PopupMenu(self.frameParent.gridMenu, pt)
 
 
 class TitleBar(bp.ButtonPanel):

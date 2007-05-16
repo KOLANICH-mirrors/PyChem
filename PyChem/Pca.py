@@ -46,6 +46,32 @@ from .chemometrics import _index
 	wxID_WXEXPORTDIALOGWDPCAEXPORT,
 ] = [wx.NewIdRef() for _init_export_ctrls in range(11)]
 
+[
+	wxID_FRAME1,
+	wxID_FRAME1BTNAPPLY,
+	wxID_FRAME1CBGRID,
+	wxID_FRAME1SPNFONTSIZEAXES,
+	wxID_FRAME1SPNXMAX,
+	wxID_FRAME1SPNXMIN,
+	wxID_FRAME1SPNYMAX,
+	wxID_FRAME1SPNYMIN,
+	wxID_FRAME1STFONT,
+	wxID_FRAME1STTITLE,
+	wxID_FRAME1STXFROM,
+	wxID_FRAME1STXLABEL,
+	wxID_FRAME1STXTO,
+	wxID_FRAME1STYFROM,
+	wxID_FRAME1STYLABEL,
+	wxID_FRAME1STYTO,
+	wxID_FRAME1TXTTITLE,
+	wxID_FRAME1TXTXLABEL,
+	wxID_FRAME1TXTXMAX,
+	wxID_FRAME1TXTXMIN,
+	wxID_FRAME1TXTYLABEL,
+	wxID_FRAME1TXTYMAX,
+	wxID_FRAME1TXTYMIN,
+] = [wx.NewIdRef() for _init_plot_prop_ctrls in range(23)]
+
 
 def errorBox(window, error):
 	dlg = wx.MessageDialog(window, "".join(("The following error occured:\n\n", error)), "Error!", wx.OK | wx.ICON_ERROR)
@@ -240,6 +266,10 @@ class Pca(wx.Panel):
 		self._init_ctrls(parent)
 
 		self.parent = parent
+
+	def getFrame(self, frameParent):
+		##		  frameParent._init_utils()
+		self.frameParent = frameParent
 
 	def OnPlcPCeigsRightDown(self, event):
 		event.Skip()
@@ -636,3 +666,238 @@ class wxExportDialog(wx.Dialog):
 
 	def SaveHcluster(self, path, xdata, names, expid, clusters, linkdist):
 		Bio.Cluster.data.writeclusterfiles(join((path, "//Hcluster"), ""), scipy.transpose(xdata), self.CreateVarList(xdata.shape[1]), expid, mask=None, geneclusters=scipy.zeros((xdata.shape[1], 2), "l"), genelinkdist=scipy.zeros((xdata.shape[1],), "d"), expclusters=np.array(clusters, "l"), explinkdist=linkdist)
+
+
+class plotProperties(wx.Frame):
+	def _init_coll_gbsPlotProps_Items(self, parent):
+		# generated method, don't edit
+
+		parent.AddWindow(self.stTitle, (0, 0), border=0, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.txtTitle, (0, 1), border=0, flag=wx.EXPAND, span=(1, 5))
+		parent.AddWindow(self.stFont, (1, 0), border=0, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.spnFontSizeAxes, (1, 1), border=0, flag=wx.EXPAND, span=(1, 5))
+		parent.AddWindow(self.stXlabel, (2, 0), border=0, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.txtXlabel, (2, 1), border=0, flag=wx.EXPAND, span=(1, 5))
+		parent.AddWindow(self.stYlabel, (3, 0), border=0, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.txtYlabel, (3, 1), border=0, flag=wx.EXPAND, span=(1, 5))
+		parent.AddWindow(self.stXfrom, (4, 0), border=0, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.txtXmin, (4, 1), border=0, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.spnXmin, (4, 2), border=0, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.stXto, (4, 3), border=0, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.txtXmax, (4, 4), border=0, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.spnXmax, (4, 5), border=0, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.stYfrom, (5, 0), border=0, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.txtYmin, (5, 1), border=0, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.spnYmin, (5, 2), border=0, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.stYto, (5, 3), border=0, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.txtYmax, (5, 4), border=0, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.spnYmax, (5, 5), border=0, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.cbGrid, (6, 0), border=0, flag=wx.EXPAND, span=(1, 6))
+		parent.AddWindow(self.btnApply, (7, 0), border=0, flag=wx.EXPAND, span=(1, 6))
+
+	def _init_coll_gbsPlotProps_Growables(self, parent):
+		# generated method, don't edit
+
+		parent.AddGrowableCol(0)
+		parent.AddGrowableCol(1)
+		parent.AddGrowableCol(2)
+		parent.AddGrowableCol(3)
+		parent.AddGrowableCol(4)
+		parent.AddGrowableCol(5)
+
+	def _init_plot_prop_sizers(self):
+		# generated method, don't edit
+		self.gbsPlotProps = wx.GridBagSizer(hgap=4, vgap=10)
+		self.gbsPlotProps.SetCols(6)
+		self.gbsPlotProps.SetRows(6)
+		self.gbsPlotProps.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_SPECIFIED)
+		self.gbsPlotProps.SetMinSize(wx.Size(250, 439))
+		self.gbsPlotProps.SetEmptyCellSize(wx.Size(0, 0))
+		self.gbsPlotProps.SetFlexibleDirection(wx.HORIZONTAL)
+
+		self._init_coll_gbsPlotProps_Items(self.gbsPlotProps)
+		self._init_coll_gbsPlotProps_Growables(self.gbsPlotProps)
+
+		self.SetSizer(self.gbsPlotProps)
+
+	def _init_plot_prop_ctrls(self, prnt):
+		# generated method, don't edit
+		wx.Frame.__init__(self, id=-1, name="", parent=prnt, pos=wx.Point(0, 0), size=wx.Size(250, 466), style=wx.DEFAULT_FRAME_STYLE, title="Plot Properties")
+
+		self.stTitle = wx.StaticText(id=wxID_FRAME1STTITLE, label="Title", name="stTitle", parent=self, pos=wx.Point(0, 0), size=wx.Size(40, 24), style=0)
+		self.stTitle.SetToolTip("")
+
+		self.stYfrom = wx.StaticText(id=wxID_FRAME1STYFROM, label="Y-Axis From:", name="stYfrom", parent=self, pos=wx.Point(0, 131), size=wx.Size(40, 24), style=0)
+		self.stYfrom.SetToolTip("")
+
+		self.stYto = wx.StaticText(id=wxID_FRAME1STYTO, label="To:", name="stYto", parent=self, pos=wx.Point(144, 131), size=wx.Size(40, 24), style=0)
+		self.stYto.SetToolTip("")
+
+		self.stXfrom = wx.StaticText(id=wxID_FRAME1STXFROM, label="X-Axis From:", name="stXfrom", parent=self, pos=wx.Point(0, 103), size=wx.Size(40, 24), style=0)
+		self.stXfrom.SetToolTip("")
+
+		self.stXto = wx.StaticText(id=wxID_FRAME1STXTO, label="To:", name="stXto", parent=self, pos=wx.Point(144, 103), size=wx.Size(40, 24), style=0)
+		self.stXto.SetToolTip("")
+
+		self.stXlabel = wx.StaticText(id=wxID_FRAME1STXLABEL, label="X label", name="stXlabel", parent=self, pos=wx.Point(0, 53), size=wx.Size(40, 21), style=0)
+		self.stXlabel.SetToolTip("")
+
+		self.stYlabel = wx.StaticText(id=wxID_FRAME1STYLABEL, label="Y label", name="stYlabel", parent=self, pos=wx.Point(0, 78), size=wx.Size(40, 21), style=0)
+		self.stYlabel.SetToolTip("")
+
+		self.txtTitle = wx.TextCtrl(id=wxID_FRAME1TXTTITLE, name="txtTitle", parent=self, pos=wx.Point(15, 0), size=wx.Size(40, 24), style=0, value="")
+		self.txtTitle.SetToolTip("")
+
+		self.txtYlabel = wx.TextCtrl(id=wxID_FRAME1TXTYLABEL, name="txtYlabel", parent=self, pos=wx.Point(15, 78), size=wx.Size(40, 21), style=0, value="")
+		self.txtYlabel.SetToolTip("")
+
+		self.txtXlabel = wx.TextCtrl(id=wxID_FRAME1TXTXLABEL, name="txtXlabel", parent=self, pos=wx.Point(15, 53), size=wx.Size(40, 21), style=0, value="")
+		self.txtXlabel.SetToolTip("")
+
+		self.txtXmin = wx.TextCtrl(id=wxID_FRAME1TXTXMIN, name="txtXmin", parent=self, pos=wx.Point(15, 103), size=wx.Size(40, 24), style=0, value="")
+		self.txtXmin.SetToolTip("")
+
+		self.spnXmin = wx.SpinButton(id=wxID_FRAME1SPNXMIN, name="spnXmin", parent=self, pos=wx.Point(96, 103), size=wx.Size(15, 24), style=wx.SP_VERTICAL)
+		self.spnXmin.SetToolTip("")
+		self.spnXmin.Bind(wx.EVT_SPIN_DOWN, self.OnSpnXminSpinDown, id=wxID_FRAME1SPNXMIN)
+		self.spnXmin.Bind(wx.EVT_SPIN_UP, self.OnSpnXminSpinUp, id=wxID_FRAME1SPNXMIN)
+
+		self.spnXmax = wx.SpinButton(id=wxID_FRAME1SPNXMAX, name="spnXmax", parent=self, pos=wx.Point(240, 103), size=wx.Size(15, 24), style=wx.SP_VERTICAL)
+		self.spnXmax.SetToolTip("")
+		self.spnXmax.Bind(wx.EVT_SPIN_DOWN, self.OnSpnXmaxSpinDown, id=wxID_FRAME1SPNXMAX)
+		self.spnXmax.Bind(wx.EVT_SPIN_UP, self.OnSpnXmaxSpinUp, id=wxID_FRAME1SPNXMAX)
+
+		self.spnYmax = wx.SpinButton(id=wxID_FRAME1SPNYMAX, name="spnYmax", parent=self, pos=wx.Point(240, 131), size=wx.Size(15, 24), style=wx.SP_VERTICAL)
+		self.spnYmax.SetToolTip("")
+		self.spnYmax.Bind(wx.EVT_SPIN_DOWN, self.OnSpnYmaxSpinDown, id=wxID_FRAME1SPNYMAX)
+		self.spnYmax.Bind(wx.EVT_SPIN_UP, self.OnSpnYmaxSpinUp, id=wxID_FRAME1SPNYMAX)
+
+		self.spnYmin = wx.SpinButton(id=wxID_FRAME1SPNYMIN, name="spnYmin", parent=self, pos=wx.Point(96, 131), size=wx.Size(15, 24), style=wx.SP_VERTICAL)
+		self.spnYmin.SetToolTip("")
+		self.spnYmin.Bind(wx.EVT_SPIN_DOWN, self.OnSpnYminSpinDown, id=wxID_FRAME1SPNYMIN)
+		self.spnYmin.Bind(wx.EVT_SPIN_UP, self.OnSpnYminSpinUp, id=wxID_FRAME1SPNYMIN)
+
+		self.txtXmax = wx.TextCtrl(id=wxID_FRAME1TXTXMAX, name="txtXmax", parent=self, pos=wx.Point(192, 103), size=wx.Size(40, 24), style=0, value="")
+		self.txtXmax.SetToolTip("")
+
+		self.txtYmax = wx.TextCtrl(id=wxID_FRAME1TXTYMAX, name="txtYmax", parent=self, pos=wx.Point(192, 131), size=wx.Size(40, 24), style=0, value="")
+		self.txtYmax.SetToolTip("")
+
+		self.txtYmin = wx.TextCtrl(id=wxID_FRAME1TXTYMIN, name="txtYmin", parent=self, pos=wx.Point(15, 131), size=wx.Size(40, 24), style=0, value="")
+		self.txtYmin.SetToolTip("")
+
+		self.stFont = wx.StaticText(id=wxID_FRAME1STFONT, label="Font size axes and title (pt)", name="stFont", parent=self, pos=wx.Point(0, 28), size=wx.Size(40, 21), style=0)
+		self.stFont.SetToolTip("")
+
+		self.spnFontSizeAxes = wx.SpinCtrl(id=wxID_FRAME1SPNFONTSIZEAXES, initial=8, max=76, min=4, name="spnFontSizeAxes", parent=self, pos=wx.Point(15, 28), size=wx.Size(40, 21), style=wx.SP_ARROW_KEYS)
+		self.spnFontSizeAxes.SetToolTip("")
+		self.spnFontSizeAxes.SetValue(8)
+		self.spnFontSizeAxes.SetRange(4, 76)
+
+		self.cbGrid = wx.CheckBox(id=wxID_FRAME1CBGRID, label="Show grid", name="cbGrid", parent=self, pos=wx.Point(0, 159), size=wx.Size(50, 21), style=0)
+		self.cbGrid.SetValue(False)
+		self.cbGrid.SetToolTip("")
+		self.cbGrid.Bind(wx.EVT_CHECKBOX, self.OnCbGridCheckbox, id=wxID_FRAME1CBGRID)
+
+		self.btnApply = wx.Button(id=wxID_FRAME1BTNAPPLY, label="Apply", name="btnApply", parent=self, pos=wx.Point(0, 184), size=wx.Size(50, 28), style=0)
+
+		self._init_plot_prop_sizers()
+
+	def __init__(self, parent):  # , canvas, graph):
+		self._init_plot_prop_ctrls(parent)
+
+	##		  self.minXrange = canvas.GetXCurrentRange()[0]
+	##		  self.maxXrange = canvas.GetXCurrentRange()[1]
+	##		  self.minYrange = canvas.GetYCurrentRange()[0]
+	##		  self.maxYrange = canvas.GetYCurrentRange()[1]
+	##
+	##		  self.graph = graph[0]
+	##		  self.canvas = canvas
+	##
+	##		  self.txtXmin.SetEditable(1)
+	##		  self.txtXmax.SetEditable(1)
+	##		  self.txtYmin.SetEditable(1)
+	##		  self.txtYmax.SetEditable(1)
+	##
+	##		  self.Increment = (self.maxXrange - self.minXrange)/100
+	##
+	##		  self.txtXmin.SetValue('%.3f' %self.minXrange)
+	##		  self.txtXmax.SetValue('%.3f' %self.maxXrange)
+	##		  self.txtYmin.SetValue('%.3f' %self.minYrange)
+	##		  self.txtYmax.SetValue('%.3f' %self.maxYrange)
+	##
+	##		  try:
+	##			  self.txtTitle.SetValue(self.graph.getTitle())
+	##		  except: pass
+	##		  try:
+	##			  self.txtXlabel.SetValue(self.graph.getXLabel())
+	##		  except: pass
+	##		  try:
+	##			  self.txtYlabel.SetValue(self.graph.getYLabel())
+	##		  except: pass
+	##
+	##		  self.spnFontSizeAxes.SetValue(self.canvas.GetFontSizeAxis())
+
+	def OnBtnApplyButton(self, event):
+		self.ButtonPress = 1
+		self.canvas.fontSizeAxis = self.spnFontSizeAxes.GetValue()
+		self.canvas.fontSizeTitle = self.spnFontSizeAxes.GetValue()
+		self.graph.setTitle(self.txtTitle.GetValue())
+		self.graph.setXLabel(self.txtXlabel.GetValue())
+		self.graph.setYLabel(self.txtYlabel.GetValue())
+		if (float(self.txtXmin.GetValue()) < float(self.txtXmax.GetValue())) and (float(self.txtYmin.GetValue()) < float(self.txtYmax.GetValue())) is True:
+			self.graph = [self.graph, (float(self.txtXmin.GetValue()), float(self.txtXmax.GetValue())), (float(self.txtYmin.GetValue()), float(self.txtYmax.GetValue()))]
+		self.Close()
+
+	def GetNewPlotParams(self):
+		return self.graph
+
+	def OnBtnCancelButton(self, event):
+		self.ButtonPress = 0
+		self.Close()
+
+	def GetButtonPress(self):
+		return self.ButtonPress
+
+	def OnSpnXminSpinUp(self, event):
+		curr = float(self.txtXmin.GetValue())
+		curr = curr + self.Increment
+		self.txtXmin.SetValue("%.3f" % curr)
+
+	def OnSpnXminSpinDown(self, event):
+		curr = float(self.txtXmin.GetValue())
+		curr = curr - self.Increment
+		self.txtXmin.SetValue("%.3f" % curr)
+
+	def OnSpnXmaxSpinUp(self, event):
+		curr = float(self.txtXmax.GetValue())
+		curr = curr + self.Increment
+		self.txtXmax.SetValue("%.3f" % curr)
+
+	def OnSpnXmaxSpinDown(self, event):
+		curr = float(self.txtXmax.GetValue())
+		curr = curr - self.Increment
+		self.txtXmax.SetValue("%.3f" % curr)
+
+	def OnSpnYmaxSpinUp(self, event):
+		curr = float(self.txtYmax.GetValue())
+		curr = curr + self.Increment
+		self.txtYmax.SetValue("%.3f" % curr)
+
+	def OnSpnYmaxSpinDown(self, event):
+		curr = float(self.txtYmax.GetValue())
+		curr = curr - self.Increment
+		self.txtYmax.SetValue("%.3f" % curr)
+
+	def OnSpnYminSpinUp(self, event):
+		curr = float(self.txtYmin.GetValue())
+		curr = curr + self.Increment
+		self.txtYmin.SetValue("%.3f" % curr)
+
+	def OnSpnYminSpinDown(self, event):
+		curr = float(self.txtYmin.GetValue())
+		curr = curr - self.Increment
+		self.txtYmin.SetValue("%.3f" % curr)
+
+	def OnCbGridCheckbox(self, event):
+		event.Skip()

@@ -158,6 +158,9 @@ class Dfa(wx.Panel):
 	def __init__(self, parent, id, pos, size, style, name):
 		self._init_ctrls(parent)
 
+	def getFrame(self, frameParent):
+		self.frameParent = frameParent
+
 	def OnPlcDFAscoresRightDown(self, event):
 		event.Skip()
 

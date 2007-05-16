@@ -12,6 +12,7 @@ from wx.lib.anchors import LayoutAnchors
 
 from . import chemometrics
 from .chemometrics import _index
+from .Pca import plotProperties
 
 [
 	wxID_CLUSTER,
@@ -121,8 +122,7 @@ class Cluster(wx.Panel):
 		self.plcCluster.xSpec = "none"
 		self.plcCluster.ySpec = "none"
 		self.plcCluster.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Small Fonts"))
-		##		  self.plcCluster.Bind(wx.EVT_RIGHT_DOWN, self.OnPlcClusterRightDown,
-		##				id=-1)
+		self.plcCluster.Bind(wx.EVT_RIGHT_DOWN, self.OnPlcClusterRightDown, id=-1)
 
 		self.txtCluster = wx.TextCtrl(id=-1, name="tcCluster", parent=self, pos=wx.Point(248, 0), size=wx.Size(1730, 1225), style=wx.TE_DONTWRAP | wx.HSCROLL | wx.TE_READONLY | wx.TE_MULTILINE | wx.VSCROLL, value="")
 		self.txtCluster.SetToolTip("")
@@ -143,6 +143,14 @@ class Cluster(wx.Panel):
 		self.plcCluster.Draw(curve)
 
 		self.txtCluster.SetValue("")
+
+	def getFrame(self, frameParent):
+		self.frameParent = frameParent
+
+	def OnPlcClusterRightDown(self, event):
+		pt = event.GetPosition()
+		self.titleBar.data["plotsel"] = self.plcCluster
+		self.frameParent.PopupMenu(self.frameParent.plotMenu, pt)
 
 
 class TitleBar(bp.ButtonPanel):
@@ -172,7 +180,8 @@ class TitleBar(bp.ButtonPanel):
 
 		self.CreateButtons()
 
-		self.dlg = selFun(self)
+		##		  self.dlg = selFun(self)
+		self.dlg = plotProperties(self)
 
 		self.parent = parent
 
@@ -737,12 +746,6 @@ class selFun(wx.Frame):
 		self.cbUseClass.SetToolTip("")
 		self.cbUseClass.Bind(wx.EVT_CHECKBOX, self.OnCbUseClassCheckbox, id=-1)
 
-		##		  self.stNoPass = wx.StaticText(id=-1, label='Repeats', name='stNoPass',
-		##				parent=self, pos=wx.Point(144, 448), size=wx.Size(40, 21),
-		##				style=0)
-		##		  self.stNoPass.SetToolTip('')
-		##		  self.stNoPass.Enable(False)
-
 		self.spnNoPass = wx.SpinCtrl(id=-1, initial=1, max=1000, min=1, name="spnNoPass", parent=self, pos=wx.Point(200, 444), size=wx.Size(80, 23), style=wx.SP_ARROW_KEYS)
 		self.spnNoPass.SetValue(1)
 		self.spnNoPass.SetToolTip("")
@@ -758,14 +761,6 @@ class selFun(wx.Frame):
 		self.rbPlotColours.SetValue(False)
 		self.rbPlotColours.SetBackgroundColour(wx.Colour(167, 167, 243))
 		self.rbPlotColours.SetToolTip("")
-
-		##		  self.staticBox1 = wx.StaticBox(id=wxID_SELFUNSTATICBOX1, label='Method',
-		##				name='staticBox1', parent=self, pos=wx.Point(8, 0),
-		##				size=wx.Size(272, 176), style=0)
-		##
-		##		  self.staticBox2 = wx.StaticBox(id=wxID_SELFUNSTATICBOX2,
-		##				label='Distance Measure', name='staticBox2', parent=self,
-		##				pos=wx.Point(8, 184), size=wx.Size(272, 248), style=0)
 
 		self._init_selparam_sizers()
 

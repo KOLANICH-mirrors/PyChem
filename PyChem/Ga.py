@@ -211,6 +211,10 @@ class Ga(wx.Panel):
 		for each in list(objects.keys()):
 			exec("self." + each + ".Draw(wx.lib.plot.PlotGraphics([curve]," + 'objects["' + each + '"][0],' + 'objects["' + each + '"][1],' + 'objects["' + each + '"][2]))')
 
+	def getFrame(self, frameParent):
+		##		  frameParent._init_utils()
+		self.frameParent = frameParent
+
 
 class TitleBar(bp.ButtonPanel):
 	def _init_btnpanel_ctrls(self, prnt):

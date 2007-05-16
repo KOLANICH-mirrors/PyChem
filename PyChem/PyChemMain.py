@@ -100,6 +100,12 @@ def create(parent):
 	MNUGRIDRENAMECOL,
 ] = [wx.NewIdRef() for _init_grid_menu_Items in range(4)]
 
+[
+	MNUPLOTCOPY,
+	MNUPLOTPRINT,
+	MNUPLOTPROPERTIES,
+] = [wx.NewIdRef() for _init_plot_menu_Items in range(3)]
+
 
 def errorBox(window, error):
 	dlg = wx.MessageDialog(window, "".join(("The following error occured:\n\n", error)), "Error!", wx.OK | wx.ICON_ERROR)
@@ -238,6 +244,15 @@ class PyChemMain(wx.Frame):
 		self.Bind(wx.EVT_MENU, self.OnMnuGridRenameColumn, id=MNUGRIDRENAMECOL)
 		self.Bind(wx.EVT_MENU, self.OnMnuGridDeleteColumn, id=MNUGRIDDELETECOL)
 
+	def _init_plot_menu_Items(self, parent):
+
+		parent.Append(help="", id=MNUPLOTCOPY, kind=wx.ITEM_NORMAL, text="Copy")
+		parent.Append(help="", id=MNUPLOTPRINT, kind=wx.ITEM_NORMAL, text="Print")
+		parent.Append(help="", id=MNUPLOTPROPERTIES, kind=wx.ITEM_NORMAL, text="Properties")
+		self.Bind(wx.EVT_MENU, self.OnMnuPlotCopy, id=MNUPLOTCOPY)
+		self.Bind(wx.EVT_MENU, self.OnMnuPlotPrint, id=MNUPLOTPRINT)
+		self.Bind(wx.EVT_MENU, self.OnMnuPlotProperties, id=MNUPLOTPROPERTIES)
+
 	def _init_utils(self):
 		# generated method, don't edit
 		self.mnuMain = wx.MenuBar()
@@ -250,11 +265,14 @@ class PyChemMain(wx.Frame):
 
 		self.gridMenu = wx.Menu(title="")
 
+		self.plotMenu = wx.Menu(title="")
+
 		self._init_coll_mnuMain_Menus(self.mnuMain)
 		self._init_coll_mnuFile_Items(self.mnuFile)
 		self._init_coll_mnuTools_Items(self.mnuTools)
 		self._init_coll_mnuHelp_Items(self.mnuHelp)
 		self._init_grid_menu_Items(self.gridMenu)
+		self._init_plot_menu_Items(self.plotMenu)
 
 	def _init_ctrls(self, prnt):
 		# generated method, don't edit
@@ -279,28 +297,35 @@ class PyChemMain(wx.Frame):
 		self.SetStatusBar(self.sbMain)
 
 		self.plExpset = expSetup.expSetup(id=wxID_PYCHEMMAINPLEXPSET, name="plExpset", parent=self.nbMain, pos=wx.Point(0, 0), size=wx.Size(1008, 635), style=wx.TAB_TRAVERSAL)
-		self.plExpset.SetToolTip("")
 		self.plExpset.getFrame(self)
+		self.plExpset.SetToolTip("")
 
 		self.plPreproc = plotSpectra.plotSpectra(id=wxID_PYCHEMMAINPLPREPROC, name="plPreproc", parent=self.nbMain, pos=wx.Point(0, 0), size=wx.Size(1008, 635), style=wx.TAB_TRAVERSAL)
+		self.plPreproc.getFrame(self)
 		self.plPreproc.SetToolTip("")
 
 		self.plPca = Pca.Pca(id=wxID_PYCHEMMAINPLPCA, name="plPca", parent=self.nbMain, pos=wx.Point(0, 0), size=wx.Size(1008, 635), style=wx.TAB_TRAVERSAL)
+		self.plPca.getFrame(self)
 		self.plPca.SetToolTip("")
 
 		self.plCluster = Cluster.Cluster(id=wxID_PYCHEMMAINPLCLUSTER, name="plCluster", parent=self.nbMain, pos=wx.Point(0, 0), size=wx.Size(1008, 635), style=wx.TAB_TRAVERSAL)
+		self.plCluster.getFrame(self)
 		self.plCluster.SetToolTip("")
 
 		self.plDfa = Dfa.Dfa(id=wxID_PYCHEMMAINPLDFA, name="plDfa", parent=self.nbMain, pos=wx.Point(0, 0), size=wx.Size(1008, 635), style=wx.TAB_TRAVERSAL)
+		self.plDfa.getFrame(self)
 		self.plDfa.SetToolTip("")
 
 		self.plPls = Plsr.Plsr(id=wxID_PYCHEMMAINPLPLS, name="plPls", parent=self.nbMain, pos=wx.Point(0, 0), size=wx.Size(1008, 635), style=wx.TAB_TRAVERSAL)
+		self.plPls.getFrame(self)
 		self.plPls.SetToolTip("")
 
 		self.plGadfa = Ga.Ga(id=wxID_PYCHEMMAINPLGADFA, name="plGadfa", parent=self.nbMain, pos=wx.Point(0, 0), size=wx.Size(1008, 635), style=wx.TAB_TRAVERSAL, type="DFA")
+		self.plGadfa.getFrame(self)
 		self.plGadfa.SetToolTip("")
 
 		self.plGapls = Ga.Ga(id=wxID_PYCHEMMAINPLGAPLSC, name="plGaplsc", parent=self.nbMain, pos=wx.Point(0, 0), size=wx.Size(1008, 635), style=wx.TAB_TRAVERSAL, type="PLS")
+		self.plGapls.getFrame(self)
 		self.plGapls.SetToolTip("")
 
 		self._init_coll_nbMain_Pages(self.nbMain)
@@ -574,8 +599,17 @@ class PyChemMain(wx.Frame):
 		wx.TheClipboard.SetData(wx.TextDataObject(Data))
 		wx.TheClipboard.Close()
 
+	def OnMnuPlotCopy(self, event):
+		event.Skip()
+
+	def OnMnuPlotPrint(self, event):
+		event.Skip()
+
+	def OnMnuPlotProperties(self, event):
+		event.Skip()
+
 	def Reset(self, case=0):
-		varList = "'proc':None,'class':None,'label':None," + "'split':None,'processlist':[],'xaxis':None," + "'class':None,'label':None,'validation':None," + "'pcscores':None,'pcloads':None,'pcpervar':None," + "'pceigs':None,'pcadata':None,'niporsvd':None," + "'indlabels':None,'plsloads':None,'pcatype':None," + "'dfscores':None,'dfloads':None,'dfeigs':None," + "'sampleidx':None,'variableidx':None," + "'rawtrunc':None,'proctrunc':None," + "'gadfachroms':None,'gadfascores':None," + "'gadfacurves':None,'gaplschroms':None," + "'gaplsscores':None,'gaplscurves':None," + "'gadfadfscores':None,'gadfadfloads':None," + "'gaplsplsloads':None,'gridsel':None"
+		varList = "'proc':None,'class':None,'label':None," + "'split':None,'processlist':[],'xaxis':None," + "'class':None,'label':None,'validation':None," + "'pcscores':None,'pcloads':None,'pcpervar':None," + "'pceigs':None,'pcadata':None,'niporsvd':None," + "'indlabels':None,'plsloads':None,'pcatype':None," + "'dfscores':None,'dfloads':None,'dfeigs':None," + "'sampleidx':None,'variableidx':None," + "'rawtrunc':None,'proctrunc':None," + "'gadfachroms':None,'gadfascores':None," + "'gadfacurves':None,'gaplschroms':None," + "'gaplsscores':None,'gaplscurves':None," + "'gadfadfscores':None,'gadfadfloads':None," + "'gaplsplsloads':None,'gridsel':None,'plotsel':None"
 
 		if case == 0:
 			exec('self.data = {"raw":None,"exppath":None,' + varList + "}")
@@ -583,6 +617,7 @@ class PyChemMain(wx.Frame):
 			exec('self.data = {"raw":self.data["raw"],"exppath":self.data["exppath"],' + varList + "}")
 
 		# for returning application to default settings
+		self.plPreproc.Reset()
 		self.plExpset.Reset()
 		self.plPca.Reset()
 		self.plDfa.Reset()

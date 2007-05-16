@@ -217,6 +217,10 @@ class Plsr(wx.Panel):
 	def __init__(self, parent, id, pos, size, style, name):
 		self._init_ctrls(parent)
 
+	def getFrame(self, frameParent):
+		##		  frameParent._init_utils()
+		self.frameParent = frameParent
+
 	def OnPlcPLSerrorRightDown(self, event):
 		event.Skip()
 
