@@ -68,9 +68,9 @@ def GetXaxis(From, To, Bins, Grid):
 def ResizeGrids(grid, rows, cols, type=None):
 	grid.ClearGrid()
 
-	if grid.GetNumberCols() > cols + 1:
+	if grid.GetNumberCols() - 1 > cols + 1:
 		grid.DeleteCols(cols + 1, grid.GetNumberCols())
-	elif grid.GetNumberCols() < cols + 1:
+	elif grid.GetNumberCols() - 1 < cols + 1:
 		grid.AppendCols(cols + 1 - grid.GetNumberCols())
 
 	if grid.GetNumberRows() > rows + 1:

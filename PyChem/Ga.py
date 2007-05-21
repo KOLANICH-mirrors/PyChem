@@ -12,7 +12,7 @@ from wx.lib.anchors import LayoutAnchors
 
 from . import chemometrics, fitfun, genetic, process
 from .chemometrics import _index
-from .Pca import plotLine, plotStem, plotText, wxExportDialog
+from .Pca import MyPlotCanvas, plotLine, plotStem, plotText, wxExportDialog
 from .Plsr import PlotPlsModel
 
 
@@ -72,7 +72,7 @@ class Ga(wx.Panel):
 		self.SetToolTip("")
 		self.SetAutoLayout(True)
 
-		self.plcGaPlot = wx.lib.plot.PlotCanvas(id=-1, name="plcGaPlot", parent=self, pos=wx.Point(0, 0), size=wx.Size(310, 272), style=0)
+		self.plcGaPlot = MyPlotCanvas(id=-1, name="plcGaPlot", parent=self, pos=wx.Point(0, 0), size=wx.Size(310, 272), style=0)
 		self.plcGaPlot.enableZoom = True
 		self.plcGaPlot.fontSizeAxis = 8
 		self.plcGaPlot.fontSizeLegend = 8
@@ -81,8 +81,6 @@ class Ga(wx.Panel):
 		self.plcGaPlot.SetAutoLayout(True)
 		self.plcGaPlot.SetConstraints(LayoutAnchors(self.plcGaPlot, True, True, True, True))
 		self.plcGaPlot.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
-		##		  self.plcGaPlot.Bind(wx.EVT_RIGHT_DOWN, self.OnPlcGaplotRightDown,
-		##				id=-1)
 
 		self.nbGaModPlot = wx.Notebook(id=-1, name="nbGaModPlot", parent=self, pos=wx.Point(760, 326), size=wx.Size(310, 272), style=wx.NB_BOTTOM)
 		self.nbGaModPlot.SetBackgroundColour(wx.Colour(233, 236, 236))
@@ -90,7 +88,7 @@ class Ga(wx.Panel):
 		self.nbGaModPlot.SetAutoLayout(True)
 		self.nbGaModPlot.SetConstraints(LayoutAnchors(self.nbGaModPlot, True, True, True, True))
 
-		self.plcGaEigs = wx.lib.plot.PlotCanvas(id=-1, name="plcGaEigs", parent=self.nbGaModPlot, pos=wx.Point(0, 0), size=wx.Size(310, 272), style=0)
+		self.plcGaEigs = MyPlotCanvas(id=-1, name="plcGaEigs", parent=self.nbGaModPlot, pos=wx.Point(0, 0), size=wx.Size(310, 272), style=0)
 		self.plcGaEigs.enableZoom = True
 		self.plcGaEigs.fontSizeAxis = 8
 		self.plcGaEigs.fontSizeLegend = 8
@@ -99,10 +97,8 @@ class Ga(wx.Panel):
 		self.plcGaEigs.SetAutoLayout(True)
 		self.plcGaEigs.SetConstraints(LayoutAnchors(self.plcGaEigs, True, True, True, True))
 		self.plcGaEigs.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
-		##		  self.plcGaEigs.Bind(wx.EVT_RIGHT_DOWN, self.OnPlcdfaeigsRightDown,
-		##				id=-1)
 
-		self.plcGaSpecLoad = wx.lib.plot.PlotCanvas(id=-1, name="plcGaSpecLoad", parent=self.nbGaModPlot, pos=wx.Point(0, 24), size=wx.Size(503, 279), style=0)
+		self.plcGaSpecLoad = MyPlotCanvas(id=-1, name="plcGaSpecLoad", parent=self.nbGaModPlot, pos=wx.Point(0, 24), size=wx.Size(503, 279), style=0)
 		self.plcGaSpecLoad.SetToolTip("")
 		self.plcGaSpecLoad.enableZoom = True
 		self.plcGaSpecLoad.fontSizeAxis = 8
@@ -111,11 +107,8 @@ class Ga(wx.Panel):
 		self.plcGaSpecLoad.SetAutoLayout(True)
 		self.plcGaSpecLoad.SetConstraints(LayoutAnchors(self.plcGaSpecLoad, True, True, True, True))
 		self.plcGaSpecLoad.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
-		##		  self.plcGaSpecLoad.Bind(wx.EVT_RIGHT_DOWN,
-		##				self.OnPlcGaSpecLoadRightDown,
-		##				id=-1)
 
-		self.plcGaFreqPlot = wx.lib.plot.PlotCanvas(id=-1, name="plcGaFreqPlot", parent=self, pos=wx.Point(760, 0), size=wx.Size(310, 272), style=0)
+		self.plcGaFreqPlot = MyPlotCanvas(id=-1, name="plcGaFreqPlot", parent=self, pos=wx.Point(760, 0), size=wx.Size(310, 272), style=0)
 		self.plcGaFreqPlot.enableZoom = True
 		self.plcGaFreqPlot.fontSizeAxis = 8
 		self.plcGaFreqPlot.fontSizeLegend = 8
@@ -124,11 +117,8 @@ class Ga(wx.Panel):
 		self.plcGaFreqPlot.SetAutoLayout(True)
 		self.plcGaFreqPlot.SetConstraints(LayoutAnchors(self.plcGaFreqPlot, True, True, True, True))
 		self.plcGaFreqPlot.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
-		##		  self.plcGaFreqPlot.Bind(wx.EVT_RIGHT_DOWN,
-		##				self.OnPlcdfafreqplotRightDown,
-		##				id=-1)
 
-		self.plcGaFeatPlot = wx.lib.plot.PlotCanvas(id=-1, name="plcGaFeatPlot", parent=self, pos=wx.Point(0, 24), size=wx.Size(310, 272), style=0)
+		self.plcGaFeatPlot = MyPlotCanvas(id=-1, name="plcGaFeatPlot", parent=self, pos=wx.Point(0, 24), size=wx.Size(310, 272), style=0)
 		self.plcGaFeatPlot.SetToolTip("")
 		self.plcGaFeatPlot.enableZoom = True
 		self.plcGaFeatPlot.fontSizeAxis = 8
@@ -137,11 +127,8 @@ class Ga(wx.Panel):
 		self.plcGaFeatPlot.SetAutoLayout(True)
 		self.plcGaFeatPlot.SetConstraints(LayoutAnchors(self.plcGaFeatPlot, True, True, True, True))
 		self.plcGaFeatPlot.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
-		##		  self.plcGaFeatPlot.Bind(wx.EVT_RIGHT_DOWN,
-		##				self.OnPlcGaFeatPlotRightDown,
-		##				id=-1)
 
-		self.plcGaGrpDistPlot = wx.lib.plot.PlotCanvas(id=-1, name="plcGaGrpDistPlot", parent=self.nbGaModPlot, pos=wx.Point(0, 0), size=wx.Size(310, 272), style=0)
+		self.plcGaGrpDistPlot = MyPlotCanvas(id=-1, name="plcGaGrpDistPlot", parent=self.nbGaModPlot, pos=wx.Point(0, 0), size=wx.Size(310, 272), style=0)
 		self.plcGaGrpDistPlot.enableLegend = True
 		self.plcGaGrpDistPlot.enableZoom = True
 		self.plcGaGrpDistPlot.fontSizeAxis = 8
@@ -151,25 +138,8 @@ class Ga(wx.Panel):
 		self.plcGaGrpDistPlot.SetAutoLayout(True)
 		self.plcGaGrpDistPlot.SetConstraints(LayoutAnchors(self.plcGaGrpDistPlot, True, True, True, True))
 		self.plcGaGrpDistPlot.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
-		##		  self.plcGaGrpDistPlot.Bind(wx.EVT_RIGHT_DOWN,
-		##				self.OnPlcdfagrpdistplotRightDown,
-		##				id=-1)
 
-		##		  self.plcGaLoads = wx.lib.plot.PlotCanvas(id=-1,
-		##				name='plcGaLoads', parent=self.nbGaModPlot, pos=wx.Point(0, 24),
-		##				size=wx.Size(511, 305), style=0)
-		##		  self.plcGaLoads.enableLegend = (False)
-		##		  self.plcGaLoads.enableZoom = (True)
-		##		  self.plcGaLoads.fontSizeAxis = (8)
-		##		  self.plcGaLoads.fontSizeLegend = (8)
-		##		  self.plcGaLoads.fontSizeTitle = (10)
-		##		  self.plcGaLoads.SetToolTip('')
-		##		  self.plcGaLoads.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False,
-		##				'Microsoft Sans Serif'))
-		##		  self.plcGaLoads.Bind(wx.EVT_RIGHT_DOWN, self.OnplcGaSpecLoadRightDown,
-		##				id=-1)
-
-		self.plcGaOptPlot = wx.lib.plot.PlotCanvas(id=-1, name="plcGaOptPlot", parent=self.nbGaModPlot, pos=wx.Point(0, 0), size=wx.Size(310, 272), style=0)
+		self.plcGaOptPlot = MyPlotCanvas(id=-1, name="plcGaOptPlot", parent=self.nbGaModPlot, pos=wx.Point(0, 0), size=wx.Size(310, 272), style=0)
 		self.plcGaOptPlot.enableLegend = False
 		self.plcGaOptPlot.enableZoom = True
 		self.plcGaOptPlot.fontSizeAxis = 8
@@ -179,9 +149,6 @@ class Ga(wx.Panel):
 		self.plcGaOptPlot.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 		self.plcGaOptPlot.SetAutoLayout(True)
 		self.plcGaOptPlot.SetConstraints(LayoutAnchors(self.plcGaOptPlot, True, True, True, True))
-		##		  self.plcGaOptPlot.Bind(wx.EVT_RIGHT_DOWN,
-		##				self.OnPlcdfaoptplotRightDown,
-		##				id=-1)
 
 		self.titleBar = TitleBar(self, id=-1, text="", style=bp.BP_USE_GRADIENT, alignment=bp.BP_ALIGN_LEFT, gatype=self.type)
 
@@ -210,10 +177,6 @@ class Ga(wx.Panel):
 
 		for each in list(objects.keys()):
 			exec("self." + each + ".Draw(wx.lib.plot.PlotGraphics([curve]," + 'objects["' + each + '"][0],' + 'objects["' + each + '"][1],' + 'objects["' + each + '"][2]))')
-
-	def getFrame(self, frameParent):
-		##		  frameParent._init_utils()
-		self.frameParent = frameParent
 
 
 class TitleBar(bp.ButtonPanel):

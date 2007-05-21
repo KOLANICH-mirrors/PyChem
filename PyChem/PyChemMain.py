@@ -7,12 +7,14 @@ import cElementTree as ET
 import scipy
 import wx
 import wx.adv
+import wx.lib.filebrowsebutton
 from scipy import newaxis as nA
 from wx.lib.anchors import LayoutAnchors
 
 from . import Cluster, Dfa, Ga, Pca, Plsr, expSetup, plotSpectra
 from .chemometrics import _index
 from .utils import getByPath
+from .utils.io import str_array
 
 
 def create(parent):
@@ -69,28 +71,12 @@ def create(parent):
 ] = [wx.NewIdRef() for _init_importconfirm_ctrls in range(9)]
 
 [
-	wxID_WXIMPORTDIALOG,
-	wxID_WXIMPORTDIALOGBTNBROWSEARRAY,
-	wxID_WXIMPORTDIALOGBTNCANCEL,
-	wxID_WXIMPORTDIALOGBTNOK,
-	wxID_WXIMPORTDIALOGCBCOMMADELIM,
-	wxID_WXIMPORTDIALOGCBOTHER,
-	wxID_WXIMPORTDIALOGCBSEMIDELIM,
-	wxID_WXIMPORTDIALOGCBSPACEDELIM,
-	wxID_WXIMPORTDIALOGCBTABDELIM,
-	wxID_WXIMPORTDIALOGCBTRANSPOSE,
-	wxID_WXIMPORTDIALOGSTARRAY,
-	wxID_WXIMPORTDIALOGSWLOADX,
-	wxID_WXIMPORTDIALOGTXTOTHER,
-] = [wx.NewIdRef() for _init_import_ctrls in range(13)]
-
-[
-	wxID_WXSAVEWORKSPACEDIALOG,
-	wxID_WXSAVEWORKSPACEDIALOGBTNCANCEL,
-	wxID_WXSAVEWORKSPACEDIALOGBTNDELETE,
-	wxID_WXSAVEWORKSPACEDIALOGBTNEDIT,
-	wxID_WXSAVEWORKSPACEDIALOGBTNOK,
-	wxID_WXSAVEWORKSPACEDIALOGLBSAVEWORKSPACE,
+	wxID_WXWORKSPACEDIALOG,
+	wxID_WXWORKSPACEDIALOGBTNCANCEL,
+	wxID_WXWORKSPACEDIALOGBTNDELETE,
+	wxID_WXWORKSPACEDIALOGBTNEDIT,
+	wxID_WXWORKSPACEDIALOGBTNOK,
+	wxID_WXWORKSPACEDIALOGLBSAVEWORKSPACE,
 ] = [wx.NewIdRef() for _init_savews_ctrls in range(6)]
 
 [
@@ -113,47 +99,6 @@ def errorBox(window, error):
 		dlg.ShowModal()
 	finally:
 		dlg.Destroy()
-
-
-def load(filename, delim="\t"):
-	"""for importing delimited ASCII files"""
-	f = file(filename, "r")
-	lines = f.readlines()
-	f.close()
-	c = 0
-	lineOut = []
-	for row in lines:
-		myline = []
-		splitrow = row.strip().split("\n")
-		splitrow = splitrow[0].strip().split("\r")
-		splitrow = splitrow[0].strip().split(delim)
-
-		for item in splitrow:
-			try:
-				myline.append(float(item))
-			except:
-				continue
-
-		if myline != []:
-			lineOut.append(np.array(myline))
-
-	return np.array(lineOut)
-
-
-def save(myarray, filename):
-	"""Export array to a tab delimited file"""
-	size = myarray.shape
-	f = file(filename, "w")
-	for line in myarray:
-		c = 0
-		for item in line:
-			if c == size[1] - 1:
-				f.write(repr(item))
-			else:
-				f.write(repr(item) + "\t")
-				c = c + 1
-	f.write("\n")
-	f.close()
 
 
 class PyChemMain(wx.Frame):
@@ -244,15 +189,6 @@ class PyChemMain(wx.Frame):
 		self.Bind(wx.EVT_MENU, self.OnMnuGridRenameColumn, id=MNUGRIDRENAMECOL)
 		self.Bind(wx.EVT_MENU, self.OnMnuGridDeleteColumn, id=MNUGRIDDELETECOL)
 
-	def _init_plot_menu_Items(self, parent):
-
-		parent.Append(help="", id=MNUPLOTCOPY, kind=wx.ITEM_NORMAL, text="Copy")
-		parent.Append(help="", id=MNUPLOTPRINT, kind=wx.ITEM_NORMAL, text="Print")
-		parent.Append(help="", id=MNUPLOTPROPERTIES, kind=wx.ITEM_NORMAL, text="Properties")
-		self.Bind(wx.EVT_MENU, self.OnMnuPlotCopy, id=MNUPLOTCOPY)
-		self.Bind(wx.EVT_MENU, self.OnMnuPlotPrint, id=MNUPLOTPRINT)
-		self.Bind(wx.EVT_MENU, self.OnMnuPlotProperties, id=MNUPLOTPROPERTIES)
-
 	def _init_utils(self):
 		# generated method, don't edit
 		self.mnuMain = wx.MenuBar()
@@ -265,18 +201,15 @@ class PyChemMain(wx.Frame):
 
 		self.gridMenu = wx.Menu(title="")
 
-		self.plotMenu = wx.Menu(title="")
-
 		self._init_coll_mnuMain_Menus(self.mnuMain)
 		self._init_coll_mnuFile_Items(self.mnuFile)
 		self._init_coll_mnuTools_Items(self.mnuTools)
 		self._init_coll_mnuHelp_Items(self.mnuHelp)
 		self._init_grid_menu_Items(self.gridMenu)
-		self._init_plot_menu_Items(self.plotMenu)
 
 	def _init_ctrls(self, prnt):
 		# generated method, don't edit
-		wx.Frame.__init__(self, id=wxID_PYCHEMMAIN, name="PyChemMain", parent=prnt, pos=wx.Point(0, 0), size=wx.Size(1024, 738), style=wx.DEFAULT_FRAME_STYLE, title="PyChem 3.0.0")
+		wx.Frame.__init__(self, id=wxID_PYCHEMMAIN, name="PyChemMain", parent=prnt, pos=wx.Point(0, 0), size=wx.Size(1024, 738), style=wx.DEFAULT_FRAME_STYLE, title="PyChem 3.0.0 Beta")
 		self._init_utils()
 		self.SetClientSize(wx.Size(1016, 704))
 		self.SetToolTip("")
@@ -301,31 +234,24 @@ class PyChemMain(wx.Frame):
 		self.plExpset.SetToolTip("")
 
 		self.plPreproc = plotSpectra.plotSpectra(id=wxID_PYCHEMMAINPLPREPROC, name="plPreproc", parent=self.nbMain, pos=wx.Point(0, 0), size=wx.Size(1008, 635), style=wx.TAB_TRAVERSAL)
-		self.plPreproc.getFrame(self)
 		self.plPreproc.SetToolTip("")
 
 		self.plPca = Pca.Pca(id=wxID_PYCHEMMAINPLPCA, name="plPca", parent=self.nbMain, pos=wx.Point(0, 0), size=wx.Size(1008, 635), style=wx.TAB_TRAVERSAL)
-		self.plPca.getFrame(self)
 		self.plPca.SetToolTip("")
 
 		self.plCluster = Cluster.Cluster(id=wxID_PYCHEMMAINPLCLUSTER, name="plCluster", parent=self.nbMain, pos=wx.Point(0, 0), size=wx.Size(1008, 635), style=wx.TAB_TRAVERSAL)
-		self.plCluster.getFrame(self)
 		self.plCluster.SetToolTip("")
 
 		self.plDfa = Dfa.Dfa(id=wxID_PYCHEMMAINPLDFA, name="plDfa", parent=self.nbMain, pos=wx.Point(0, 0), size=wx.Size(1008, 635), style=wx.TAB_TRAVERSAL)
-		self.plDfa.getFrame(self)
 		self.plDfa.SetToolTip("")
 
 		self.plPls = Plsr.Plsr(id=wxID_PYCHEMMAINPLPLS, name="plPls", parent=self.nbMain, pos=wx.Point(0, 0), size=wx.Size(1008, 635), style=wx.TAB_TRAVERSAL)
-		self.plPls.getFrame(self)
 		self.plPls.SetToolTip("")
 
 		self.plGadfa = Ga.Ga(id=wxID_PYCHEMMAINPLGADFA, name="plGadfa", parent=self.nbMain, pos=wx.Point(0, 0), size=wx.Size(1008, 635), style=wx.TAB_TRAVERSAL, type="DFA")
-		self.plGadfa.getFrame(self)
 		self.plGadfa.SetToolTip("")
 
 		self.plGapls = Ga.Ga(id=wxID_PYCHEMMAINPLGAPLSC, name="plGaplsc", parent=self.nbMain, pos=wx.Point(0, 0), size=wx.Size(1008, 635), style=wx.TAB_TRAVERSAL, type="PLS")
-		self.plGapls.getFrame(self)
 		self.plGapls.SetToolTip("")
 
 		self._init_coll_nbMain_Pages(self.nbMain)
@@ -342,7 +268,7 @@ class PyChemMain(wx.Frame):
 	def OnMnuFileLoadexpMenu(self, event):
 		loadFile = wx.FileSelector("Load PyChem Experiment", "", "", "", "XML files (*.xml)|*.xml")
 
-		dlg = wxSaveWorkspaceDialog(self, loadFile)
+		dlg = wxWorkspaceDialog(self, loadFile)
 		##		  try:
 		dlg.ShowModal()
 		tree = dlg.getTree()
@@ -355,16 +281,17 @@ class PyChemMain(wx.Frame):
 		self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEWS, 1)
 		self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILELOADWS, 1)
 
+	##		  finally:
+	##			  dlg.Destroy()
 	##		  except Exception, error:
 	##			  errorBox(self,'%s' %str(error))
 
 	def OnMnuFileLoadwsMenu(self, event):
-		dlg = wxSaveWorkspaceDialog(self, self.data["exppath"])
+		dlg = wxWorkspaceDialog(self, self.data["exppath"])
 		dlg.ShowModal()
 		workSpace = dlg.getWorkspace()
 		if workSpace is not None:
 			tree = dlg.getTree()
-			##			  dlg.clearTree()
 			self.Reset(1)
 			self.xmlLoad(tree, workSpace, "ws")
 		else:
@@ -381,7 +308,7 @@ class PyChemMain(wx.Frame):
 			self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEWS, 1)
 			self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILELOADWS, 1)
 			# show workspace dialog so that default can be edited
-			dlg = wxSaveWorkspaceDialog(self, saveFile, dtype="Save")
+			dlg = wxWorkspaceDialog(self, saveFile, dtype="Save")
 			try:
 				dlg.ShowModal()
 			finally:
@@ -406,7 +333,7 @@ class PyChemMain(wx.Frame):
 			self.xmlSave(self.data["exppath"], wsName.replace(" ", "_"), type=self.data["exppath"])
 
 			# show workspace dialog
-			dlg = wxSaveWorkspaceDialog(self, self.data["exppath"], dtype="Save")
+			dlg = wxWorkspaceDialog(self, self.data["exppath"], dtype="Save")
 			try:
 				dlg.ShowModal()
 				dlg.appendWorkspace(wsName)
@@ -423,17 +350,19 @@ class PyChemMain(wx.Frame):
 		dlg = wxImportDialog(self)
 		try:
 			dlg.ShowModal()
-			if dlg.GetButtonPress() == 1:
+			if dlg.isOK() == 1:
 				# Apply default settings
 				self.Reset()
 
 				# Load arrays
 				wx.BeginBusyCursor()
-				# import array
+
+				f = file(dlg.getFile(), "r")
 				if dlg.Transpose() == 0:
-					self.data["raw"] = load(dlg.GetRawData(), dlg.GetDelim())
+					self.data["raw"] = scipy.io.read_array(f)
 				else:
-					self.data["raw"] = scipy.transpose(load(dlg.GetRawData(), dlg.GetDelim()))
+					self.data["raw"] = scipy.transpose(scipy.io.read_array(f))
+				f.close()
 
 				# Resize grids
 				expSetup.ResizeGrids(self.plExpset.grdNames, self.data["raw"].shape[0], 3, 2)
@@ -609,7 +538,7 @@ class PyChemMain(wx.Frame):
 		event.Skip()
 
 	def Reset(self, case=0):
-		varList = "'proc':None,'class':None,'label':None," + "'split':None,'processlist':[],'xaxis':None," + "'class':None,'label':None,'validation':None," + "'pcscores':None,'pcloads':None,'pcpervar':None," + "'pceigs':None,'pcadata':None,'niporsvd':None," + "'indlabels':None,'plsloads':None,'pcatype':None," + "'dfscores':None,'dfloads':None,'dfeigs':None," + "'sampleidx':None,'variableidx':None," + "'rawtrunc':None,'proctrunc':None," + "'gadfachroms':None,'gadfascores':None," + "'gadfacurves':None,'gaplschroms':None," + "'gaplsscores':None,'gaplscurves':None," + "'gadfadfscores':None,'gadfadfloads':None," + "'gaplsplsloads':None,'gridsel':None,'plotsel':None"
+		varList = "'proc':None,'class':None,'label':None," + "'split':None,'processlist':[],'xaxis':None," + "'class':None,'label':None,'validation':None," + "'pcscores':None,'pcloads':None,'pcpervar':None," + "'pceigs':None,'pcadata':None,'niporsvd':None," + "'indlabels':None,'plsloads':None,'pcatype':None," + "'dfscores':None,'dfloads':None,'dfeigs':None," + "'sampleidx':None,'variableidx':None," + "'rawtrunc':None,'proctrunc':None," + "'gadfachroms':None,'gadfascores':None," + "'gadfacurves':None,'gaplschroms':None," + "'gaplsscores':None,'gaplscurves':None," + "'gadfadfscores':None,'gadfadfloads':None," + "'gaplsplsloads':None,'gridsel':None,'plotsel':None," + "'clusterid':None,'linkdist':None"
 
 		if case == 0:
 			exec('self.data = {"raw":None,"exppath":None,' + varList + "}")
@@ -652,14 +581,7 @@ class PyChemMain(wx.Frame):
 			# save raw data
 			rawdata = ET.SubElement(root, "rawdata")
 			rawdata.set("key", "array")
-			data = str(self.data["raw"]).replace("[[ ", "")
-			data = data.replace("	\n		  ", "	 ")
-			data = data.replace("\n		   ", "	  ")
-			data = data.replace("]\n [ ", "\n")
-			data = data.replace("]]", "")
-			data = data.replace("  ", "	  ")
-
-			rawdata.text = data
+			rawdata.text = str_array(self.data["raw"], col_sep="\t")
 
 			# add workspace subelement
 			Workspaces = ET.SubElement(root, "Workspaces")
@@ -688,7 +610,7 @@ class PyChemMain(wx.Frame):
 			try:
 				locals()[workspace] = ET.SubElement(Workspaces, workspace)
 			except:
-				dlg = wx.MessageDialog(self, 'Unable to save under current name.\n\nCharacters such as "%", "&", "-", "+" can not be used for the workspace name', "Error!", wx.OK | wx.ICON_ERROR)
+				dlg = wx.MessageDialog(self, "Unable to save under current name.\n\nCharacters " / +'such as "%", "&", "-", "+" can not be used for the workspace name', "Error!", wx.OK | wx.ICON_ERROR)
 				try:
 					dlg.ShowModal()
 				finally:
@@ -702,26 +624,29 @@ class PyChemMain(wx.Frame):
 					item.set("key", "int")
 					item.text = str(each)
 
+			# save choice options
+			Choices = ET.SubElement(locals()[workspace], "Choices")
+			choiceCtrls = ["plPls.titleBar.cbxData", "plPca.titleBar.cbxPcaType", "plPca.titleBar.cbxPreprocType", "plPca.titleBar.cbxData", "plDfa.titleBar.cbxData", "plCluster.titleBar.cbxData", "plGadfa.titleBar.cbxFeature1", "plGadfa.titleBar.cbxFeature2", "plGapls.titleBar.cbxFeature1", "plGapls.titleBar.cbxFeature2"]
+
+			for each in choiceCtrls:
+				name = each.split(".")[len(each.split(".")) - 1]
+				locals()[name] = ET.SubElement(Choices, each)
+				locals()[name].set("key", "int")
+				locals()[name].text = str(getByPath(self, each).GetCurrentSelection())
+
 			# save spin, string and boolean ctrl values
 			Controls = ET.SubElement(locals()[workspace], "Controls")
-
 			# spin controls
-			spinCtrls = ["plGadfa.TitleBar.dlg.spnGaMaxFac", "plGadfa.TitleBar.dlg.spnGaMaxGen", "plGadfa.TitleBar.dlg.spnGaVarsFrom", "plGadfa.TitleBar.dlg.spnGaVarsTo", "plGadfa.TitleBar.dlg.spnGaNoInds", "plGadfa.TitleBar.dlg.spnGaNoRuns", "plGadfa.TitleBar.dlg.spnGaRepUntil"]
+			spinCtrls = ["plGadfa.titleBar.spnGaScoreFrom", "plGadfa.titleBar.spnGaScoreTo", "plGadfa.titleBar.dlg.spnGaMaxFac", "plGadfa.titleBar.dlg.spnGaMaxGen", "plGadfa.titleBar.dlg.spnGaVarsFrom", "plGadfa.titleBar.dlg.spnGaVarsTo", "plGadfa.titleBar.dlg.spnGaNoInds", "plGadfa.titleBar.dlg.spnGaNoRuns", "plGadfa.titleBar.dlg.spnGaRepUntil", "plGapls.titleBar.spnGaScoreFrom", "plGapls.titleBar.spnGaScoreTo", "plGapls.titleBar.dlg.spnGaMaxFac", "plGapls.titleBar.dlg.spnGaMaxGen", "plGapls.titleBar.dlg.spnGaVarsFrom", "plGapls.titleBar.dlg.spnGaVarsTo", "plGapls.titleBar.dlg.spnGaNoInds", "plGapls.titleBar.dlg.spnGaNoRuns", "plGapls.titleBar.dlg.spnGaRepUntil", "plPls.titleBar.spnPLSmaxfac", "plPls.titleBar.spnPLSfactor1", "plPls.titleBar.spnPLSfactor2", "plPca.titleBar.spnNumPcs1", "plPca.titleBar.spnNumPcs2", "plPca.titleBar.spnPCAnum", "plDfa.titleBar.spnDfaDfs", "plDfa.titleBar.spnDfaScore1", "plDfa.titleBar.spnDfaScore2", "plDfa.titleBar.spnDfaPcs"]
 
 			for each in spinCtrls:
 				name = each.split(".")[len(each.split(".")) - 1]
 				locals()[name] = ET.SubElement(Controls, each)
 				locals()[name].set("key", "int")
-				locals()[name].text = getByPath(self, each).GetValue()
+				locals()[name].text = str(getByPath(self, each).GetValue())
 
 			# string controls
-			stringCtrls = ["plExpset.indTitleBar.stcRangeFrom", "plExpset.indTitleBar.stcRangeTo", "plGadfa.TitleBar.dlg.stGaXoverRate", "plGadfa.TitleBar.dlg.stGaMutRate", "plGadfa.TitleBar.dlg.stGaInsRate"]
-
-			##			  , 'stPls2',
-			##			  'stPls12', 'stPls1','stPls9', 'stPls4', 'stPls5', 'stPls6', 'stPlsFac',
-			##			  'stPls7', 'stPls8', 'stPls13', 'stPlscVarFrom', 'stPlscVarTo', 'stPlscNoInds',
-			##			  'stPlscNoRuns', 'stPlscXoverRate', 'stPlscMutRate', 'stPlscInsRate',
-			##			  'stPlscMaxFac', 'stPlscMaxGen', 'stPlscRepUntil', 'stPlscSavePer']
+			stringCtrls = ["plExpset.indTitleBar.stcRangeFrom", "plExpset.indTitleBar.stcRangeTo", "plGadfa.titleBar.dlg.stGaXoverRate", "plGadfa.titleBar.dlg.stGaMutRate", "plGadfa.titleBar.dlg.stGaInsRate", "plGapls.titleBar.dlg.stGaXoverRate", "plGapls.titleBar.dlg.stGaMutRate", "plGapls.titleBar.dlg.stGaInsRate"]
 
 			for each in stringCtrls:
 				# quick fix!
@@ -738,26 +663,14 @@ class PyChemMain(wx.Frame):
 				locals()[name].set("key", "str")
 				locals()[name].text = getByPath(self, each).GetValue()
 
-			boolCtrls = ["plCluster.titleBar.dlg.rbKmeans", "plCluster.titleBar.dlg.rbKmedian", "plCluster.titleBar.dlg.rbKmedoids", "plCluster.titleBar.dlg.rbHcluster", "plCluster.titleBar.dlg.rbSingleLink", "plCluster.titleBar.dlg.rbMaxLink", "plCluster.titleBar.dlg.rbAvLink", "plCluster.titleBar.dlg.rbCentLink", "plCluster.titleBar.dlg.rbEuclidean", "plCluster.titleBar.dlg.rbCorrelation", "plCluster.titleBar.dlg.rbAbsCorr", "plCluster.titleBar.dlg.rbUncentredCorr", "plCluster.titleBar.dlg.rbAbsUncentCorr", "plCluster.titleBar.dlg.rbSpearmans", "plCluster.titleBar.dlg.rbKendalls", "plCluster.titleBar.dlg.rbHarmonicEuc", "plCluster.titleBar.dlg.rbCityBlock", "plCluster.titleBar.dlg.cbUseClass", "plCluster.titleBar.dlg.rbPlotName", "plCluster.titleBar.dlg.rbPlotColours", "plGadfa.TitleBar.dlg.cbGaRepUntil", "plGadfa.TitleBar.dlg.cbGaMaxGen", "plGadfa.TitleBar.dlg.cbGaMut", "plGadfa.TitleBar.dlg.cbGaXover"]
-
-			##			  'cbPls1', 'cbPls2', 'cbPls3', 'cbPls4', 'cbPls5',
-			##			  'cbDfaXover', 'cbDfaMut', 'cbDfaMaxGen', 'cbDfaRepUntil', 'cbDfaSavePc',
-			##			  'cbPlscXover', 'cbPlscMut', 'cbPlscMaxGen', 'cbPlscRepUntil', 'cbPlscSavePer',
+			boolCtrls = ["plCluster.titleBar.dlg.rbKmeans", "plCluster.titleBar.dlg.rbKmedian", "plCluster.titleBar.dlg.rbKmedoids", "plCluster.titleBar.dlg.rbHcluster", "plCluster.titleBar.dlg.rbSingleLink", "plCluster.titleBar.dlg.rbMaxLink", "plCluster.titleBar.dlg.rbAvLink", "plCluster.titleBar.dlg.rbCentLink", "plCluster.titleBar.dlg.rbEuclidean", "plCluster.titleBar.dlg.rbCorrelation", "plCluster.titleBar.dlg.rbAbsCorr", "plCluster.titleBar.dlg.rbUncentredCorr", "plCluster.titleBar.dlg.rbAbsUncentCorr", "plCluster.titleBar.dlg.rbSpearmans", "plCluster.titleBar.dlg.rbKendalls", "plCluster.titleBar.dlg.rbHarmonicEuc", "plCluster.titleBar.dlg.rbCityBlock", "plCluster.titleBar.dlg.cbUseClass", "plCluster.titleBar.dlg.rbPlotName", "plCluster.titleBar.dlg.rbPlotColours", "plGadfa.titleBar.dlg.cbGaRepUntil", "plGadfa.titleBar.dlg.cbGaMaxGen", "plGadfa.titleBar.dlg.cbGaMut", "plGadfa.titleBar.dlg.cbGaXover", "plDfa.titleBar.cbDfaXval"]
 
 			for each in boolCtrls:
 				name = each.split(".")[len(each.split(".")) - 1]
 				locals()[name] = ET.SubElement(Controls, each)
 				locals()[name].set("key", "bool")
 				locals()[name].text = str(getByPath(self, each).GetValue())
-			##
-			##			  #any integer ctrl values
-			##			  intCtrls = ['tcPCAnum', 'spnPLSmaxfac', 'spnDFApcs', 'spnDFAdfs',
-			##			  'spnNoPass']
-			##			  for each in intCtrls:
-			##				  locals()[each] = ET.SubElement(Controls, each)
-			##				  locals()[each].set("key", "int")
-			##				  exec(each + '.text = str(self.' + each + '.GetValue())')
-			##
+
 			# any wxgrid ctrl values
 			wxGrids = ["plExpset.grdNames", "plExpset.grdIndLabels"]
 
@@ -787,50 +700,39 @@ class PyChemMain(wx.Frame):
 						col = ET.SubElement(row, "col")
 						col.set("key", "str")
 						exec('col.text = "' + Cols + '"')
-			##
-			##			  #any scipy arrays
-			##			  scipyArrays = ['DplsCurves', 'DplsPairList', 'DplsChromList',
-			##			  'PlscCurves', 'PlscChromList', 'DfaCurves', 'DfaChromList', 'PCscores',
-			##			  'PCloadings', 'PCPerVar', 'PCeigs', 'DFscores', 'DFloads', 'DFeigs']
-			##			  exec('Array = ET.SubElement(' + workspace + ', "Array")')
-			##			  for each in scipyArrays:
-			##				  try:
-			##				  #save array elements
-			##					  exec('Rows = range(self.' + each + '.shape[0])')
-			##					  locals()[each] = ET.SubElement(Array, each)
-			##					  for i in Rows:
-			##						  exec('row = ET.SubElement(' + each + ', "row")')
-			##						  exec('Cols = range(self.' + each + '.shape[1])')
-			##						  for j in Cols:
-			##							  col = ET.SubElement(row, "col")
-			##							  col.set("key", "float")
-			##							  exec('col.text = str(self.' + each + '[i][j])')
-			##				  except: continue
-			##
-			##			  #any global variables
-			##			  gloVars = []
-			##			  exec('Variables = ET.SubElement(' + workspace + ', "Variables")')
-			##			  for each in gloVars:
-			##				  locals()[each] = ET.SubElement(Variables, each)
-			##				  locals()[each].set("key", "int")
-			##				  exec(each + '.text = str(self.' + each + ')')
-			##
-			##			  #create run clustering flag global variable
-			##			  doClustering = ET.SubElement(Variables, "doClustering")
-			##			  doClustering.set("key", "int")
-			##			  if (self.linkdist is not None) or (self.clusterid is not None) is True:
-			##				  doClustering.text = '1'
-			##			  else:
-			##				  doClustering.text = '0'
-			##
-			##			  #create run plsr flag global variable
-			##			  doPlsr = ET.SubElement(Variables, "doPlsr")
-			##			  doPlsr.set("key", "int")
-			##			  if self.Wloads is not None:
-			##				  doPlsr.text = '1'
-			##			  else:
-			##				  doPlsr.text = '0'
-			##
+
+			# any scipy arrays
+			scipyArrays = ["pcscores", "pcloads", "pcpervar", "pceigs", "plsloads", "dfscores", "dfloads", "dfeigs", "gadfachroms", "gadfascores", "gadfacurves", "gaplschroms", "gaplsscores", "gaplscurves", "gadfadfscores", "gadfadfloads", "gaplsplsloads"]
+
+			Array = ET.SubElement(locals()[workspace], "Array")
+			for each in scipyArrays:
+				try:
+					# save array elements
+					locals()["item" + each] = ET.SubElement(Array, each)
+					arrData = str_array(self.data[each],col_sep="\t")
+					locals()["item" + each].set("key", "array")
+					locals()["item" + each].text = arrData
+				except:
+					continue
+
+			# create run clustering flag
+			Flags = ET.SubElement(locals()[workspace], "Flags")
+
+			doClustering = ET.SubElement(Flags, "doClustering")
+			doClustering.set("key", "int")
+			if (self.data["linkdist"] is not None) or (self.data["clusterid"] is not None) is True:
+				doClustering.text = "1"
+			else:
+				doClustering.text = "0"
+
+			# create run plsr flag global variable
+			doPlsr = ET.SubElement(Flags, "doPlsr")
+			doPlsr.set("key", "int")
+			if self.data["plsloads"] is not None:
+				doPlsr.text = "1"
+			else:
+				doPlsr.text = "0"
+
 			# wrap it in an ElementTree instance, and save as XML
 			tree = ET.ElementTree(root)
 			tree.write(path)
@@ -847,7 +749,7 @@ class PyChemMain(wx.Frame):
 
 			for each in rows:
 				newRow = []
-				items = each.split("   ")
+				items = each.split("\t")
 				for item in items:
 					if item not in ["", " "]:
 						newRow.append(float(item))
@@ -872,11 +774,17 @@ class PyChemMain(wx.Frame):
 						self.plPreproc.selFun.lbSpectra2.Append(SelectedText[2 : len(SelectedText)])
 				self.RunProcessingSteps()
 
-			##			  #load ctrl values
-			##			  if each.tag == 'Controls':
-			##				  getVars = each
-			##				  for item in getVars:
-			##					  exec('self.' + item.tag + '.SetValue(' + item.items()[0][1] + '(' + item.text + '))')
+			# load ctrl values
+			if each.tag == "Controls":
+				getVars = each
+				for item in getVars:
+					getByPath(self, item.tag).SetValue(exec(list(item.items())[0][1] + "(" + item.text + ")"))
+
+			# load choice values
+			if each.tag == "Choices":
+				getVars = each
+				for item in getVars:
+					getByPath(self, item.tag).SetSelection(exec(list(item.items())[0][1] + "(" + item.text + ")"))
 
 			# load grids
 			if each.tag == "Grid":
@@ -887,7 +795,7 @@ class PyChemMain(wx.Frame):
 					for ind in members:
 						if ind.tag == "columnLabels":
 							cols = ind
-							expSetup.ResizeGrids(getByPath(self, gName), 10, len(cols))
+							expSetup.ResizeGrids(getByPath(self, gName), 10, len(cols) - 1)
 							count = 0
 							for cName in cols:
 								text = cName.text.split("\n")[0]
@@ -916,45 +824,58 @@ class PyChemMain(wx.Frame):
 
 				# set exp details
 				self.GetExperimentDetails()
-		##
-		##			  #load arrays
-		##			  if each.tag == 'Array':
-		##				  getArrays = each
-		##				  for array in getArrays:
-		##					  newArray = array.tag
-		##					  makeArray = []
-		##					  for Row in array:
-		##						  cols = Row
-		##						  getCols = []
-		##						  for Col in cols:
-		##							  getCols.append(float(Col.text))
-		##						  makeArray.append(getCols)
-		##					  exec('self.' + newArray + ' = np.array(makeArray)')
-		##					  #reload any plots
-		##					  for i in ['PC','DF','Dfa','Dpls','Plsc']:
-		##						  if len(newArray.split(i)) > 1:
-		##							  if i == 'PC':
-		##								  try:
-		##									  self.PlotPca()
-		##								  except: continue
-		##							  elif i == 'DF':
-		##								  try:
-		##									  self.PlotDfa()
-		##								  except: continue
-		##							  else:
-		##								  try:
-		##									  exec('self.CreateGa' + i + 'ResultsTrees()')
-		##								  except: continue
-		##
-		##			  #load global variables - currently just flags for re-running cluster
-		##			  #analysis and plsr
-		##			  if each.tag == 'Variables':
-		##				  getVars = each
-		##				  for item in getVars:
-		##					  if (item.tag == 'doClustering') & (item.text == '1') is True:
-		##						  self.RunClustering()
-		##					  elif (item.tag == 'doPlsr') & (item.text == '1') is True:
-		##						  self.RunFullPls()
+
+			# load arrays
+			if each.tag == "Array":
+				getArrays = each
+				for array in getArrays:
+					try:
+						newArray = []
+						makeArray = array.text
+						makeArray = makeArray.split("\n")
+						for row in makeArray:
+							getRow = []
+							row = row.split("\t")
+							for element in row:
+								getRow.append(float(element))
+							newArray.append(getRow)
+						self.data[array.tag] = np.array(newArray)
+					except:
+						self.data[array.tag] = None
+
+					# reload any plots
+					for i in ["pc", "dfs", "gadfa", "gapls"]:
+						if len(array.tag.split(i)) > 1:
+							if i == "pc":
+								try:
+									self.plPca.titleBar.PlotPca()
+								except:
+									continue
+							elif i == "dfs":
+								try:
+									self.plDfa.titleBar.plotDfa()
+								except:
+									continue
+							elif i == "gadfa":
+								try:
+									self.plGadfa.titleBar.CreateGaResultsTree(self.plGadfa.titleBar.dlg.treGaResults, gacurves=self.data["gadfacurves"], chroms=self.data["gadfachroms"], varfrom=self.plGadfa.titleBar.dlg.spnGaVarsFrom.getValue(), varto=self.plGadfa.titleBar.dlg.spnGaVarsTo.getValue(), varrange=self.plGadfa.titleBar.dlg.spnGaVarsTo.getValue() - self.plGadfa.titleBar.dlg.spnGaVarsFrom.getValue() + 1, runs=self.plGadfa.titleBar.dlg.spnGaNoRuns.getValue())
+								except:
+									continue
+							elif i == "gapls":
+								try:
+									self.plGapls.titleBar.CreateGaResultsTree(self.plGapls.titleBar.dlg.treGaResults, gacurves=self.data["gaplscurves"], chroms=self.data["gaplschroms"], varfrom=self.plGapls.titleBar.dlg.spnGaVarsFrom.getValue(), varto=self.plGapls.titleBar.dlg.spnGaVarsTo.getValue(), varrange=self.plGapls.titleBar.dlg.spnGaVarsTo.getValue() - self.plGapls.titleBar.dlg.spnGaVarsFrom.getValue() + 1, runs=self.plGapls.titleBar.dlg.spnGaNoRuns.getValue())
+								except:
+									continue
+
+			# load global variables - currently just flags for re-running cluster
+			# analysis and plsr
+			if each.tag == "Variables":
+				getVars = each
+				for item in getVars:
+					if (item.tag == "doClustering") & (item.text == "1") is True:
+						self.RunClustering()
+					elif (item.tag == "doPlsr") & (item.text == "1") is True:
+						self.RunFullPls()
 
 		# unlock ctrls
 		self.EnableCtrls()
@@ -1161,146 +1082,78 @@ class wxImportConfirmDialog(wx.Dialog):
 
 
 class wxImportDialog(wx.Dialog):
+	def _init_coll_gbsImportDialog_Items(self, parent):
+
+		parent.AddWindow(self.fileBrowse, (0, 0), border=10, flag=wx.EXPAND, span=(1, 4))
+		parent.AddSpacer(wx.Size(0, 0), (1, 0), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.cbTranspose, (1, 1), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.btnCancel, (1, 2), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.btnOK, (1, 3), border=10, flag=wx.EXPAND, span=(1, 1))
+
+	def _init_coll_gbsImportDialog_Growables(self, parent):
+
+		parent.AddGrowableCol(0)
+		parent.AddGrowableCol(1)
+		parent.AddGrowableCol(2)
+		parent.AddGrowableCol(3)
+
+	def _init_plot_prop_sizers(self):
+
+		self.gbsImportDialog = wx.GridBagSizer(hgap=4, vgap=4)
+		self.gbsImportDialog.SetCols(4)
+		self.gbsImportDialog.SetRows(2)
+
+		self._init_coll_gbsImportDialog_Items(self.gbsImportDialog)
+		self._init_coll_gbsImportDialog_Growables(self.gbsImportDialog)
+
+		self.SetSizer(self.gbsImportDialog)
+
 	def _init_import_ctrls(self, prnt):
 		# generated method, don't edit
-		wx.Dialog.__init__(self, id=wxID_WXIMPORTDIALOG, name="wx.ImportDialog", parent=prnt, pos=wx.Point(496, 269), size=wx.Size(287, 232), style=wx.DEFAULT_DIALOG_STYLE, title="Import X-data File")
-		self.SetClientSize(wx.Size(279, 198))
+		wx.Dialog.__init__(self, id=-1, name="wx.ImportDialog", parent=prnt, pos=wx.Point(496, 269), size=wx.Size(400, 120), style=wx.DEFAULT_DIALOG_STYLE, title="Import X-data File")
 		self.SetToolTip("")
 		self.Center(wx.BOTH)
 
-		self.swLoadX = wx.adv.SashWindow(id=wxID_WXIMPORTDIALOGSWLOADX, name="swLoadX", parent=self, pos=wx.Point(0, 0), size=wx.Size(279, 198), style=wx.CLIP_CHILDREN | wx.adv.SW_3D)
-		self.swLoadX.SetToolTip("")
+		self.btnOK = wx.Button(id=-1, label="OK", name="btnOK", parent=self, pos=wx.Point(0, 0), size=wx.Size(85, 30), style=0)
+		self.btnOK.Bind(wx.EVT_BUTTON, self.OnBtnOk)
 
-		self.btnBrowseArray = wx.Button(id=wxID_WXIMPORTDIALOGBTNBROWSEARRAY, label="Browse...", name="btnBrowseArray", parent=self.swLoadX, pos=wx.Point(192, 24), size=wx.Size(75, 23), style=0)
-		self.btnBrowseArray.Bind(wx.EVT_BUTTON, self.OnBtnbrowsearrayButton, id=wxID_WXIMPORTDIALOGBTNBROWSEARRAY)
+		self.btnCancel = wx.Button(id=-1, label="Cancel", name="btnCancel", parent=self, pos=wx.Point(0, 0), size=wx.Size(85, 30), style=0)
+		self.btnCancel.Bind(wx.EVT_BUTTON, self.OnBtnCancel)
 
-		self.stArray = wx.lib.bcrtl.user.StaticTextCtrl.StaticTextCtrl(caption="", id=wxID_WXIMPORTDIALOGSTARRAY, name="stArray", parent=self.swLoadX, pos=wx.Point(16, 24), size=wx.Size(160, 23), style=0, value="")
+		self.fileBrowse = wx.lib.filebrowsebutton.FileBrowseButtonWithHistory(buttonText="Browse", dialogTitle="Choose a file", fileMask="*.*", id=-1, initialValue="", labelText="", parent=self, pos=wx.Point(48, 40), size=wx.Size(296, 48), startDirectory=".", style=wx.TAB_TRAVERSAL, toolTip="Type filename or click browse to choose file")
 
-		self.btnOK = wx.Button(id=wxID_WXIMPORTDIALOGBTNOK, label="OK", name="btnOK", parent=self.swLoadX, pos=wx.Point(16, 160), size=wx.Size(104, 23), style=0)
-		self.btnOK.Bind(wx.EVT_BUTTON, self.OnBtnOKButton, id=wxID_WXIMPORTDIALOGBTNOK)
-
-		self.btnCancel = wx.Button(id=wxID_WXIMPORTDIALOGBTNCANCEL, label="Cancel", name="btnCancel", parent=self.swLoadX, pos=wx.Point(160, 160), size=wx.Size(107, 23), style=0)
-		self.btnCancel.Bind(wx.EVT_BUTTON, self.OnBtnCancelButton, id=wxID_WXIMPORTDIALOGBTNCANCEL)
-
-		self.cbTabDelim = wx.CheckBox(id=wxID_WXIMPORTDIALOGCBTABDELIM, label="Tab delimited", name="cbTabDelim", parent=self.swLoadX, pos=wx.Point(16, 64), size=wx.Size(96, 23), style=0)
-		self.cbTabDelim.SetValue(True)
-		self.cbTabDelim.SetToolTip("")
-		self.cbTabDelim.Bind(wx.EVT_CHECKBOX, self.OnCbTabDelimCheckbox, id=wxID_WXIMPORTDIALOGCBTABDELIM)
-
-		self.cbSpaceDelim = wx.CheckBox(id=wxID_WXIMPORTDIALOGCBSPACEDELIM, label="Space delimited", name="cbSpaceDelim", parent=self.swLoadX, pos=wx.Point(160, 64), size=wx.Size(96, 23), style=0)
-		self.cbSpaceDelim.SetValue(False)
-		self.cbSpaceDelim.SetToolTip("")
-		self.cbSpaceDelim.Bind(wx.EVT_CHECKBOX, self.OnCbSpaceDelimCheckbox, id=wxID_WXIMPORTDIALOGCBSPACEDELIM)
-
-		self.cbCommaDelim = wx.CheckBox(id=wxID_WXIMPORTDIALOGCBCOMMADELIM, label="Comma delimited", name="cbCommaDelim", parent=self.swLoadX, pos=wx.Point(160, 96), size=wx.Size(104, 23), style=0)
-		self.cbCommaDelim.SetValue(False)
-		self.cbCommaDelim.SetToolTip("")
-		self.cbCommaDelim.Bind(wx.EVT_CHECKBOX, self.OnCbCommaDelimCheckbox, id=wxID_WXIMPORTDIALOGCBCOMMADELIM)
-
-		self.cbOther = wx.CheckBox(id=wxID_WXIMPORTDIALOGCBOTHER, label="Other", name="cbOther", parent=self.swLoadX, pos=wx.Point(16, 128), size=wx.Size(56, 23), style=0)
-		self.cbOther.SetValue(False)
-		self.cbOther.SetToolTip("")
-		self.cbOther.Bind(wx.EVT_CHECKBOX, self.OnCbOtherCheckbox, id=wxID_WXIMPORTDIALOGCBOTHER)
-
-		self.cbSemiDelim = wx.CheckBox(id=wxID_WXIMPORTDIALOGCBSEMIDELIM, label="Semicolon delimited", name="cbSemiDelim", parent=self.swLoadX, pos=wx.Point(16, 96), size=wx.Size(112, 23), style=0)
-		self.cbSemiDelim.SetValue(False)
-		self.cbSemiDelim.SetToolTip("")
-		self.cbSemiDelim.Bind(wx.EVT_CHECKBOX, self.OnCbSemiDelimCheckbox, id=wxID_WXIMPORTDIALOGCBSEMIDELIM)
-
-		self.txtOther = wx.TextCtrl(id=wxID_WXIMPORTDIALOGTXTOTHER, name="txtOther", parent=self.swLoadX, pos=wx.Point(72, 126), size=wx.Size(40, 23), style=0, value="")
-		self.txtOther.SetToolTip("")
-
-		self.cbTranspose = wx.CheckBox(id=wxID_WXIMPORTDIALOGCBTRANSPOSE, label="Transpose", name="cbTranspose", parent=self.swLoadX, pos=wx.Point(160, 128), size=wx.Size(73, 23), style=0)
+		self.cbTranspose = wx.CheckBox(id=-1, label="Transpose", name="cbTranspose", parent=self, pos=wx.Point(160, 128), size=wx.Size(73, 23), style=0)
 		self.cbTranspose.SetValue(False)
 		self.cbTranspose.SetToolTip("")
-		self.cbTranspose.Bind(wx.EVT_CHECKBOX, self.OnCbTransposeCheckbox, id=wxID_WXIMPORTDIALOGCBTRANSPOSE)
+
+		self.staticLine = wx.StaticLine(id=-1, name="staticLine", parent=self, pos=wx.Point(400, 5), size=wx.Size(1, 2), style=0)
+
+		self._init_plot_prop_sizers()
 
 	def __init__(self, parent):
 		self._init_import_ctrls(parent)
-		self.UpdateFlag = 0
-		self.ClassFile, self.ArrayFile = "", ""
 
-	def OnBtnbrowsearrayButton(self, event):
-		self.ArrayFile = wx.FileSelector("Choose X-Data File")
-		self.stArray.SetValue(self.ArrayFile)
-		return self.ArrayFile
+		self.chkOK = 0
 
-	def OnBtnOKButton(self, event):
-		if "" in [self.ArrayFile]:
-			dlg = wx.MessageDialog(self, "Please enter all of the fields", "Error!", wx.OK | wx.ICON_INFORMATION)
-			try:
-				dlg.ShowModal()
-			finally:
-				dlg.Destroy()
-		else:
-			self.ButtonPress = 1
-			self.Close()
+	def isOK(self):
+		return self.chkOK
 
-	def OnBtnCancelButton(self, event):
-		self.ButtonPress = 0
-		self.Close()
-
-	def GetRawData(self):
-		return self.ArrayFile
-
-	def GetButtonPress(self):
-		return self.ButtonPress
-
-	def GetDelim(self):
-		# set delimiter
-		if self.cbTabDelim.GetValue() == 1:
-			return "\t"
-		elif self.cbSpaceDelim.GetValue() == 1:
-			return " "
-		elif self.cbCommaDelim.GetValue() == 1:
-			return ","
-		elif self.cbSemiDelim.GetValue() == 1:
-			return ";"
-		elif self.cbOther.GetValue() == 1:
-			return self.txtOther.GetValue()
+	def getFile(self):
+		return self.fileBrowse.GetValue()
 
 	def Transpose(self):
-		# flag to indicate whether to transpose the array
-		if self.cbTranspose.GetValue() == 1:
-			return 1
-		else:
-			return 0
+		return self.cbTranspose.GetValue()
 
-	def OnCbTabDelimCheckbox(self, event):
-		self.cbSpaceDelim.SetValue(0)
-		self.cbCommaDelim.SetValue(0)
-		self.cbSemiDelim.SetValue(0)
-		self.cbOther.SetValue(0)
+	def OnBtnCancel(self, event):
+		self.chkOK = 0
+		self.Close()
 
-	def OnCbSpaceDelimCheckbox(self, event):
-		self.cbTabDelim.SetValue(0)
-		self.cbCommaDelim.SetValue(0)
-		self.cbSemiDelim.SetValue(0)
-		self.cbOther.SetValue(0)
-
-	def OnCbCommaDelimCheckbox(self, event):
-		self.cbTabDelim.SetValue(0)
-		self.cbSpaceDelim.SetValue(0)
-		self.cbSemiDelim.SetValue(0)
-		self.cbOther.SetValue(0)
-
-	def OnCbOtherCheckbox(self, event):
-		self.cbTabDelim.SetValue(0)
-		self.cbSpaceDelim.SetValue(0)
-		self.cbCommaDelim.SetValue(0)
-		self.cbSemiDelim.SetValue(0)
-
-	def OnCbSemiDelimCheckbox(self, event):
-		self.cbTabDelim.SetValue(0)
-		self.cbSpaceDelim.SetValue(0)
-		self.cbCommaDelim.SetValue(0)
-		self.cbOther.SetValue(0)
-
-	def OnCbTransposeCheckbox(self, event):
-		event.Skip()
+	def OnBtnOk(self, event):
+		self.chkOK = 1
+		self.Close()
 
 
-class wxSaveWorkspaceDialog(wx.Dialog):
+class wxWorkspaceDialog(wx.Dialog):
 	def _init_coll_lbSaveWorkspace_Columns(self, parent):
 		# generated method, don't edit
 
@@ -1308,43 +1161,43 @@ class wxSaveWorkspaceDialog(wx.Dialog):
 
 	def _init_savews_ctrls(self, prnt):
 		# generated method, don't edit
-		wx.Dialog.__init__(self, id=wxID_WXSAVEWORKSPACEDIALOG, name="wxSaveWorkspaceDialog", parent=prnt, pos=wx.Point(453, 245), size=wx.Size(374, 280), style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.CAPTION | wx.MAXIMIZE_BOX, title="Save Workspace")
+		wx.Dialog.__init__(self, id=wxID_WXWORKSPACEDIALOG, name="wxWorkspaceDialog", parent=prnt, pos=wx.Point(453, 245), size=wx.Size(374, 280), style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.CAPTION | wx.MAXIMIZE_BOX, title="Save Workspace")
 		self.SetClientSize(wx.Size(366, 246))
 		self.SetToolTip("")
 		self.SetBackgroundColour(wx.Colour(167, 167, 243))
 		self.SetAutoLayout(True)
 		self.Center(wx.BOTH)
 
-		self.btnDelete = wx.Button(id=wxID_WXSAVEWORKSPACEDIALOGBTNDELETE, label="Delete", name="btnDelete", parent=self, pos=wx.Point(16, 7), size=wx.Size(70, 23), style=0)
+		self.btnDelete = wx.Button(id=wxID_WXWORKSPACEDIALOGBTNDELETE, label="Delete", name="btnDelete", parent=self, pos=wx.Point(16, 7), size=wx.Size(70, 23), style=0)
 		self.btnDelete.SetToolTip("")
 		self.btnDelete.SetAutoLayout(True)
-		self.btnDelete.Bind(wx.EVT_BUTTON, self.OnBtnDeleteButton, id=wxID_WXSAVEWORKSPACEDIALOGBTNDELETE)
+		self.btnDelete.Bind(wx.EVT_BUTTON, self.OnBtnDeleteButton, id=wxID_WXWORKSPACEDIALOGBTNDELETE)
 
-		self.btnCancel = wx.Button(id=wxID_WXSAVEWORKSPACEDIALOGBTNCANCEL, label="Cancel", name="btnCancel", parent=self, pos=wx.Point(16, 40), size=wx.Size(72, 23), style=0)
+		self.btnCancel = wx.Button(id=wxID_WXWORKSPACEDIALOGBTNCANCEL, label="Cancel", name="btnCancel", parent=self, pos=wx.Point(16, 40), size=wx.Size(72, 23), style=0)
 		self.btnCancel.SetToolTip("")
 		self.btnCancel.SetAutoLayout(True)
-		self.btnCancel.Bind(wx.EVT_BUTTON, self.OnBtnCancelButton, id=wxID_WXSAVEWORKSPACEDIALOGBTNCANCEL)
+		self.btnCancel.Bind(wx.EVT_BUTTON, self.OnBtnCancelButton, id=wxID_WXWORKSPACEDIALOGBTNCANCEL)
 
-		self.btnEdit = wx.Button(id=wxID_WXSAVEWORKSPACEDIALOGBTNEDIT, label="Edit", name="btnEdit", parent=self, pos=wx.Point(16, 152), size=wx.Size(70, 23), style=0)
+		self.btnEdit = wx.Button(id=wxID_WXWORKSPACEDIALOGBTNEDIT, label="Edit", name="btnEdit", parent=self, pos=wx.Point(16, 152), size=wx.Size(70, 23), style=0)
 		self.btnEdit.SetToolTip("")
 		self.btnEdit.SetAutoLayout(True)
 		self.btnEdit.Show(False)
-		self.btnEdit.Bind(wx.EVT_BUTTON, self.OnBtnEditButton, id=wxID_WXSAVEWORKSPACEDIALOGBTNEDIT)
+		self.btnEdit.Bind(wx.EVT_BUTTON, self.OnBtnEditButton, id=wxID_WXWORKSPACEDIALOGBTNEDIT)
 
-		self.btnOK = wx.Button(id=wxID_WXSAVEWORKSPACEDIALOGBTNOK, label="OK", name="btnOK", parent=self, pos=wx.Point(16, 71), size=wx.Size(72, 23), style=0)
+		self.btnOK = wx.Button(id=wxID_WXWORKSPACEDIALOGBTNOK, label="OK", name="btnOK", parent=self, pos=wx.Point(16, 71), size=wx.Size(72, 23), style=0)
 		self.btnOK.SetToolTip("")
 		self.btnOK.SetAutoLayout(True)
 		self.btnOK.Show(True)
-		self.btnOK.Bind(wx.EVT_BUTTON, self.OnBtnOKButton, id=wxID_WXSAVEWORKSPACEDIALOGBTNOK)
+		self.btnOK.Bind(wx.EVT_BUTTON, self.OnBtnOKButton, id=wxID_WXWORKSPACEDIALOGBTNOK)
 
-		self.lbSaveWorkspace = wx.ListCtrl(id=wxID_WXSAVEWORKSPACEDIALOGLBSAVEWORKSPACE, name="lbSaveWorkspace", parent=self, pos=wx.Point(96, 8), size=wx.Size(264, 232), style=wx.LC_REPORT | wx.LC_SORT_ASCENDING | wx.LC_SINGLE_SEL)
+		self.lbSaveWorkspace = wx.ListCtrl(id=wxID_WXWORKSPACEDIALOGLBSAVEWORKSPACE, name="lbSaveWorkspace", parent=self, pos=wx.Point(96, 8), size=wx.Size(264, 232), style=wx.LC_REPORT | wx.LC_SORT_ASCENDING | wx.LC_SINGLE_SEL)
 		self.lbSaveWorkspace.SetConstraints(LayoutAnchors(self.lbSaveWorkspace, True, True, True, True))
 		self.lbSaveWorkspace.SetAutoLayout(True)
 		self.lbSaveWorkspace.SetToolTip("")
 		self._init_coll_lbSaveWorkspace_Columns(self.lbSaveWorkspace)
 		self.lbSaveWorkspace.Bind(wx.EVT_LEFT_DCLICK, self.OnLbSaveWorkspaceLeftDclick)
-		self.lbSaveWorkspace.Bind(wx.EVT_LIST_END_LABEL_EDIT, self.OnLbSaveWorkspaceListEndLabelEdit, id=wxID_WXSAVEWORKSPACEDIALOGLBSAVEWORKSPACE)
-		self.lbSaveWorkspace.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnLbSaveWorkspaceListItemSelected, id=wxID_WXSAVEWORKSPACEDIALOGLBSAVEWORKSPACE)
+		self.lbSaveWorkspace.Bind(wx.EVT_LIST_END_LABEL_EDIT, self.OnLbSaveWorkspaceListEndLabelEdit, id=wxID_WXWORKSPACEDIALOGLBSAVEWORKSPACE)
+		self.lbSaveWorkspace.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnLbSaveWorkspaceListItemSelected, id=wxID_WXWORKSPACEDIALOGLBSAVEWORKSPACE)
 
 	def __init__(self, parent, filename, dtype="Load"):
 		# type to be either "load" or "save"
@@ -1356,33 +1209,31 @@ class wxSaveWorkspaceDialog(wx.Dialog):
 		self.filename = filename
 
 		# need to populate listbox
-		try:
-			# check that it's a pychem file
-			tree = ET.ElementTree(file=self.filename)
-			self.tree = tree
-			workspaces = tree.getroot().findall("Workspaces")[0]
-			self.lbSaveWorkspace.SetColumnWidth(0, 260)
-			for each in workspaces:
-				index = self.lbSaveWorkspace.InsertItem(sys.maxsize, each.tag)
-				self.lbSaveWorkspace.SetItem(index, 0, each.tag.replace("_", " "))
+		##		  try:
+		# check that it's a pychem file
+		tree = ET.ElementTree(file=self.filename)
+		self.tree = tree
+		workspaces = tree.getroot().findall("Workspaces")[0]
+		self.lbSaveWorkspace.SetColumnWidth(0, 260)
+		for each in workspaces:
+			index = self.lbSaveWorkspace.InsertItem(sys.maxsize, each.tag)
+			self.lbSaveWorkspace.SetItem(index, 0, each.tag.replace("_", " "))
 
-			# behaviour for save dialog
-			if dtype == "Save":
-				self.btnCancel.Enable(0)
+		# behaviour for save dialog
+		if dtype == "Save":
+			self.btnCancel.Enable(0)
 
-		except Exception as error:
-			if self.filename not in [""]:
-				dlg = wx.MessageDialog(self, "Unable to load data - this is not a PyChem Experiment file", "Error!", wx.OK | wx.ICON_ERROR)
-				try:
-					dlg.ShowModal()
-				finally:
-					dlg.Destroy()
-			##				  self.Destroy()
-			else:
-				pass
-			self.Destroy()
-
-	##			  raise
+	##		  except Exception, error:
+	##			  if self.filename not in ['']:
+	##				  dlg = wx.MessageDialog(self, 'Unable to load data - this is not a PyChem Experiment file',
+	##								  'Error!', wx.OK | wx.ICON_ERROR)
+	##				  try:
+	##					  dlg.ShowModal()
+	##				  finally:
+	##					  dlg.Destroy()
+	##			  else:
+	##				  pass
+	##			  self.Destroy()
 
 	def OnBtnDeleteButton(self, event):
 		if self.lbSaveWorkspace.GetItemCount() > 1:

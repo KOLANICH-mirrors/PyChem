@@ -12,7 +12,7 @@ from wx.lib.anchors import LayoutAnchors
 
 from . import chemometrics
 from .chemometrics import _index
-from .Pca import plotProperties
+from .Pca import MyPlotCanvas
 
 [
 	wxID_CLUSTER,
@@ -113,7 +113,7 @@ class Cluster(wx.Panel):
 		self.SetAutoLayout(True)
 		self.SetBackgroundColour(wx.Colour(167, 167, 243))
 
-		self.plcCluster = wx.lib.plot.PlotCanvas(id=-1, name="plcCluster", parent=self, pos=wx.Point(248, 0), size=wx.Size(731, 594), style=wx.SUNKEN_BORDER)
+		self.plcCluster = MyPlotCanvas(id=-1, name="plcCluster", parent=self, pos=wx.Point(248, 0), size=wx.Size(731, 594), style=wx.SUNKEN_BORDER)
 		self.plcCluster.SetToolTip("")
 		self.plcCluster.enableZoom = True
 		self.plcCluster.fontSizeTitle = 12
@@ -122,7 +122,6 @@ class Cluster(wx.Panel):
 		self.plcCluster.xSpec = "none"
 		self.plcCluster.ySpec = "none"
 		self.plcCluster.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Small Fonts"))
-		self.plcCluster.Bind(wx.EVT_RIGHT_DOWN, self.OnPlcClusterRightDown, id=-1)
 
 		self.txtCluster = wx.TextCtrl(id=-1, name="tcCluster", parent=self, pos=wx.Point(248, 0), size=wx.Size(1730, 1225), style=wx.TE_DONTWRAP | wx.HSCROLL | wx.TE_READONLY | wx.TE_MULTILINE | wx.VSCROLL, value="")
 		self.txtCluster.SetToolTip("")
@@ -143,14 +142,6 @@ class Cluster(wx.Panel):
 		self.plcCluster.Draw(curve)
 
 		self.txtCluster.SetValue("")
-
-	def getFrame(self, frameParent):
-		self.frameParent = frameParent
-
-	def OnPlcClusterRightDown(self, event):
-		pt = event.GetPosition()
-		self.titleBar.data["plotsel"] = self.plcCluster
-		self.frameParent.PopupMenu(self.frameParent.plotMenu, pt)
 
 
 class TitleBar(bp.ButtonPanel):
@@ -180,8 +171,7 @@ class TitleBar(bp.ButtonPanel):
 
 		self.CreateButtons()
 
-		##		  self.dlg = selFun(self)
-		self.dlg = plotProperties(self)
+		self.dlg = selFun(self)
 
 		self.parent = parent
 
@@ -770,10 +760,8 @@ class selFun(wx.Frame):
 	def OnCbUseClassCheckbox(self, event):
 		if self.cbUseClass.GetValue() is False:
 			self.spnNoPass.Enable(True)
-			self.stNoPass.Enable(True)
 		else:
 			self.spnNoPass.Enable(False)
-			self.stNoPass.Enable(False)
 
 	def OnMiniFrameClose(self, event):
 		self.Hide()

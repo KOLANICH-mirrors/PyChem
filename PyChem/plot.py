@@ -538,6 +538,9 @@ class PlotCanvas(wx.Panel):
 		self.canvas.Bind(wx.EVT_LEFT_DCLICK, self.OnMouseDoubleClick)
 		self.canvas.Bind(wx.EVT_RIGHT_DOWN, self.OnMouseRightDown)
 
+		# create mouse event for contextual menu
+		self.canvas.Bind(wx.EVT_RIGHT_UP, self.OnMouseRightUp)
+
 		# scrollbar events
 		self.Bind(wx.EVT_SCROLL_THUMBTRACK, self.OnScroll)
 		self.Bind(wx.EVT_SCROLL_PAGEUP, self.OnScroll)
@@ -1125,6 +1128,12 @@ class PlotCanvas(wx.Panel):
 		if self.last_draw is not None:
 			graphics, xAxis, yAxis = self.last_draw
 			self._Draw(graphics, xAxis, yAxis, dc)
+			# added by rmj 15.05.07 to allow for copy
+			# to clipboard
+			try:
+				return dc.Close()
+			except:
+				return None
 
 	def Clear(self):
 		"""Erase the window."""
@@ -1279,6 +1288,9 @@ class PlotCanvas(wx.Panel):
 			X, Y = self._getXY(event)
 			self.Zoom((X, Y), (self._zoomOutFactor, self._zoomOutFactor))
 
+	def OnMouseRightUp(self, event):
+		pass
+
 	def OnPaint(self, event):
 		# All that is needed here is to draw the buffer to screen
 		if self.last_PointLabel != None:
@@ -1317,7 +1329,7 @@ class PlotCanvas(wx.Panel):
 		if not self._adjustingSB:
 			self._sb_ignore = True
 			sbpos = evt.GetPosition()
-
+			print(evt)
 			if evt.GetOrientation() == wx.VERTICAL:
 				fullrange, pagesize = self.sb_vert.GetRange(), self.sb_vert.GetPageSize()
 				sbpos = fullrange - pagesize - sbpos

@@ -72,6 +72,13 @@ from .chemometrics import _index
 	wxID_FRAME1TXTYMIN,
 ] = [wx.NewIdRef() for _init_plot_prop_ctrls in range(23)]
 
+[
+	MNUPLOTCOPY,
+	MNUPLOTPRINT,
+	MNUPLOTSAVE,
+	MNUPLOTPROPS,
+] = [wx.NewIdRef() for _init_plot_menu_Items in range(4)]
+
 
 def errorBox(window, error):
 	dlg = wx.MessageDialog(window, "".join(("The following error occured:\n\n", error)), "Error!", wx.OK | wx.ICON_ERROR)
@@ -100,14 +107,7 @@ def plotLine(plotCanvas, plotArr, xaxis, rownum, tit, xLabel, yLabel, type="sing
 				ColourCount == 0
 		NewplotLine = wx.lib.plot.PlotGraphics(Line, tit, xLabel, yLabel)
 
-	contx = 0.1 * abs(xaxis.min())
-	conty = 0.1 * abs(plotArr.min())
-	PlXaxis = (xaxis.min() - contx, xaxis.max() + contx)
-	PlYaxis = (plotArr.min() - conty, plotArr.max() + conty)
-
-	plotCanvas.Draw(NewplotLine, PlXaxis, PlYaxis)
-
-	return [NewplotLine, PlXaxis, PlYaxis]
+	plotCanvas.Draw(NewplotLine)
 
 
 def plotStem(plotCanvas, plotArr, tit="", xLabel="", yLabel="", stemWidth=3):
@@ -159,19 +159,63 @@ def plotText(plotCanvas, coords, mask, cLass, text, col1, col2, tit, axis, usema
 
 	if (coords.shape[1] > 1) & (col1 != col2) is True:
 		draw_plotText = wx.lib.plot.PlotGraphics(plotText, tit, xLabel=xL, yLabel=yL)
-		contx = 0.2 * abs(min(coords[:, col1]))
-		conty = 0.2 * abs(min(coords[:, col2]))
-		plotTextXaxis = (min(coords[:, col1]) - contx, max(coords[:, col1]) + contx)
-		plotTextYaxis = (min(coords[:, col2]) - conty, max(coords[:, col2]) + conty)
-
 	else:
 		draw_plotText = wx.lib.plot.PlotGraphics(plotText, tit, xLabel="Class", yLabel=yL)
-		plotTextXaxis = (min(cLass), max(cLass))
-		plotTextYaxis = (min(coords[:, col1]), max(coords[:, col1]))
 
-	plotCanvas.Draw(draw_plotText)  # ,xAxis=plotTextXaxis,yAxis=plotTextYaxis)
+	plotCanvas.Draw(draw_plotText)
 
-	return [draw_plotText, plotTextXaxis, plotTextYaxis]
+
+class MyPlotCanvas(wx.lib.plot.PlotCanvas):
+	def _init_plot_menu_Items(self, parent):
+
+		parent.Append(help="", id=MNUPLOTCOPY, kind=wx.ITEM_NORMAL, text="Copy")
+		parent.Append(help="", id=MNUPLOTPRINT, kind=wx.ITEM_NORMAL, text="Print")
+		parent.Append(help="", id=MNUPLOTSAVE, kind=wx.ITEM_NORMAL, text="Save")
+		parent.Append(help="", id=MNUPLOTPROPS, kind=wx.ITEM_NORMAL, text="Properties")
+		self.Bind(wx.EVT_MENU, self.OnMnuPlotCopy, id=MNUPLOTCOPY)
+		self.Bind(wx.EVT_MENU, self.OnMnuPlotPrint, id=MNUPLOTPRINT)
+		self.Bind(wx.EVT_MENU, self.OnMnuPlotSave, id=MNUPLOTSAVE)
+		self.Bind(wx.EVT_MENU, self.OnMnuPlotProperties, id=MNUPLOTPROPS)
+
+	def _init_utils(self):
+		self.plotMenu = wx.Menu(title="")
+
+		self._init_plot_menu_Items(self.plotMenu)
+
+	def __init__(self, parent, id, pos, size, style, name):
+		wx.lib.plot.PlotCanvas.__init__(self, parent, id, pos, size, style, name)
+
+		self._init_utils()
+
+		self.Bind(wx.EVT_RIGHT_DOWN, self.OnMouseRightDown)
+
+	def OnMnuPlotCopy(self, event):
+		# for winxp
+		self.Redraw(wx.MetaFileDC()).SetClipboard()
+
+		# for linux
+
+	##		  wx.TheClipboard.Open()
+	##		  wx.TheClipboard.SetData(self.Copy())
+	##		  wx.TheClipboard.Close()
+
+	def OnMnuPlotPrint(self, event):
+		self.Printout()
+
+	def OnMnuPlotSave(self, event):
+		self.SaveFile()
+
+	def OnMnuPlotProperties(self, event):
+		height = wx.GetDisplaySize()[1]
+		dlg = plotProperties(self)
+		dlg.SetSize(wx.Size(250, height))
+		dlg.SetPosition(wx.Point(0, 0))
+		dlg.Iconize(False)
+		dlg.Show()
+
+	def OnMouseRightDown(self, event):
+		pt = event.GetPosition()
+		self.PopupMenu(self.plotMenu, pt)
 
 
 class Pca(wx.Panel):
@@ -217,46 +261,38 @@ class Pca(wx.Panel):
 		self.SetAutoLayout(True)
 		self.SetToolTip("")
 
-		self.plcPCeigs = wx.lib.plot.PlotCanvas(id=-1, name="plcPCeigs", parent=self, pos=wx.Point(589, 283), size=wx.Size(20, 20), style=0)
+		self.plcPCeigs = MyPlotCanvas(id=-1, name="plcPCeigs", parent=self, pos=wx.Point(589, 283), size=wx.Size(20, 20), style=0)
 		self.plcPCeigs.SetToolTip("")
 		self.plcPCeigs.fontSizeTitle = 10
 		self.plcPCeigs.enableZoom = True
 		self.plcPCeigs.fontSizeAxis = 8
-		##		  self.plcPCeigs.SetEnablePointLabel(True)
 		self.plcPCeigs.SetConstraints(LayoutAnchors(self.plcPCeigs, False, True, False, True))
 		self.plcPCeigs.fontSizeLegend = 8
 		self.plcPCeigs.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
-		self.plcPCeigs.Bind(wx.EVT_RIGHT_DOWN, self.OnPlcPCeigsRightDown, id=-1)
 
-		self.plcPCvar = wx.lib.plot.PlotCanvas(id=-1, name="plcPCvar", parent=self, pos=wx.Point(176, 283), size=wx.Size(20, 20), style=0)
+		self.plcPCvar = MyPlotCanvas(id=-1, name="plcPCvar", parent=self, pos=wx.Point(176, 283), size=wx.Size(20, 20), style=0)
 		self.plcPCvar.fontSizeAxis = 8
 		self.plcPCvar.fontSizeTitle = 10
 		self.plcPCvar.enableZoom = True
 		self.plcPCvar.SetToolTip("")
-		##		  self.plcPCvar.SetEnablePointLabel(True)
 		self.plcPCvar.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 		self.plcPCvar.fontSizeLegend = 8
-		self.plcPCvar.Bind(wx.EVT_RIGHT_DOWN, self.OnPlcPCvarRightDown, id=-1)
 
-		self.plcPCAscore = wx.lib.plot.PlotCanvas(id=wxID_PCA - 1, name="plcPCAscore", parent=self, pos=wx.Point(0, 24), size=wx.Size(20, 20), style=0)
+		self.plcPCAscore = MyPlotCanvas(parent=self, id=-1, name="plcPCAscore", pos=wx.Point(0, 24), size=wx.Size(20, 20), style=0)
 		self.plcPCAscore.fontSizeTitle = 10
 		self.plcPCAscore.fontSizeAxis = 8
 		self.plcPCAscore.enableZoom = True
 		self.plcPCAscore.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "MS Sans Serif"))
 		self.plcPCAscore.SetToolTip("")
 		self.plcPCAscore.fontSizeLegend = 8
-		##		  self.plcPCAscore.SetEnablePointLabel(True)
-		self.plcPCAscore.Bind(wx.EVT_RIGHT_DOWN, self.OnPlcPCAscoreRightDown, id=wxID_PCA - 1)
 
-		self.plcPcaLoadsV = wx.lib.plot.PlotCanvas(id=wxID_PCA - 1, name="plcPcaLoadsV", parent=self, pos=wx.Point(0, 24), size=wx.Size(20, 20), style=0)
+		self.plcPcaLoadsV = MyPlotCanvas(id=-1, name="plcPcaLoadsV", parent=self, pos=wx.Point(0, 24), size=wx.Size(20, 20), style=0)
 		self.plcPcaLoadsV.SetToolTip("")
 		self.plcPcaLoadsV.fontSizeTitle = 10
 		self.plcPcaLoadsV.enableZoom = True
 		self.plcPcaLoadsV.fontSizeAxis = 8
-		##		  self.plcPcaLoadsV.SetEnablePointLabel(True)
 		self.plcPcaLoadsV.fontSizeLegend = 8
 		self.plcPcaLoadsV.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
-		self.plcPcaLoadsV.Bind(wx.EVT_RIGHT_DOWN, self.OnPlcPcaLoadsVRightDown, id=wxID_PCA - 1)
 
 		self.titleBar = TitleBar(self, id=-1, text="Principal Components Analysis", style=bp.BP_USE_GRADIENT, alignment=bp.BP_ALIGN_LEFT)
 
@@ -266,22 +302,6 @@ class Pca(wx.Panel):
 		self._init_ctrls(parent)
 
 		self.parent = parent
-
-	def getFrame(self, frameParent):
-		##		  frameParent._init_utils()
-		self.frameParent = frameParent
-
-	def OnPlcPCeigsRightDown(self, event):
-		event.Skip()
-
-	def OnPlcPCAscoreRightDown(self, event):
-		event.Skip()
-
-	def OnPlcPcaLoadsVRightDown(self, event):
-		event.Skip()
-
-	def OnPlcPCvarRightDown(self, event):
-		event.Skip()
 
 	def Reset(self):
 		self.titleBar.spnNumPcs1.Enable(0)
@@ -389,7 +409,7 @@ class TitleBar(bp.ButtonPanel):
 		bpArt.SetColor(bp.BP_BORDER_COLOUR, bp.BrightenColour(background, 0.85))
 		bpArt.SetColor(bp.BP_SEPARATOR_COLOUR, bp.BrightenColour(background, 0.85))
 		bpArt.SetColor(bp.BP_BUTTONTEXT_COLOUR, wx.BLACK)
-		bpArt.SetColor(bp.BP_SELECTION_BRUSH_COLOUR, wx.Colour(167, 167, 243))  # wx.Colour(242, 242, 235))
+		bpArt.SetColor(bp.BP_SELECTION_BRUSH_COLOUR, wx.Colour(167, 167, 243))
 		bpArt.SetColor(bp.BP_SELECTION_PEN_COLOUR, wx.Colour(206, 206, 195))
 
 	def OnBtnRunPCAButton(self, event):
@@ -425,55 +445,55 @@ class TitleBar(bp.ButtonPanel):
 
 	def runPca(self):
 		# Run principal components analysis
-		##		  try:
-		self.spnNumPcs1.Enable(1)
-		self.spnNumPcs2.Enable(1)
-		self.spnNumPcs1.SetValue(1)
-		self.spnNumPcs2.SetValue(2)
+		try:
+			self.spnNumPcs1.Enable(1)
+			self.spnNumPcs2.Enable(1)
+			self.spnNumPcs1.SetValue(1)
+			self.spnNumPcs2.SetValue(2)
 
-		if self.cbxData.GetSelection() == 0:
-			xdata = self.data["rawtrunc"]
-			self.data["pcadata"] = "rawtrunc"
-		elif self.cbxData.GetSelection() == 1:
-			xdata = self.data["proctrunc"]
-			self.data["pcadata"] = "proctrunc"
+			if self.cbxData.GetSelection() == 0:
+				xdata = self.data["rawtrunc"]
+				self.data["pcadata"] = "rawtrunc"
+			elif self.cbxData.GetSelection() == 1:
+				xdata = self.data["proctrunc"]
+				self.data["pcadata"] = "proctrunc"
 
-		if self.cbxPreprocType.GetSelection() == 0:
-			self.data["pcatype"] = "covar"
-		elif self.cbxPreprocType.GetSelection() == 1:
-			self.data["pcatype"] = "corr"
+			if self.cbxPreprocType.GetSelection() == 0:
+				self.data["pcatype"] = "covar"
+			elif self.cbxPreprocType.GetSelection() == 1:
+				self.data["pcatype"] = "corr"
 
-		if self.cbxPcaType.GetSelection() == 1:
-			# run PCA using SVD
-			self.data["pcscores"], self.data["pcloads"], self.data["pcpervar"], self.data["pceigs"] = chemometrics.PCA_SVD(xdata, self.data["pcatype"])
+			if self.cbxPcaType.GetSelection() == 1:
+				# run PCA using SVD
+				self.data["pcscores"], self.data["pcloads"], self.data["pcpervar"], self.data["pceigs"] = chemometrics.PCA_SVD(xdata, self.data["pcatype"])
 
-			self.data["pcscores"] = self.data["pcscores"][:, 0 : len(self.data["pceigs"])]
+				self.data["pcscores"] = self.data["pcscores"][:, 0 : len(self.data["pceigs"])]
 
-			self.data["pcloads"] = self.data["pcloads"][0 : len(self.data["pceigs"]), :]
+				self.data["pcloads"] = self.data["pcloads"][0 : len(self.data["pceigs"]), :]
 
-			self.data["niporsvd"] = "svd"
+				self.data["niporsvd"] = "svd"
 
-		elif self.cbxPcaType.GetSelection() == 0:
-			# run PCA using NIPALS
-			self.data["pcscores"], self.data["pcloads"], self.data["pcpervar"], self.data["pceigs"] = chemometrics.PCA_NIPALS(xdata, self.spnPCAnum.GetValue(), self.data["pcatype"], self.parent.parent.parent.sbMain)
+			elif self.cbxPcaType.GetSelection() == 0:
+				# run PCA using NIPALS
+				self.data["pcscores"], self.data["pcloads"], self.data["pcpervar"], self.data["pceigs"] = chemometrics.PCA_NIPALS(xdata, self.spnPCAnum.GetValue(), self.data["pcatype"], self.parent.parent.parent.sbMain)
 
-			self.data["niporsvd"] = "nip"
+				self.data["niporsvd"] = "nip"
 
-		# Enable ctrls
-		self.btnExportPcaResults.Enable(1)
-		self.spnNumPcs1.SetRange(1, len(self.data["pceigs"]))
-		self.spnNumPcs1.SetValue(1)
-		self.spnNumPcs2.SetRange(1, len(self.data["pceigs"]))
-		self.spnNumPcs2.SetValue(2)
+			# Enable ctrls
+			self.btnExportPcaResults.Enable(1)
+			self.spnNumPcs1.SetRange(1, len(self.data["pceigs"]))
+			self.spnNumPcs1.SetValue(1)
+			self.spnNumPcs2.SetRange(1, len(self.data["pceigs"]))
+			self.spnNumPcs2.SetValue(2)
 
-		# plot results
-		self.PlotPca()
+			# plot results
+			self.PlotPca()
 
-	##		  except Exception, error:
-	##			  errorBox(self,'%s' %str(error))
-	##
+		except Exception as error:
+			errorBox(self, "%s" % str(error))
+
 	def PlotPca(self):
-
+		##		  #check for metadata
 		##		  if (sum(self.data['class']) != 0) and (self.data['class'] is not None):
 		##			  self.rbDfaRawData.SetValue(0)
 		##			  self.rbDfaProcData.SetValue(0)
@@ -492,20 +512,20 @@ class TitleBar(bp.ButtonPanel):
 		self.plotPcaScores()
 
 		# Plot % variance
-		self.DrawPcaVar = plotLine(self.parent.plcPCvar, scipy.transpose(self.data["pcpervar"]), scipy.arange(0, len(self.data["pcpervar"]))[:, nA], 0, "Percentage Explained Variance", "Principal Component", "Cumulative % Variance")
+		plotLine(self.parent.plcPCvar, scipy.transpose(self.data["pcpervar"]), scipy.arange(0, len(self.data["pcpervar"]))[:, nA], 0, "Percentage Explained Variance", "Principal Component", "Cumulative % Variance")
 
 		# Plot eigenvalues
-		self.DrawPCeigs = plotLine(self.parent.plcPCeigs, scipy.transpose(self.data["pceigs"]), scipy.arange(1, len(self.data["pceigs"]) + 1)[:, nA], 0, "Eigenvalues", "Principal Component", "Eigenvalue")
+		plotLine(self.parent.plcPCeigs, scipy.transpose(self.data["pceigs"]), scipy.arange(1, len(self.data["pceigs"]) + 1)[:, nA], 0, "Eigenvalues", "Principal Component", "Eigenvalue")
 
 	def plotPcaLoads(self):
 		if self.spnNumPcs1.GetValue() != self.spnNumPcs2.GetValue():
-			self.DrawPcaLoadsV = plotText(self.parent.plcPcaLoadsV, scipy.transpose(self.data["pcloads"]), self.data["validation"], self.data["class"], self.data["indlabels"], self.spnNumPcs1.GetValue() - 1, self.spnNumPcs2.GetValue() - 1, "Principal Component Loadings", "PC Loading", 0)
+			plotText(self.parent.plcPcaLoadsV, scipy.transpose(self.data["pcloads"]), self.data["validation"], self.data["class"], self.data["indlabels"], self.spnNumPcs1.GetValue() - 1, self.spnNumPcs2.GetValue() - 1, "Principal Component Loadings", "PC Loading", 0)
 		else:
 			idx = self.spnNumPcs1.GetValue() - 1
-			self.DrawPcaLoadsV = plotStem(self.parent.plcPcaLoadsV, scipy.concatenate((scipy.arange(1, self.data["pcloads"].shape[1] + 1)[:, nA], self.data["pcloads"][idx, :][:, nA]), 1), "Principal Component Loadings", "Variable", "PC Loading " + str(idx + 1))
+			plotStem(self.parent.plcPcaLoadsV, scipy.concatenate((scipy.arange(1, self.data["pcloads"].shape[1] + 1)[:, nA], self.data["pcloads"][idx, :][:, nA]), 1), "Principal Component Loadings", "Variable", "PC Loading " + str(idx + 1))
 
 	def plotPcaScores(self):
-		self.DrawPcaScore = plotText(self.parent.plcPCAscore, self.data["pcscores"], self.data["validation"], self.data["class"], self.data["label"], self.spnNumPcs1.GetValue() - 1, self.spnNumPcs2.GetValue() - 1, "Principal Component Scores", "PC", 0)
+		plotText(self.parent.plcPCAscore, self.data["pcscores"], self.data["validation"], self.data["class"], self.data["label"], self.spnNumPcs1.GetValue() - 1, self.spnNumPcs2.GetValue() - 1, "Principal Component Scores", "PC", 0)
 
 	def OnSpnNumPcs1(self, event):
 		self.plotPcaScores()
@@ -672,28 +692,28 @@ class plotProperties(wx.Frame):
 	def _init_coll_gbsPlotProps_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.stTitle, (0, 0), border=0, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.txtTitle, (0, 1), border=0, flag=wx.EXPAND, span=(1, 5))
-		parent.AddWindow(self.stFont, (1, 0), border=0, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.spnFontSizeAxes, (1, 1), border=0, flag=wx.EXPAND, span=(1, 5))
-		parent.AddWindow(self.stXlabel, (2, 0), border=0, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.txtXlabel, (2, 1), border=0, flag=wx.EXPAND, span=(1, 5))
-		parent.AddWindow(self.stYlabel, (3, 0), border=0, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.txtYlabel, (3, 1), border=0, flag=wx.EXPAND, span=(1, 5))
-		parent.AddWindow(self.stXfrom, (4, 0), border=0, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.txtXmin, (4, 1), border=0, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.spnXmin, (4, 2), border=0, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.stXto, (4, 3), border=0, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.txtXmax, (4, 4), border=0, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.spnXmax, (4, 5), border=0, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.stYfrom, (5, 0), border=0, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.txtYmin, (5, 1), border=0, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.spnYmin, (5, 2), border=0, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.stYto, (5, 3), border=0, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.txtYmax, (5, 4), border=0, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.spnYmax, (5, 5), border=0, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.cbGrid, (6, 0), border=0, flag=wx.EXPAND, span=(1, 6))
-		parent.AddWindow(self.btnApply, (7, 0), border=0, flag=wx.EXPAND, span=(1, 6))
+		parent.AddWindow(self.stTitle, (0, 0), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.txtTitle, (0, 1), border=4, flag=wx.EXPAND, span=(1, 5))
+		parent.AddWindow(self.stFont, (1, 0), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.spnFontSizeAxes, (1, 1), border=4, flag=wx.EXPAND, span=(1, 5))
+		parent.AddWindow(self.stXlabel, (2, 0), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.txtXlabel, (2, 1), border=4, flag=wx.EXPAND, span=(1, 5))
+		parent.AddWindow(self.stYlabel, (3, 0), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.txtYlabel, (3, 1), border=4, flag=wx.EXPAND, span=(1, 5))
+		parent.AddWindow(self.stXfrom, (4, 0), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.txtXmin, (4, 1), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.spnXmin, (4, 2), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.stXto, (4, 3), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.txtXmax, (4, 4), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.spnXmax, (4, 5), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.stYfrom, (5, 0), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.txtYmin, (5, 1), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.spnYmin, (5, 2), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.stYto, (5, 3), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.txtYmax, (5, 4), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.spnYmax, (5, 5), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.cbGrid, (6, 0), border=4, flag=wx.EXPAND, span=(1, 6))
+		parent.AddWindow(self.btnApply, (7, 0), border=4, flag=wx.EXPAND, span=(1, 6))
 
 	def _init_coll_gbsPlotProps_Growables(self, parent):
 		# generated method, don't edit
@@ -723,6 +743,7 @@ class plotProperties(wx.Frame):
 	def _init_plot_prop_ctrls(self, prnt):
 		# generated method, don't edit
 		wx.Frame.__init__(self, id=-1, name="", parent=prnt, pos=wx.Point(0, 0), size=wx.Size(250, 466), style=wx.DEFAULT_FRAME_STYLE, title="Plot Properties")
+		self.SetBackgroundColour(wx.Colour(167, 167, 243))
 
 		self.stTitle = wx.StaticText(id=wxID_FRAME1STTITLE, label="Title", name="stTitle", parent=self, pos=wx.Point(0, 0), size=wx.Size(40, 24), style=0)
 		self.stTitle.SetToolTip("")
@@ -797,67 +818,68 @@ class plotProperties(wx.Frame):
 		self.cbGrid = wx.CheckBox(id=wxID_FRAME1CBGRID, label="Show grid", name="cbGrid", parent=self, pos=wx.Point(0, 159), size=wx.Size(50, 21), style=0)
 		self.cbGrid.SetValue(False)
 		self.cbGrid.SetToolTip("")
-		self.cbGrid.Bind(wx.EVT_CHECKBOX, self.OnCbGridCheckbox, id=wxID_FRAME1CBGRID)
 
 		self.btnApply = wx.Button(id=wxID_FRAME1BTNAPPLY, label="Apply", name="btnApply", parent=self, pos=wx.Point(0, 184), size=wx.Size(50, 28), style=0)
+		self.btnApply.Bind(wx.EVT_BUTTON, self.OnBtnApplyButton)
 
 		self._init_plot_prop_sizers()
 
-	def __init__(self, parent):  # , canvas, graph):
+	def __init__(self, parent):
 		self._init_plot_prop_ctrls(parent)
 
-	##		  self.minXrange = canvas.GetXCurrentRange()[0]
-	##		  self.maxXrange = canvas.GetXCurrentRange()[1]
-	##		  self.minYrange = canvas.GetYCurrentRange()[0]
-	##		  self.maxYrange = canvas.GetYCurrentRange()[1]
-	##
-	##		  self.graph = graph[0]
-	##		  self.canvas = canvas
-	##
-	##		  self.txtXmin.SetEditable(1)
-	##		  self.txtXmax.SetEditable(1)
-	##		  self.txtYmin.SetEditable(1)
-	##		  self.txtYmax.SetEditable(1)
-	##
-	##		  self.Increment = (self.maxXrange - self.minXrange)/100
-	##
-	##		  self.txtXmin.SetValue('%.3f' %self.minXrange)
-	##		  self.txtXmax.SetValue('%.3f' %self.maxXrange)
-	##		  self.txtYmin.SetValue('%.3f' %self.minYrange)
-	##		  self.txtYmax.SetValue('%.3f' %self.maxYrange)
-	##
-	##		  try:
-	##			  self.txtTitle.SetValue(self.graph.getTitle())
-	##		  except: pass
-	##		  try:
-	##			  self.txtXlabel.SetValue(self.graph.getXLabel())
-	##		  except: pass
-	##		  try:
-	##			  self.txtYlabel.SetValue(self.graph.getYLabel())
-	##		  except: pass
-	##
-	##		  self.spnFontSizeAxes.SetValue(self.canvas.GetFontSizeAxis())
+		self.minXrange = parent.GetXCurrentRange()[0]
+		self.maxXrange = parent.GetXCurrentRange()[1]
+		self.minYrange = parent.GetYCurrentRange()[0]
+		self.maxYrange = parent.GetYCurrentRange()[1]
+
+		self.graph = parent.last_draw[0]
+		self.canvas = parent
+
+		self.txtXmin.SetEditable(1)
+		self.txtXmax.SetEditable(1)
+		self.txtYmin.SetEditable(1)
+		self.txtYmax.SetEditable(1)
+
+		self.Increment = (self.maxXrange - self.minXrange) / 100
+
+		self.txtXmin.SetValue("%.3f" % self.minXrange)
+		self.txtXmax.SetValue("%.3f" % self.maxXrange)
+		self.txtYmin.SetValue("%.3f" % self.minYrange)
+		self.txtYmax.SetValue("%.3f" % self.maxYrange)
+
+		try:
+			self.txtTitle.SetValue(self.graph.getTitle())
+		except:
+			pass
+
+		try:
+			self.txtXlabel.SetValue(self.graph.getXLabel())
+		except:
+			pass
+
+		try:
+			self.txtYlabel.SetValue(self.graph.getYLabel())
+		except:
+			pass
+
+		self.spnFontSizeAxes.SetValue(parent.GetFontSizeAxis())
+
+		if self.canvas.GetEnableGrid() is True:
+			self.cbGrid.SetValue(True)
 
 	def OnBtnApplyButton(self, event):
-		self.ButtonPress = 1
 		self.canvas.fontSizeAxis = self.spnFontSizeAxes.GetValue()
 		self.canvas.fontSizeTitle = self.spnFontSizeAxes.GetValue()
+		self.canvas.SetEnableGrid(self.cbGrid.GetValue())
+
 		self.graph.setTitle(self.txtTitle.GetValue())
 		self.graph.setXLabel(self.txtXlabel.GetValue())
 		self.graph.setYLabel(self.txtYlabel.GetValue())
+
 		if (float(self.txtXmin.GetValue()) < float(self.txtXmax.GetValue())) and (float(self.txtYmin.GetValue()) < float(self.txtYmax.GetValue())) is True:
 			self.graph = [self.graph, (float(self.txtXmin.GetValue()), float(self.txtXmax.GetValue())), (float(self.txtYmin.GetValue()), float(self.txtYmax.GetValue()))]
+
 		self.Close()
-
-	def GetNewPlotParams(self):
-		return self.graph
-
-	def OnBtnCancelButton(self, event):
-		self.ButtonPress = 0
-		self.Close()
-
-	def GetButtonPress(self):
-		return self.ButtonPress
 
 	def OnSpnXminSpinUp(self, event):
 		curr = float(self.txtXmin.GetValue())
@@ -898,6 +920,3 @@ class plotProperties(wx.Frame):
 		curr = float(self.txtYmin.GetValue())
 		curr = curr - self.Increment
 		self.txtYmin.SetValue("%.3f" % curr)
-
-	def OnCbGridCheckbox(self, event):
-		event.Skip()

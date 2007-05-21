@@ -10,6 +10,7 @@ import wx.lib.plot
 from wx.lib.anchors import LayoutAnchors
 
 from . import process
+from .Pca import MyPlotCanvas
 
 [IDPLOTSPEC] = [wx.NewIdRef() for _init_ctrls in range(1)]
 
@@ -71,14 +72,13 @@ class plotSpectra(wx.Panel):
 		self.SetToolTip("")
 		self.SetAutoLayout(True)
 
-		self.plcSpectraRaw = wx.lib.plot.PlotCanvas(id=IDPLOTSPEC, name="plcSpectraRaw", parent=self, pos=wx.Point(272, 0), size=wx.Size(20, 20), style=0)
+		self.plcSpectraRaw = MyPlotCanvas(id=IDPLOTSPEC, name="plcSpectraRaw", parent=self, pos=wx.Point(272, 0), size=wx.Size(20, 20), style=0)
 		self.plcSpectraRaw.enableZoom = True
 		self.plcSpectraRaw.fontSizeTitle = 12
 		self.plcSpectraRaw.SetToolTip("")
 		self.plcSpectraRaw.fontSizeAxis = 10
 		self.plcSpectraRaw.SetConstraints(LayoutAnchors(self.plcSpectraRaw, True, True, True, True))
 		self.plcSpectraRaw.SetAutoLayout(True)
-		self.plcSpectraRaw.Bind(wx.EVT_RIGHT_DOWN, self.OnPlcSpectraRawRightDown, id=IDPLOTSPEC)
 
 		self.titleBar = TitleBar(self, id=-1, text="Spectral Preprocessing", style=bp.BP_USE_GRADIENT, alignment=bp.BP_ALIGN_LEFT, canvasList=[self.plcSpectraRaw])
 
@@ -93,14 +93,6 @@ class plotSpectra(wx.Panel):
 		curve = wx.lib.plot.PolyLine([[0, 0], [1, 1]], colour="white", width=1, style=wx.TRANSPARENT)
 		curve = wx.lib.plot.PlotGraphics([curve], "Experimental Data", "Arbitrary", "Arbitrary")
 		self.plcSpectraRaw.Draw(curve)
-
-	def getFrame(self, frameParent):
-		self.frameParent = frameParent
-
-	def OnPlcSpectraRawRightDown(self, event):
-		pt = event.GetPosition()
-		self.titleBar.data["plotsel"] = self.plcSpectraRaw
-		self.frameParent.PopupMenu(self.frameParent.gridMenu, pt)
 
 
 class TitleBar(bp.ButtonPanel):

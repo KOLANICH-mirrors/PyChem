@@ -12,7 +12,7 @@ from wx.lib.anchors import LayoutAnchors
 
 from . import chemometrics
 from .chemometrics import _index
-from .Pca import plotLine, plotStem, plotText
+from .Pca import MyPlotCanvas, plotLine, plotStem, plotText
 
 [
 	wxID_DFA,
@@ -102,7 +102,7 @@ class Dfa(wx.Panel):
 		self.SetToolTip("")
 		self.SetAutoLayout(True)
 
-		self.plcDFAscores = wx.lib.plot.PlotCanvas(id=-1, name="plcDFAscores", parent=self, pos=wx.Point(0, 24), size=wx.Size(24, 20), style=0)
+		self.plcDFAscores = MyPlotCanvas(id=-1, name="plcDFAscores", parent=self, pos=wx.Point(0, 24), size=wx.Size(24, 20), style=0)
 		self.plcDFAscores.fontSizeTitle = 10
 		self.plcDFAscores.fontSizeAxis = 8
 		self.plcDFAscores.enableZoom = True
@@ -111,10 +111,8 @@ class Dfa(wx.Panel):
 		self.plcDFAscores.SetAutoLayout(True)
 		self.plcDFAscores.SetConstraints(LayoutAnchors(self.plcDFAscores, True, True, True, True))
 		self.plcDFAscores.fontSizeLegend = 8
-		##		  self.plcDFAscores.Bind(wx.EVT_RIGHT_DOWN, self.OnPlcDFAscoresRightDown,
-		##				id=-1)
 
-		self.plcDfaLoadsV = wx.lib.plot.PlotCanvas(id=-1, name="plcDfaLoadsV", parent=self, pos=wx.Point(-5, 24), size=wx.Size(24, 20), style=0)
+		self.plcDfaLoadsV = MyPlotCanvas(id=-1, name="plcDfaLoadsV", parent=self, pos=wx.Point(-5, 24), size=wx.Size(24, 20), style=0)
 		self.plcDfaLoadsV.fontSizeAxis = 8
 		self.plcDfaLoadsV.fontSizeTitle = 10
 		self.plcDfaLoadsV.enableZoom = True
@@ -123,10 +121,8 @@ class Dfa(wx.Panel):
 		self.plcDfaLoadsV.SetConstraints(LayoutAnchors(self.plcDfaLoadsV, True, True, True, True))
 		self.plcDfaLoadsV.fontSizeLegend = 8
 		self.plcDfaLoadsV.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
-		##		  self.plcDfaLoadsV.Bind(wx.EVT_RIGHT_DOWN, self.OnPlcDfaLoadsVRightDown,
-		##				id=-1)
 
-		self.plcDFAeigs = wx.lib.plot.PlotCanvas(id=-1, name="plcDFAeigs", parent=self, pos=wx.Point(483, 214), size=wx.Size(305, 212), style=0)
+		self.plcDFAeigs = MyPlotCanvas(id=-1, name="plcDFAeigs", parent=self, pos=wx.Point(483, 214), size=wx.Size(305, 212), style=0)
 		self.plcDFAeigs.fontSizeAxis = 8
 		self.plcDFAeigs.fontSizeTitle = 10
 		self.plcDFAeigs.enableZoom = True
@@ -135,10 +131,8 @@ class Dfa(wx.Panel):
 		self.plcDFAeigs.SetConstraints(LayoutAnchors(self.plcDFAeigs, False, True, False, True))
 		self.plcDFAeigs.fontSizeLegend = 8
 		self.plcDFAeigs.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
-		##		  self.plcDFAeigs.Bind(wx.EVT_RIGHT_DOWN, self.OnPlcDFAeigsRightDown,
-		##				id=-1)
 
-		self.plcDfaError = wx.lib.plot.PlotCanvas(id=-1, name="plcDfaPerVar", parent=self, pos=wx.Point(176, 214), size=wx.Size(305, 212), style=0)
+		self.plcDfaError = MyPlotCanvas(id=-1, name="plcDfaPerVar", parent=self, pos=wx.Point(176, 214), size=wx.Size(305, 212), style=0)
 		self.plcDfaError.fontSizeAxis = 8
 		self.plcDfaError.fontSizeTitle = 10
 		self.plcDfaError.enableZoom = True
@@ -148,8 +142,6 @@ class Dfa(wx.Panel):
 		self.plcDfaError.SetConstraints(LayoutAnchors(self.plcDfaError, True, True, False, True))
 		self.plcDfaError.fontSizeLegend = 8
 		self.plcDfaError.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
-		##		  self.plcDfaError.Bind(wx.EVT_RIGHT_DOWN, self.OnPlcDfaErrorRightDown,
-		##				id=-1)
 
 		self.titleBar = TitleBar(self, id=-1, text="Discriminant Function Analysis", style=bp.BP_USE_GRADIENT, alignment=bp.BP_ALIGN_LEFT)
 
@@ -157,21 +149,6 @@ class Dfa(wx.Panel):
 
 	def __init__(self, parent, id, pos, size, style, name):
 		self._init_ctrls(parent)
-
-	def getFrame(self, frameParent):
-		self.frameParent = frameParent
-
-	def OnPlcDFAscoresRightDown(self, event):
-		event.Skip()
-
-	def OnPlcDfaLoadsVRightDown(self, event):
-		event.Skip()
-
-	def OnPlcDFAeigsRightDown(self, event):
-		event.Skip()
-
-	def OnPlcDfaErrorRightDown(self, event):
-		event.Skip()
 
 	def Reset(self):
 		self.titleBar.spnDfaScore1.Enable(0)
