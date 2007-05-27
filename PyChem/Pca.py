@@ -1,19 +1,32 @@
+# -----------------------------------------------------------------------------
+# Name:		   Pca.py
+# Purpose:
+#
+# Author:	   Roger Jarvis
+#
+# Created:	   2007/05/22
+# RCS-ID:	   $Id$
+# Copyright:   (c) 2007
+# Licence:	   GNU General Public Licence
+# -----------------------------------------------------------------------------
 # Boa:FramePanel:Pca
 
 import os
 import string
 
+import mva.chemometrics
 import scipy
 
 import wx
 import wx.lib.agw.buttonpanel as bp
 import wx.lib.buttons
 import wx.lib.plot
+import wx.lib.stattext
+from mva.chemometrics import _index
 from scipy import newaxis as nA
 from wx.lib.anchors import LayoutAnchors
 
-from . import chemometrics
-from .chemometrics import _index
+from .utils.io import str_array
 
 [
 	wxID_PCA,
@@ -31,20 +44,6 @@ from .chemometrics import _index
 	ID_NUMPCS1,
 	ID_NUMPCS2,
 ] = [wx.NewIdRef() for _init_btnpanel_ctrls in range(6)]
-
-[
-	wxID_WXEXPORTDIALOG,
-	wxID_WXEXPORTDIALOGBTNBROWSE,
-	wxID_WXEXPORTDIALOGBTNCANCEL,
-	wxID_WXEXPORTDIALOGBTNOK,
-	wxID_WXEXPORTDIALOGCBEXPEIGS,
-	wxID_WXEXPORTDIALOGCBEXPPCLOADS,
-	wxID_WXEXPORTDIALOGCBEXPPERVAR,
-	wxID_WXEXPORTDIALOGCBEXPSCORES,
-	wxID_WXEXPORTDIALOGSTHCLUSTER,
-	wxID_WXEXPORTDIALOGTCSAVEPCABROWSE,
-	wxID_WXEXPORTDIALOGWDPCAEXPORT,
-] = [wx.NewIdRef() for _init_export_ctrls in range(11)]
 
 [
 	wxID_FRAME1,
@@ -148,7 +147,10 @@ def plotText(plotCanvas, coords, mask, cLass, text, col1, col2, tit, axis, usema
 
 	# set text colour - black=train, blue=val, red=test
 	for getColour in range(colRange):
-		idx = _index(mask, getColour)
+		if colRange == 3:
+			idx = _index(mask, getColour)
+		else:
+			idx = list(range(len(coords)))
 
 		if (coords.shape[1] > 1) & (col1 != col2) is True:
 			# plot 2d
@@ -257,7 +259,6 @@ class Pca(wx.Panel):
 		# generated method, don't edit
 		wx.Panel.__init__(self, id=wxID_PCA, name="Pca", parent=prnt, pos=wx.Point(-12, 22), size=wx.Size(1024, 599), style=wx.TAB_TRAVERSAL)
 		self.SetClientSize(wx.Size(1016, 565))
-		self.SetBackgroundColour(wx.Colour(167, 167, 243))
 		self.SetAutoLayout(True)
 		self.SetToolTip("")
 
@@ -309,7 +310,7 @@ class Pca(wx.Panel):
 		self.titleBar.spnNumPcs1.SetValue(1)
 		self.titleBar.spnNumPcs2.SetValue(2)
 
-		objects = {"plcPCeigs": ["Eigenvalues", "Principal Component", "Eigenvalue"], "plcPCvar": ["Percentage Explained Variance", "Principal Component", "Cumulative % Variance"], "plcPCAscore": ["PCA Model", "PC 1", "PC 2"], "plcPcaLoadsV": ["PCA Loading", "Arbitrary", "Arbitrary"]}
+		objects = {"plcPCeigs": ["Eigenvalues", "Principal Component", "Eigenvalue"], "plcPCvar": ["Percentage Explained Variance", "Principal Component", "Cumulative % Variance"], "plcPCAscore": ["PCA Scores", "PC 1", "PC 2"], "plcPcaLoadsV": ["PCA Loading", "Arbitrary", "Arbitrary"]}
 		curve = wx.lib.plot.PolyLine([[0, 0], [1, 1]], colour="white", width=1, style=wx.TRANSPARENT)
 
 		for each in list(objects.keys()):
@@ -319,19 +320,15 @@ class Pca(wx.Panel):
 class TitleBar(bp.ButtonPanel):
 	def _init_btnpanel_ctrls(self, prnt):
 		bp.ButtonPanel.__init__(self, parent=prnt, id=-1, text="Principal Components Analysis", agwStyle=bp.BP_USE_GRADIENT, alignment=bp.BP_ALIGN_LEFT)
+		self.Bind(wx.EVT_PAINT, self.OnButtonPanelPaint)
 
-		self.btnRunPCA = wx.lib.buttons.GenButton(id=ID_RUNPCA, label="Run", name="btnRunPCA", parent=self, pos=wx.Point(8, 288), size=wx.Size(60, 23), style=0)
-		self.btnRunPCA.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "MS Sans Serif"))
-		self.btnRunPCA.SetToolTip("")
+		self.btnRunPCA = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "run.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Run PCA", longHelp="Run Principal Components Analysis")
 		self.btnRunPCA.Enable(False)
-		self.btnRunPCA.SetBackgroundColour(wx.Colour(167, 167, 243))
-		self.btnRunPCA.Bind(wx.EVT_BUTTON, self.OnBtnRunPCAButton, id=ID_RUNPCA)
+		self.Bind(wx.EVT_BUTTON, self.OnBtnRunPCAButton, id=self.btnRunPCA.GetId())
 
-		self.btnExportPcaResults = wx.Button(id=ID_EXPORTPCA, label="Export", name="btnExportPcaResults", parent=self, pos=wx.Point(8, 328), size=wx.Size(60, 23), style=0)
-		self.btnExportPcaResults.SetToolTip("")
+		self.btnExportPcaResults = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "export.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Export PCA Results", longHelp="Export PCA Results")
 		self.btnExportPcaResults.Enable(False)
-		self.btnExportPcaResults.SetBackgroundColour(wx.Colour(167, 167, 243))
-		self.btnExportPcaResults.Bind(wx.EVT_BUTTON, self.OnBtnExportPcaResultsButton, id=ID_EXPORTPCA)
+		self.Bind(wx.EVT_BUTTON, self.OnBtnExportPcaResultsButton, id=self.btnExportPcaResults.GetId())
 
 		self.cbxData = wx.Choice(choices=["Raw spectra", "Processed spectra"], id=-1, name="cbxData", parent=self, pos=wx.Point(118, 23), size=wx.Size(100, 23), style=0)
 		self.cbxData.SetSelection(0)
@@ -379,21 +376,25 @@ class TitleBar(bp.ButtonPanel):
 
 		self.AddControl(self.cbxData)
 		self.AddControl(self.cbxPreprocType)
-		self.AddSeparator()
 		self.AddControl(self.cbxPcaType)
+		self.AddControl(wx.lib.stattext.GenStaticText(self, -1, "No. PCs:", style=wx.TRANSPARENT_WINDOW))
 		self.AddControl(self.spnPCAnum)
-		self.AddControl(self.btnRunPCA)
 		self.AddSeparator()
-		self.AddControl(wx.StaticText(self, -1, "PC "))
+		self.AddControl(wx.lib.stattext.GenStaticText(self, -1, "PC", style=wx.TRANSPARENT_WINDOW))
 		self.AddControl(self.spnNumPcs1)
-		self.AddControl(wx.StaticText(self, -1, " vs. "))
+		self.AddControl(wx.lib.stattext.GenStaticText(self, -1, " vs. ", style=wx.TRANSPARENT_WINDOW))
 		self.AddControl(self.spnNumPcs2)
 		self.AddSeparator()
-		self.AddControl(self.btnExportPcaResults)
+		self.AddButton(self.btnRunPCA)
+		self.AddSeparator()
+		self.AddButton(self.btnExportPcaResults)
 
 		self.Thaw()
 
 		self.DoLayout()
+
+	def OnButtonPanelPaint(self, event):
+		event.Skip()
 
 	def SetProperties(self):
 
@@ -409,28 +410,21 @@ class TitleBar(bp.ButtonPanel):
 		bpArt.SetColor(bp.BP_BORDER_COLOUR, bp.BrightenColour(background, 0.85))
 		bpArt.SetColor(bp.BP_SEPARATOR_COLOUR, bp.BrightenColour(background, 0.85))
 		bpArt.SetColor(bp.BP_BUTTONTEXT_COLOUR, wx.BLACK)
-		bpArt.SetColor(bp.BP_SELECTION_BRUSH_COLOUR, wx.Colour(167, 167, 243))
+		bpArt.SetColor(bp.BP_SELECTION_BRUSH_COLOUR, wx.Colour(242, 242, 235))
 		bpArt.SetColor(bp.BP_SELECTION_PEN_COLOUR, wx.Colour(206, 206, 195))
 
 	def OnBtnRunPCAButton(self, event):
 		self.runPca()
 
 	def OnBtnExportPcaResultsButton(self, event):
-		dlg = wxExportDialog(self)
+		dlg = wx.FileDialog(self, "Choose a file", ".", "", "Any files (*.*)|*.*", wx.FD_SAVE)
 		try:
-			dlg.ShowModal()
-			if dlg.GetButtonEvent() == 1:
-				if dlg.GetPath() is None:
-					dlg = wx.MessageDialog(self, "Please select directory", "Error!", wx.OK | wx.ICON_ERROR)
-					try:
-						dlg.ShowModal()
-					finally:
-						dlg.Destroy()
-				else:
-					dlg.SaveScores(self.data["pcscores"])
-					dlg.SaveLoadings(scipy.transpose(self.data["pcloads"]))
-					dlg.SaveEigs(self.data["pceigs"])
-					dlg.SavePerVar(self.data["pcpervar"])
+			if dlg.ShowModal() == wx.ID_OK:
+				saveFile = dlg.GetPath()
+				out = "#PRINCIPAL_COMPONENT_SCORES\n" + str_array(self.data["pcscores"], col_sep="\t") + "\n" + "#PRINCIPAL_COMPONENT_LOADINGS\n" + str_array(self.data["pcloads"], col_sep="\t") + "\n" + "#EIGENVALUES\n" + str_array(self.data["pceigs"], col_sep="\t") + "\n" + "#CUMULATIVE_PERCENTAGE_EXPLAINED_VARIANCE\n" + str_array(self.data["pcpervar"], col_sep="\t") + "\n"
+				f = file(saveFile, "w")
+				f.write(out)
+				f.close()
 		finally:
 			dlg.Destroy()
 
@@ -465,7 +459,7 @@ class TitleBar(bp.ButtonPanel):
 
 			if self.cbxPcaType.GetSelection() == 1:
 				# run PCA using SVD
-				self.data["pcscores"], self.data["pcloads"], self.data["pcpervar"], self.data["pceigs"] = chemometrics.PCA_SVD(xdata, self.data["pcatype"])
+				self.data["pcscores"], self.data["pcloads"], self.data["pcpervar"], self.data["pceigs"] = mva.chemometrics.PCA_SVD(xdata, self.data["pcatype"])
 
 				self.data["pcscores"] = self.data["pcscores"][:, 0 : len(self.data["pceigs"])]
 
@@ -475,7 +469,7 @@ class TitleBar(bp.ButtonPanel):
 
 			elif self.cbxPcaType.GetSelection() == 0:
 				# run PCA using NIPALS
-				self.data["pcscores"], self.data["pcloads"], self.data["pcpervar"], self.data["pceigs"] = chemometrics.PCA_NIPALS(xdata, self.spnPCAnum.GetValue(), self.data["pcatype"], self.parent.parent.parent.sbMain)
+				self.data["pcscores"], self.data["pcloads"], self.data["pcpervar"], self.data["pceigs"] = mva.chemometrics.PCA_NIPALS(xdata, self.spnPCAnum.GetValue(), self.data["pcatype"], self.parent.parent.parent.sbMain)
 
 				self.data["niporsvd"] = "nip"
 
@@ -493,29 +487,29 @@ class TitleBar(bp.ButtonPanel):
 			errorBox(self, "%s" % str(error))
 
 	def PlotPca(self):
-		##		  #check for metadata
-		##		  if (sum(self.data['class']) != 0) and (self.data['class'] is not None):
-		##			  self.rbDfaRawData.SetValue(0)
-		##			  self.rbDfaProcData.SetValue(0)
-		##			  self.rbDFAusepcscores.Enable(1)
-		##			  self.rbDFAusepcscores.SetValue(1)
-		##			  self.spnDFApcs.Enable(1)
-		##			  self.staticText23.Enable(1)
-		##			  self.spnDFApcs.SetRange(2, len(self.PCeigs))
-		##			  self.spnDFAdfs.SetRange(1, int(max(self.data['class']))-1)
-		##			  self.rbUsePCscores.Enable(1)
+		try:
+			# check for metadata & setup limits for dfa
+			if (sum(self.data["class"]) != 0) and (self.data["class"] is not None):
+				self.parent.parent.parent.plDfa.titleBar.cbxData.SetSelection(0)
+				self.parent.parent.parent.plDfa.titleBar.spnDfaPcs.SetRange(2, len(self.data["pceigs"]))
+				self.parent.parent.parent.plDfa.titleBar.spnDfaDfs.SetRange(1, int(max(self.data["class"])) - 1)
 
-		# Plot loadings
-		self.plotPcaLoads()
+			# Plot loadings
+			self.plotPcaLoads()
 
-		# Plot scores
-		self.plotPcaScores()
+			# Plot scores
+			self.plotPcaScores()
 
-		# Plot % variance
-		plotLine(self.parent.plcPCvar, scipy.transpose(self.data["pcpervar"]), scipy.arange(0, len(self.data["pcpervar"]))[:, nA], 0, "Percentage Explained Variance", "Principal Component", "Cumulative % Variance")
+			# Plot % variance
+			plotLine(self.parent.plcPCvar, scipy.transpose(self.data["pcpervar"]), scipy.arange(0, len(self.data["pcpervar"]))[:, nA], 0, "Percentage Explained Variance", "Principal Component", "Cumulative % Variance")
 
-		# Plot eigenvalues
-		plotLine(self.parent.plcPCeigs, scipy.transpose(self.data["pceigs"]), scipy.arange(1, len(self.data["pceigs"]) + 1)[:, nA], 0, "Eigenvalues", "Principal Component", "Eigenvalue")
+			# Plot eigenvalues
+			plotLine(self.parent.plcPCeigs, scipy.transpose(self.data["pceigs"]), scipy.arange(1, len(self.data["pceigs"]) + 1)[:, nA], 0, "Eigenvalues", "Principal Component", "Eigenvalue")
+		except:
+			pass
+
+	##		  except Exception, error:
+	##			  errorBox(self,'%s' %str(error))
 
 	def plotPcaLoads(self):
 		if self.spnNumPcs1.GetValue() != self.spnNumPcs2.GetValue():
@@ -527,165 +521,20 @@ class TitleBar(bp.ButtonPanel):
 	def plotPcaScores(self):
 		plotText(self.parent.plcPCAscore, self.data["pcscores"], self.data["validation"], self.data["class"], self.data["label"], self.spnNumPcs1.GetValue() - 1, self.spnNumPcs2.GetValue() - 1, "Principal Component Scores", "PC", 0)
 
+		# Annotate axes with % expl. variance
+		xLabel = self.parent.plcPCAscore.last_draw[0].getXLabel()
+		yLabel = self.parent.plcPCAscore.last_draw[0].getYLabel()
+		xLabel = xLabel + " (" + "%.2f" % (self.data["pcpervar"][self.spnNumPcs1.GetValue()] - self.data["pcpervar"][self.spnNumPcs1.GetValue() - 1]) + "%)"
+		yLabel = yLabel + " (" + "%.2f" % (self.data["pcpervar"][self.spnNumPcs2.GetValue()] - self.data["pcpervar"][self.spnNumPcs2.GetValue() - 1]) + "%)"
+		self.parent.plcPCAscore.last_draw[0].setXLabel(xLabel)
+		self.parent.plcPCAscore.last_draw[0].setYLabel(yLabel)
+		self.parent.plcPCAscore.Redraw()
+
 	def OnSpnNumPcs1(self, event):
-		self.plotPcaScores()
-		self.plotPcaLoads()
+		self.PlotPca()
 
 	def OnSpnNumPcs2(self, event):
-		self.plotPcaScores()
-		self.plotPcaLoads()
-
-
-class wxExportDialog(wx.Dialog):
-	def _init_export_ctrls(self, prnt):
-		# generated method, don't edit
-		wx.Dialog.__init__(self, id=wxID_WXEXPORTDIALOG, name="wx.ExportDialog", parent=prnt, pos=wx.Point(530, 255), size=wx.Size(220, 220), style=wx.DEFAULT_DIALOG_STYLE, title="Export Results")
-		self.SetClientSize(wx.Size(220, 220))
-		self.SetToolTip("")
-		self.Center(wx.BOTH)
-
-		self.wdPcaExport = wx.Window(id=wxID_WXEXPORTDIALOGWDPCAEXPORT, name="wdPcaExport", parent=self, pos=wx.Point(0, 0), size=wx.Size(228, 254), style=wx.TAB_TRAVERSAL)
-		self.wdPcaExport.SetToolTip("")
-
-		self.cbExpScores = wx.CheckBox(id=wxID_WXEXPORTDIALOGCBEXPSCORES, label="Export principal component scores", name="cbExpScores", parent=self.wdPcaExport, pos=wx.Point(16, 56), size=wx.Size(184, 13), style=0)
-		self.cbExpScores.SetValue(False)
-		self.cbExpScores.SetToolTip("")
-
-		self.tcSavePcaBrowse = wx.TextCtrl(id=wxID_WXEXPORTDIALOGTCSAVEPCABROWSE, name="tcSavePcaBrowse", parent=self.wdPcaExport, pos=wx.Point(16, 16), size=wx.Size(112, 21), style=0, value="")
-		self.tcSavePcaBrowse.SetToolTip("")
-
-		self.btnBrowse = wx.Button(id=wxID_WXEXPORTDIALOGBTNBROWSE, label="Browse...", name="btnBrowse", parent=self.wdPcaExport, pos=wx.Point(136, 16), size=wx.Size(75, 23), style=0)
-		self.btnBrowse.SetToolTip("")
-		self.btnBrowse.Bind(wx.EVT_BUTTON, self.OnBtnBrowseButton, id=wxID_WXEXPORTDIALOGBTNBROWSE)
-
-		self.cbExpEigs = wx.CheckBox(id=wxID_WXEXPORTDIALOGCBEXPEIGS, label="Export eigenvalues", name="cbExpEigs", parent=self.wdPcaExport, pos=wx.Point(16, 120), size=wx.Size(192, 13), style=0)
-		self.cbExpEigs.SetValue(False)
-		self.cbExpEigs.SetToolTip("")
-
-		self.cbExpPerVar = wx.CheckBox(id=wxID_WXEXPORTDIALOGCBEXPPERVAR, label="Export cumulative % variance", name="cbExpPerVar", parent=self.wdPcaExport, pos=wx.Point(16, 152), size=wx.Size(192, 13), style=0)
-		self.cbExpPerVar.SetValue(False)
-		self.cbExpPerVar.SetToolTip("")
-
-		self.cbExpPcLoads = wx.CheckBox(id=wxID_WXEXPORTDIALOGCBEXPPCLOADS, label="Export principal component loadings", name="cbExpPcLoads", parent=self.wdPcaExport, pos=wx.Point(16, 88), size=wx.Size(200, 13), style=0)
-		self.cbExpPcLoads.SetValue(False)
-		self.cbExpPcLoads.SetToolTip("")
-
-		self.btnOK = wx.Button(id=wxID_WXEXPORTDIALOGBTNOK, label="OK", name="btnOK", parent=self.wdPcaExport, pos=wx.Point(16, 184), size=wx.Size(75, 23), style=0)
-		self.btnOK.SetToolTip("")
-		self.btnOK.Bind(wx.EVT_BUTTON, self.OnBtnOKButton, id=wxID_WXEXPORTDIALOGBTNOK)
-
-		self.btnCancel = wx.Button(id=wxID_WXEXPORTDIALOGBTNCANCEL, label="Cancel", name="btnCancel", parent=self.wdPcaExport, pos=wx.Point(128, 184), size=wx.Size(75, 23), style=0)
-		self.btnCancel.SetToolTip("")
-		self.btnCancel.Bind(wx.EVT_BUTTON, self.OnBtnCancelButton, id=wxID_WXEXPORTDIALOGBTNCANCEL)
-
-		self.stHcluster = wx.StaticText(id=wxID_WXEXPORTDIALOGSTHCLUSTER, label="The dendrogram will be saved as Hcluster.cdt & Hcluster.gtr in a format suitable for display using Alok Saldanhas Java TreeView program (http://genome-www.stanford.edu)", name="stHcluster", parent=self.wdPcaExport, pos=wx.Point(16, 80), size=wx.Size(183, 72), style=0)
-		self.stHcluster.Show(False)
-
-	def __init__(self, parent, type="PCA"):
-		self._init_export_ctrls(parent)
-		self.Path = None
-
-		if type == "PCA":
-			self.cbExpScores.SetLabel("Export principal component scores")
-			self.cbExpPcLoads.SetLabel("Export principal component loadings")
-			self.cbExpEigs.SetLabel("Export eigenvalues")
-			self.cbExpPerVar.SetLabel("Export cumulative % variance")
-			self.stHcluster.Show(0)
-			self.scoresave = "PCscores.txt"
-			self.loadsave = "PCloadings.txt"
-			self.eigsave = "PCeigenvalues.txt"
-			self.explvar = "PCexplvar.txt"
-		if type == "DFA":
-			self.cbExpScores.SetLabel("Export discriminant function scores")
-			self.cbExpPcLoads.SetLabel("Export discriminant function loadings")
-			self.cbExpEigs.SetLabel("Export eigenvalues")
-			self.cbExpPerVar.Show(0)
-			self.stHcluster.Show(0)
-			self.scoresave = "DFscores.txt"
-			self.loadsave = "DFloadings.txt"
-			self.eigsave = "DFeigenvalues.txt"
-		if type == "PLS":
-			self.cbExpScores.SetLabel("Export PLS model")
-			self.cbExpPcLoads.SetLabel("Export PLS loadings")
-			self.cbExpEigs.SetLabel("Export PLS error")
-			self.cbExpPerVar.Show(0)
-			self.stHcluster.Show(0)
-			self.scoresave = "PLSmodel.txt"
-			self.loadsave = "PLSloadings.txt"
-			self.eigsave = "PLSerror.txt"
-		if type == "HCLUSTER":
-			self.stHcluster.Show(1)
-			self.cbExpScores.SetLabel("Save HCA outputs")
-			self.cbExpScores.SetValue(1)
-			self.cbExpPcLoads.Show(0)
-			self.cbExpEigs.Show(0)
-			self.cbExpPerVar.Show(0)
-		if type == "GA":
-			self.cbExpScores.SetLabel("Export chromosomes")
-			self.cbExpPcLoads.SetLabel("Export fitness scores")
-			self.cbExpEigs.SetLabel("Export opt. curves")
-			self.cbExpPerVar.Show(0)
-			self.stHcluster.Show(0)
-			self.scoresave = "chroms.txt"
-			self.loadsave = "scores.txt"
-			self.eigsave = "curves.txt"
-
-	def OnBtnBrowseButton(self, event):
-		dlg = wx.DirDialog(self)
-		try:
-			if dlg.ShowModal() == wx.ID_OK:
-				dir = dlg.GetPath()
-				self.tcSavePcaBrowse.SetValue(dir)
-				self.Path = dir
-		finally:
-			dlg.Destroy()
-
-	def OnBtnOKButton(self, event):
-		self.OK = 1
-		self.Close()
-
-	def OnBtnCancelButton(self, event):
-		self.OK = 0
-		self.Close()
-
-	def GetButtonEvent(self):
-		return self.OK
-
-	def SaveScores(self, scores):
-		if self.cbExpScores.GetValue() == 1:
-			f = file(os.path.join(self.Path, self.scoresave), "w")
-			scipy.io.write_array(f, scores)
-			f.close()
-
-	def SaveLoadings(self, loadings):
-		if self.cbExpPcLoads.GetValue() == 1:
-			f = file(os.path.join(self.Path, self.loadsave), "w")
-			scipy.io.write_array(f, loadings)
-			f.close()
-
-	def SaveEigs(self, eigs):
-		if self.cbExpEigs.GetValue() == 1:
-			f = file(os.path.join(self.Path, self.eigsave), "w")
-			scipy.io.write_array(f, eigs)
-			f.close()
-
-	def SavePerVar(self, pervar):
-		if self.cbExpPerVar.GetValue() == 1:
-			f = file(os.path.join(self.Path, self.explvar), "w")
-			scipy.io.write_array(f, pervar)
-			f.close()
-
-	def GetPath(self):
-		return self.Path
-
-	def CreateVarList(self, num):
-		list = []
-		for i in range(num):
-			list.append(str(i + 1))
-		return list
-
-	def SaveHcluster(self, path, xdata, names, expid, clusters, linkdist):
-		Bio.Cluster.data.writeclusterfiles(join((path, "//Hcluster"), ""), scipy.transpose(xdata), self.CreateVarList(xdata.shape[1]), expid, mask=None, geneclusters=scipy.zeros((xdata.shape[1], 2), "l"), genelinkdist=scipy.zeros((xdata.shape[1],), "d"), expclusters=np.array(clusters, "l"), explinkdist=linkdist)
+		self.PlotPca()
 
 
 class plotProperties(wx.Frame):
@@ -742,8 +591,7 @@ class plotProperties(wx.Frame):
 
 	def _init_plot_prop_ctrls(self, prnt):
 		# generated method, don't edit
-		wx.Frame.__init__(self, id=-1, name="", parent=prnt, pos=wx.Point(0, 0), size=wx.Size(250, 466), style=wx.DEFAULT_FRAME_STYLE, title="Plot Properties")
-		self.SetBackgroundColour(wx.Colour(167, 167, 243))
+		wx.Frame.__init__(self, id=wxID_FRAME1, name="", parent=prnt, pos=wx.Point(0, 0), size=wx.Size(250, 466), style=wx.DEFAULT_FRAME_STYLE, title="Plot Properties")
 
 		self.stTitle = wx.StaticText(id=wxID_FRAME1STTITLE, label="Title", name="stTitle", parent=self, pos=wx.Point(0, 0), size=wx.Size(40, 24), style=0)
 		self.stTitle.SetToolTip("")
@@ -868,6 +716,9 @@ class plotProperties(wx.Frame):
 			self.cbGrid.SetValue(True)
 
 	def OnBtnApplyButton(self, event):
+		self.applyChanges()
+
+	def applyChanges(self):
 		self.canvas.fontSizeAxis = self.spnFontSizeAxes.GetValue()
 		self.canvas.fontSizeTitle = self.spnFontSizeAxes.GetValue()
 		self.canvas.SetEnableGrid(self.cbGrid.GetValue())
@@ -877,9 +728,18 @@ class plotProperties(wx.Frame):
 		self.graph.setYLabel(self.txtYlabel.GetValue())
 
 		if (float(self.txtXmin.GetValue()) < float(self.txtXmax.GetValue())) and (float(self.txtYmin.GetValue()) < float(self.txtYmax.GetValue())) is True:
-			self.graph = [self.graph, (float(self.txtXmin.GetValue()), float(self.txtXmax.GetValue())), (float(self.txtYmin.GetValue()), float(self.txtYmax.GetValue()))]
+			self.canvas.last_draw = [self.canvas.last_draw[0], np.array([float(self.txtXmin.GetValue()), float(self.txtXmax.GetValue())]), np.array([float(self.txtYmin.GetValue()), float(self.txtYmax.GetValue())])]
+
+		self.canvas.Redraw()
 
 		self.Close()
+
+	def tempRedraw(self):
+		origX = self.canvas.last_draw[1]
+		origY = self.canvas.last_draw[2]
+		self.canvas.last_draw = [self.canvas.last_draw[0], np.array([float(self.txtXmin.GetValue()), float(self.txtXmax.GetValue())]), np.array([float(self.txtYmin.GetValue()), float(self.txtYmax.GetValue())])]
+		self.canvas.Redraw()
+		self.canvas.last_draw = [self.canvas.last_draw[0], origX, origY]
 
 	def OnSpnXminSpinUp(self, event):
 		curr = float(self.txtXmin.GetValue())

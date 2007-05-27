@@ -1,20 +1,38 @@
+# -----------------------------------------------------------------------------
+# Name:		   PyChemMain.py
+# Purpose:
+#
+# Author:	   Roger Jarvis
+#
+# Created:	   2007/05/24
+# RCS-ID:	   $Id$
+# Copyright:   (c) 2007
+# Licence:	   GNU General Public Licence
+# -----------------------------------------------------------------------------
 # Boa:Frame:PyChemMain
 
+import os
 import string
 import sys
 
 import cElementTree as ET
+import mva
 import scipy
 import wx
 import wx.adv
 import wx.lib.filebrowsebutton
+from mva.chemometrics import _index
 from scipy import newaxis as nA
 from wx.lib.anchors import LayoutAnchors
 
 from . import Cluster, Dfa, Ga, Pca, Plsr, expSetup, plotSpectra
-from .chemometrics import _index
 from .utils import getByPath
 from .utils.io import str_array
+
+# whereami for binary dists etc
+whereami = mva.__path__[0].split("mva")[0]
+# whereami for stand alone dist
+##whereami = mva.__path__[0].split('\library.zip\mva')[0]
 
 
 def create(parent):
@@ -215,6 +233,7 @@ class PyChemMain(wx.Frame):
 		self.SetToolTip("")
 		self.SetHelpText("")
 		self.Center(wx.BOTH)
+		self.SetIcon(wx.Icon(os.path.join(whereami, "ico", "pychem.ico"), wx.BITMAP_TYPE_ICO))
 		self.SetMinSize(wx.Size(200, 400))
 		self.SetMenuBar(self.mnuMain)
 
@@ -267,22 +286,21 @@ class PyChemMain(wx.Frame):
 
 	def OnMnuFileLoadexpMenu(self, event):
 		loadFile = wx.FileSelector("Load PyChem Experiment", "", "", "", "XML files (*.xml)|*.xml")
-
 		dlg = wxWorkspaceDialog(self, loadFile)
-		##		  try:
-		dlg.ShowModal()
-		tree = dlg.getTree()
-		dlg.clearTree()
-		workSpace = dlg.getWorkspace()
-		self.Reset()
-		self.xmlLoad(tree, workSpace)
-		self.data["exppath"] = loadFile
-		self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEEXP, 1)
-		self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEWS, 1)
-		self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILELOADWS, 1)
+		try:
+			dlg.ShowModal()
+			tree = dlg.getTree()
+			dlg.clearTree()
+			workSpace = dlg.getWorkspace()
+			self.Reset()
+			self.xmlLoad(tree, workSpace)
+			self.data["exppath"] = loadFile
+		##			  self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEEXP,1)
+		##			  self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEWS,1)
+		##			  self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILELOADWS,1)
+		finally:
+			dlg.Destroy()
 
-	##		  finally:
-	##			  dlg.Destroy()
 	##		  except Exception, error:
 	##			  errorBox(self,'%s' %str(error))
 
@@ -299,24 +317,22 @@ class PyChemMain(wx.Frame):
 
 	def OnMnuFileSaveexpMenu(self, event):
 		dlg = wx.FileDialog(self, "Choose a file", ".", "", "XML files (*.xml)|*.xml", wx.FD_SAVE)
-		##		  try:
-		if dlg.ShowModal() == wx.ID_OK:
-			saveFile = dlg.GetPath()
-			self.xmlSave(saveFile, "Default", "new")
-			# activate workspace save menu option
-			self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEEXP, 1)
-			self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEWS, 1)
-			self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILELOADWS, 1)
-			# show workspace dialog so that default can be edited
-			dlg = wxWorkspaceDialog(self, saveFile, dtype="Save")
-			try:
-				dlg.ShowModal()
-			finally:
-				dlg.Destroy()
-
-	##		  except Exception, error:
-	##			  dlg.Destroy()
-	##			  errorBox(self, '%s' %str(error))
+		try:
+			if dlg.ShowModal() == wx.ID_OK:
+				saveFile = dlg.GetPath()
+				self.xmlSave(saveFile, "Default", "new")
+				# activate workspace save menu option
+				self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEEXP, 1)
+				self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEWS, 1)
+				self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILELOADWS, 1)
+				# show workspace dialog so that default can be edited
+				dlgws = wxWorkspaceDialog(self, saveFile, dtype="Save")
+				try:
+					dlgws.ShowModal()
+				finally:
+					dlgws.Destroy()
+		finally:
+			dlg.Destroy()
 
 	def OnMnuFileSavewsMenu(self, event):
 		# text entry dialog
@@ -538,7 +554,7 @@ class PyChemMain(wx.Frame):
 		event.Skip()
 
 	def Reset(self, case=0):
-		varList = "'proc':None,'class':None,'label':None," + "'split':None,'processlist':[],'xaxis':None," + "'class':None,'label':None,'validation':None," + "'pcscores':None,'pcloads':None,'pcpervar':None," + "'pceigs':None,'pcadata':None,'niporsvd':None," + "'indlabels':None,'plsloads':None,'pcatype':None," + "'dfscores':None,'dfloads':None,'dfeigs':None," + "'sampleidx':None,'variableidx':None," + "'rawtrunc':None,'proctrunc':None," + "'gadfachroms':None,'gadfascores':None," + "'gadfacurves':None,'gaplschroms':None," + "'gaplsscores':None,'gaplscurves':None," + "'gadfadfscores':None,'gadfadfloads':None," + "'gaplsplsloads':None,'gridsel':None,'plotsel':None," + "'clusterid':None,'linkdist':None"
+		varList = "'proc':None,'class':None,'label':None," + "'split':None,'processlist':[],'xaxis':None," + "'class':None,'label':None,'validation':None," + "'pcscores':None,'pcloads':None,'pcpervar':None," + "'pceigs':None,'pcadata':None,'niporsvd':None," + "'indlabels':None,'plsloads':None,'pcatype':None," + "'dfscores':None,'dfloads':None,'dfeigs':None," + "'sampleidx':None,'variableidx':None," + "'rawtrunc':None,'proctrunc':None," + "'gadfachroms':None,'gadfascores':None," + "'gadfacurves':None,'gaplschroms':None," + "'gaplsscores':None,'gaplscurves':None," + "'gadfadfscores':None,'gadfadfloads':None," + "'gaplsplsloads':None,'gridsel':None,'plotsel':None," + "'tree':None,'order':None,'plstrnpred':None," + "'plscvpred':None,'plststpred':None,'plsfactors':None," + "'rmsec':None,'rmsepc':None,'rmsept':None"
 
 		if case == 0:
 			exec('self.data = {"raw":None,"exppath":None,' + varList + "}")
@@ -708,10 +724,12 @@ class PyChemMain(wx.Frame):
 			for each in scipyArrays:
 				try:
 					# save array elements
-					locals()["item" + each] = ET.SubElement(Array, each)
-					arrData = str_array(self.data[each],col_sep="\t")
-					locals()["item" + each].set("key", "array")
-					locals()["item" + each].text = arrData
+					isthere = self.data[each]
+					if isthere != None:
+						locals()["item" + each] = ET.SubElement(Array, each)
+						arrData = str_array(self.data[each],col_sep="\t")
+						locals()["item" + each].set("key", "array")
+						locals()["item" + each].text = arrData
 				except:
 					continue
 
@@ -720,7 +738,7 @@ class PyChemMain(wx.Frame):
 
 			doClustering = ET.SubElement(Flags, "doClustering")
 			doClustering.set("key", "int")
-			if (self.data["linkdist"] is not None) or (self.data["clusterid"] is not None) is True:
+			if (self.data["tree"] is not None) is True:
 				doClustering.text = "1"
 			else:
 				doClustering.text = "0"
@@ -739,7 +757,6 @@ class PyChemMain(wx.Frame):
 
 	def xmlLoad(self, tree, workspace, type="new"):
 		# load pychem experiments from saved xml files
-
 		if type == "new":
 			# load raw data
 			rdArray = []
@@ -840,42 +857,38 @@ class PyChemMain(wx.Frame):
 								getRow.append(float(element))
 							newArray.append(getRow)
 						self.data[array.tag] = np.array(newArray)
+
 					except:
 						self.data[array.tag] = None
 
-					# reload any plots
+				# reload any plots
+				for array in getArrays:
 					for i in ["pc", "dfs", "gadfa", "gapls"]:
 						if len(array.tag.split(i)) > 1:
 							if i == "pc":
-								try:
-									self.plPca.titleBar.PlotPca()
-								except:
-									continue
+								self.plPca.titleBar.PlotPca()
 							elif i == "dfs":
-								try:
-									self.plDfa.titleBar.plotDfa()
-								except:
-									continue
+								self.plDfa.titleBar.plotDfa()
 							elif i == "gadfa":
 								try:
-									self.plGadfa.titleBar.CreateGaResultsTree(self.plGadfa.titleBar.dlg.treGaResults, gacurves=self.data["gadfacurves"], chroms=self.data["gadfachroms"], varfrom=self.plGadfa.titleBar.dlg.spnGaVarsFrom.getValue(), varto=self.plGadfa.titleBar.dlg.spnGaVarsTo.getValue(), varrange=self.plGadfa.titleBar.dlg.spnGaVarsTo.getValue() - self.plGadfa.titleBar.dlg.spnGaVarsFrom.getValue() + 1, runs=self.plGadfa.titleBar.dlg.spnGaNoRuns.getValue())
+									self.plGadfa.titleBar.CreateGaResultsTree(self.plGadfa.titleBar.dlg.treGaResults, gacurves=self.data["gadfacurves"], chroms=self.data["gadfachroms"], varfrom=self.plGadfa.titleBar.dlg.spnGaVarsFrom.getValue(), varto=self.plGadfa.titleBar.dlg.spnGaVarsTo.getValue(), runs=self.plGadfa.titleBar.dlg.spnGaNoRuns.getValue() - 1)
 								except:
 									continue
 							elif i == "gapls":
 								try:
-									self.plGapls.titleBar.CreateGaResultsTree(self.plGapls.titleBar.dlg.treGaResults, gacurves=self.data["gaplscurves"], chroms=self.data["gaplschroms"], varfrom=self.plGapls.titleBar.dlg.spnGaVarsFrom.getValue(), varto=self.plGapls.titleBar.dlg.spnGaVarsTo.getValue(), varrange=self.plGapls.titleBar.dlg.spnGaVarsTo.getValue() - self.plGapls.titleBar.dlg.spnGaVarsFrom.getValue() + 1, runs=self.plGapls.titleBar.dlg.spnGaNoRuns.getValue())
+									self.plGapls.titleBar.CreateGaResultsTree(self.plGapls.titleBar.dlg.treGaResults, gacurves=self.data["gaplscurves"], chroms=self.data["gaplschroms"], varfrom=self.plGapls.titleBar.dlg.spnGaVarsFrom.getValue(), varto=self.plGapls.titleBar.dlg.spnGaVarsTo.getValue(), runs=self.plGapls.titleBar.dlg.spnGaNoRuns.getValue() - 1)
 								except:
 									continue
 
 			# load global variables - currently just flags for re-running cluster
 			# analysis and plsr
-			if each.tag == "Variables":
+			if each.tag == "Flags":
 				getVars = each
 				for item in getVars:
 					if (item.tag == "doClustering") & (item.text == "1") is True:
-						self.RunClustering()
+						self.plCluster.titleBar.RunClustering()
 					elif (item.tag == "doPlsr") & (item.text == "1") is True:
-						self.RunFullPls()
+						self.plPls.titleBar.runPls()
 
 		# unlock ctrls
 		self.EnableCtrls()
@@ -924,6 +937,7 @@ class PyChemMain(wx.Frame):
 							self.data["class"].append(float(self.plExpset.grdNames.GetCellValue(j, i)))
 						except:
 							pass
+			##				  self.plCluster.titleBar.dlg.spnNumClass.SetValue(max(self.data['class']))
 
 			# get validation vector
 			if (self.plExpset.grdNames.GetCellValue(0, i) == "Validation") and (self.plExpset.grdNames.GetCellValue(1, i) == "1") is True:
@@ -979,22 +993,18 @@ class PyChemMain(wx.Frame):
 				self.data["proctrunc"] = scipy.take(self.data["proctrunc"], self.data["sampleidx"], 0)
 		except:
 			pass
-
 		##		  except Exception, error:
 		####			pass
 		##			  errorBox(self, '%s' %str(error))
 
 		# change ga results lists
 		try:
-			self.CreateGaDplsResultsTrees()
+			self.plGapls.titleBar.CreateGaResultsTree(self.plGapls.titleBar.dlg.treGaResults, gacurves=self.data["gaplscurves"], chroms=self.data["gaplschroms"], varfrom=self.plGapls.titleBar.dlg.spnGaVarsFrom.GetValue(), varto=self.plGapls.titleBar.dlg.spnGaVarsTo.GetValue(), runs=self.plGapls.titleBar.dlg.spnGaNoRuns.GetValue() - 1)
 		except:
 			pass
+
 		try:
-			self.CreateGaDfaResultsTrees()
-		except:
-			pass
-		try:
-			self.CreateGaPlscResultsTrees()
+			self.plGadfa.titleBar.CreateGaResultsTree(self.plGadfa.titleBar.dlg.treGaResults, gacurves=self.data["gadfacurves"], chroms=self.data["gadfachroms"], varfrom=self.plGadfa.titleBar.dlg.spnGaVarsFrom.GetValue(), varto=self.plGadfa.titleBar.dlg.spnGaVarsTo.GetValue(), runs=self.plGadfa.titleBar.dlg.spnGaNoRuns.GetValue() - 1)
 		except:
 			pass
 
@@ -1114,13 +1124,13 @@ class wxImportDialog(wx.Dialog):
 		self.SetToolTip("")
 		self.Center(wx.BOTH)
 
-		self.btnOK = wx.Button(id=-1, label="OK", name="btnOK", parent=self, pos=wx.Point(0, 0), size=wx.Size(85, 30), style=0)
+		self.btnOK = wx.Button(id=-1, label="OK", name="btnOK", parent=self, pos=wx.Point(0, 0), size=wx.Size(85, 21), style=0)
 		self.btnOK.Bind(wx.EVT_BUTTON, self.OnBtnOk)
 
-		self.btnCancel = wx.Button(id=-1, label="Cancel", name="btnCancel", parent=self, pos=wx.Point(0, 0), size=wx.Size(85, 30), style=0)
+		self.btnCancel = wx.Button(id=-1, label="Cancel", name="btnCancel", parent=self, pos=wx.Point(0, 0), size=wx.Size(85, 21), style=0)
 		self.btnCancel.Bind(wx.EVT_BUTTON, self.OnBtnCancel)
 
-		self.fileBrowse = wx.lib.filebrowsebutton.FileBrowseButtonWithHistory(buttonText="Browse", dialogTitle="Choose a file", fileMask="*.*", id=-1, initialValue="", labelText="", parent=self, pos=wx.Point(48, 40), size=wx.Size(296, 48), startDirectory=".", style=wx.TAB_TRAVERSAL, toolTip="Type filename or click browse to choose file")
+		self.fileBrowse = wx.lib.filebrowsebutton.FileBrowseButton(buttonText="Browse", dialogTitle="Choose a file", fileMask="*.*", id=-1, initialValue="", labelText="", parent=self, pos=wx.Point(48, 40), size=wx.Size(296, 48), startDirectory=".", style=wx.TAB_TRAVERSAL, toolTip="Type filename or click browse to choose file")
 
 		self.cbTranspose = wx.CheckBox(id=-1, label="Transpose", name="cbTranspose", parent=self, pos=wx.Point(160, 128), size=wx.Size(73, 23), style=0)
 		self.cbTranspose.SetValue(False)
@@ -1164,7 +1174,6 @@ class wxWorkspaceDialog(wx.Dialog):
 		wx.Dialog.__init__(self, id=wxID_WXWORKSPACEDIALOG, name="wxWorkspaceDialog", parent=prnt, pos=wx.Point(453, 245), size=wx.Size(374, 280), style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.CAPTION | wx.MAXIMIZE_BOX, title="Save Workspace")
 		self.SetClientSize(wx.Size(366, 246))
 		self.SetToolTip("")
-		self.SetBackgroundColour(wx.Colour(167, 167, 243))
 		self.SetAutoLayout(True)
 		self.Center(wx.BOTH)
 
@@ -1209,31 +1218,29 @@ class wxWorkspaceDialog(wx.Dialog):
 		self.filename = filename
 
 		# need to populate listbox
-		##		  try:
-		# check that it's a pychem file
-		tree = ET.ElementTree(file=self.filename)
-		self.tree = tree
-		workspaces = tree.getroot().findall("Workspaces")[0]
-		self.lbSaveWorkspace.SetColumnWidth(0, 260)
-		for each in workspaces:
-			index = self.lbSaveWorkspace.InsertItem(sys.maxsize, each.tag)
-			self.lbSaveWorkspace.SetItem(index, 0, each.tag.replace("_", " "))
+		try:
+			# check that it's a pychem file
+			tree = ET.ElementTree(file=self.filename)
+			self.tree = tree
+			workspaces = tree.getroot().findall("Workspaces")[0]
+			self.lbSaveWorkspace.SetColumnWidth(0, 260)
+			for each in workspaces:
+				index = self.lbSaveWorkspace.InsertItem(sys.maxsize, each.tag)
+				self.lbSaveWorkspace.SetItem(index, 0, each.tag.replace("_", " "))
 
-		# behaviour for save dialog
-		if dtype == "Save":
-			self.btnCancel.Enable(0)
-
-	##		  except Exception, error:
-	##			  if self.filename not in ['']:
-	##				  dlg = wx.MessageDialog(self, 'Unable to load data - this is not a PyChem Experiment file',
-	##								  'Error!', wx.OK | wx.ICON_ERROR)
-	##				  try:
-	##					  dlg.ShowModal()
-	##				  finally:
-	##					  dlg.Destroy()
-	##			  else:
-	##				  pass
-	##			  self.Destroy()
+			# behaviour for save dialog
+			if dtype == "Save":
+				self.btnCancel.Enable(0)
+		except:
+			if self.filename not in [""]:
+				dlg = wx.MessageDialog(self, "Unable to load data - this is not a PyChem Experiment file", "Error!", wx.OK | wx.ICON_ERROR)
+				try:
+					dlg.ShowModal()
+				finally:
+					dlg.Destroy()
+			else:
+				pass
+			self.Destroy()
 
 	def OnBtnDeleteButton(self, event):
 		if self.lbSaveWorkspace.GetItemCount() > 1:

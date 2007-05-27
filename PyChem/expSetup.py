@@ -1,5 +1,17 @@
+# -----------------------------------------------------------------------------
+# Name:		   expSetup.py
+# Purpose:
+#
+# Author:	   Roger Jarvis
+#
+# Created:	   2007/05/22
+# RCS-ID:	   $Id$
+# Copyright:   (c) 2007
+# Licence:	   GNU General Public Licence
+# -----------------------------------------------------------------------------
 # Boa:FramePanel:expSetup
 
+import os
 import string
 
 import scipy
@@ -9,9 +21,9 @@ import wx.grid
 import wx.lib.agw.buttonpanel as bp
 import wx.lib.agw.foldpanelbar as fpb
 import wx.lib.bcrtl.user.StaticTextCtrl
+import wx.lib.stattext
+from mva.chemometrics import _sample
 from wx.lib.anchors import LayoutAnchors
-
-from .chemometrics import _sample
 
 [
 	wxID_EXPSETUP,
@@ -217,8 +229,13 @@ class expSetup(wx.Panel):
 		ResizeGrids(self.grdIndLabels, 100, 1, 3)
 
 	def InitialiseFoldBar(self):
+		# get fold panel icons
+		icons = wx.ImageList(16, 16)
+		icons.Add(wx.Bitmap(os.path.join("bmp", "arrown.png"), wx.BITMAP_TYPE_PNG))
+		icons.Add(wx.Bitmap(os.path.join("bmp", "arrows.png"), wx.BITMAP_TYPE_PNG))
+
 		# meta-data input
-		self.depparamsitem = self.pnl.AddFoldPanel("Experiment setup parameters", collapsed=False)
+		self.depparamsitem = self.pnl.AddFoldPanel("Experiment setup parameters", collapsed=False)  # , foldIcons=icons)
 		self.depparamsitem.Bind(wx.EVT_SIZE, self.OnDepWinSize, id=-1)
 		self.depparamsitem.Bind(fpb.EVT_CAPTIONBAR, self.OnSelectDep, id=-1)
 
@@ -236,7 +253,7 @@ class expSetup(wx.Panel):
 		self.grdNames.CreateGrid(1, 3)
 
 		# variable id input
-		self.indparamsitem = self.pnl.AddFoldPanel("Independent variable labels", collapsed=True)
+		self.indparamsitem = self.pnl.AddFoldPanel("Independent variable labels", collapsed=True)  # , foldIcons=icons)
 		self.indparamsitem.Bind(wx.EVT_SIZE, self.OnIndWinSize, id=-1)
 		self.indparamsitem.Bind(fpb.EVT_CAPTIONBAR, self.OnSelectInd, id=-1)
 
@@ -292,12 +309,12 @@ class expSetup(wx.Panel):
 				self.grdIndLabels.SetCellValue(i, 0, value)
 
 	def OnDepWinSize(self, event):
-		self.grdNames.SetSize((self.grdNames.GetSize()[0], self.pnl.GetSize()[1] * 0.9))
-		self.depTitleBar.SetSize((self.pnl.GetSize()[0], 35))
+		self.grdNames.SetSize((self.grdNames.GetSize()[0], self.pnl.GetSize()[1] * 0.95))
+		self.depTitleBar.SetSize((self.pnl.GetSize()[0], 49))
 
 	def OnIndWinSize(self, event):
-		self.grdIndLabels.SetSize((self.grdIndLabels.GetSize()[0], self.pnl.GetSize()[1] * 0.9))
-		self.indTitleBar.SetSize((self.pnl.GetSize()[0], 35))
+		self.grdIndLabels.SetSize((self.grdIndLabels.GetSize()[0], self.pnl.GetSize()[1] * 0.95))
+		self.indTitleBar.SetSize((self.pnl.GetSize()[0], 49))
 
 	def OnSelectInd(self, event):
 		self.indTitleBar.Show(0)
@@ -319,38 +336,29 @@ class DepTitleBar(bp.ButtonPanel):
 	def _init_depbtnpanel_ctrls(self, prnt):
 		bp.ButtonPanel.__init__(self, parent=prnt, id=-1, text="Experiment setup", agwStyle=bp.BP_USE_GRADIENT, alignment=bp.BP_ALIGN_LEFT)
 
-		self.btnImportMetaData = wx.Button(parent=self, id=-1, label="Import", pos=wx.Point(12, 30), size=wx.Size(75, 23), style=0)
-		self.btnImportMetaData.SetToolTip("Import sample details")
-		self.btnImportMetaData.SetFont(wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
+		self.btnImportMetaData = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "import.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Import metadata", longHelp="Import metadata describing the samples")
 		self.btnImportMetaData.Enable(False)
-		self.btnImportMetaData.Bind(wx.EVT_BUTTON, self.OnBtnImportMetaDataButton, id=-1)
+		self.Bind(wx.EVT_BUTTON, self.OnBtnImportMetaDataButton, id=self.btnImportMetaData.GetId())
 
-		self.btnAddName = wx.Button(parent=self, id=ID_BTNADDNAME, label="Add Label", pos=wx.Point(176, 30), size=wx.Size(75, 23), style=wx.TAB_TRAVERSAL)
-		self.btnAddName.SetToolTip("")
+		self.btnAddName = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "addlabel.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Add label column", longHelp="Add label column")
 		self.btnAddName.Enable(False)
-		self.btnAddName.SetFont(wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
-		self.btnAddName.Bind(wx.EVT_BUTTON, self.OnBtnAddNameButton, id=ID_BTNADDNAME)
+		self.Bind(wx.EVT_BUTTON, self.OnBtnAddNameButton, id=self.btnAddName.GetId())
 
-		self.btnAddClass = wx.Button(parent=self, id=ID_BTNADDCLASS, label="Add Class", pos=wx.Point(264, 30), size=wx.Size(75, 23), style=wx.TAB_TRAVERSAL)
-		self.btnAddClass.SetToolTip("")
+		self.btnAddClass = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "addclass.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Add class column", longHelp="Add class column")
 		self.btnAddClass.Enable(False)
-		self.btnAddClass.SetFont(wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
-		self.btnAddClass.Bind(wx.EVT_BUTTON, self.OnBtnAddClassButton, id=ID_BTNADDCLASS)
+		self.Bind(wx.EVT_BUTTON, self.OnBtnAddClassButton, id=self.btnAddClass.GetId())
 
-		self.btnAddMask = wx.Button(parent=self, id=ID_BTNADDMASK, label="Add Mask", pos=wx.Point(520, 30), size=wx.Size(75, 23), style=wx.TAB_TRAVERSAL)
-		self.btnAddMask.SetToolTip("")
+		self.btnAddMask = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "addvalidation.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Add validation column", longHelp="Add validation column")
 		self.btnAddMask.Enable(False)
-		self.btnAddMask.SetFont(wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
-		self.btnAddMask.Bind(wx.EVT_BUTTON, self.OnBtnAddMaskButton, id=ID_BTNADDMASK)
+		self.Bind(wx.EVT_BUTTON, self.OnBtnAddMaskButton, id=self.btnAddMask.GetId())
 
 		self.spcGenMask = wx.SpinCtrl(parent=self, id=-1, initial=1, max=100, min=1, pos=wx.Point(444, 30), size=wx.Size(46, 23), style=wx.TAB_TRAVERSAL | wx.SP_ARROW_KEYS)
 		self.spcGenMask.SetValue(50)
 		self.spcGenMask.SetToolTip("")
 		self.spcGenMask.SetFont(wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
-		self.cbGenerateMask = wx.CheckBox(parent=self, id=-1, label="Generate Mask", pos=wx.Point(355, 33), size=wx.Size(95, 23), style=wx.TAB_TRAVERSAL)
+		self.cbGenerateMask = wx.CheckBox(parent=self, id=-1, label="", pos=wx.Point(355, 33), size=wx.Size(14, 13), style=wx.TAB_TRAVERSAL | wx.TRANSPARENT_WINDOW)
 		self.cbGenerateMask.SetValue(False)
-		self.cbGenerateMask.SetBackgroundColour(wx.Colour(167, 167, 243))
 		self.cbGenerateMask.SetToolTip("")
 		self.cbGenerateMask.SetFont(wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
@@ -371,13 +379,15 @@ class DepTitleBar(bp.ButtonPanel):
 
 		self.SetProperties()
 
-		self.AddControl(self.btnImportMetaData)
-		self.AddControl(self.btnAddName)
-		self.AddControl(self.btnAddClass)
+		self.AddButton(self.btnImportMetaData)
+		self.AddSeparator()
+		self.AddButton(self.btnAddName)
+		self.AddButton(self.btnAddClass)
+		self.AddButton(self.btnAddMask)
 		self.AddControl(self.cbGenerateMask)
+		self.AddControl(wx.lib.stattext.GenStaticText(self, -1, "Split data", style=wx.TRANSPARENT_WINDOW))
 		self.AddControl(self.spcGenMask)
-		self.AddControl(wx.StaticText(self, -1, " %"))
-		self.AddControl(self.btnAddMask)
+		self.AddControl(wx.lib.stattext.GenStaticText(self, -1, " %", style=wx.TRANSPARENT_WINDOW))
 
 		self.Thaw()
 
@@ -397,7 +407,7 @@ class DepTitleBar(bp.ButtonPanel):
 		bpArt.SetColor(bp.BP_BORDER_COLOUR, bp.BrightenColour(background, 0.85))
 		bpArt.SetColor(bp.BP_SEPARATOR_COLOUR, bp.BrightenColour(background, 0.85))
 		bpArt.SetColor(bp.BP_BUTTONTEXT_COLOUR, wx.BLACK)
-		bpArt.SetColor(bp.BP_SELECTION_BRUSH_COLOUR, wx.Colour(167, 167, 243))  # wx.Colour(242, 242, 235))
+		bpArt.SetColor(bp.BP_SELECTION_BRUSH_COLOUR, wx.Colour(242, 242, 235))
 		bpArt.SetColor(bp.BP_SELECTION_PEN_COLOUR, wx.Colour(206, 206, 195))
 
 	def OnBtnAddNameButton(self, event):
@@ -503,11 +513,9 @@ class IndTitleBar(bp.ButtonPanel):
 	def _init_indbtnpanel_ctrls(self, prnt):
 		bp.ButtonPanel.__init__(self, parent=prnt, id=-1, text="Experiment setup", agwStyle=bp.BP_USE_GRADIENT, alignment=bp.BP_ALIGN_LEFT)
 
-		self.btnImportIndVar = wx.Button(parent=self, id=ID_BTNIMPIND, label="Import", name="btnImportIndVar", pos=wx.Point(636, 30), size=wx.Size(75, 23), style=0)
-		self.btnImportIndVar.SetToolTip("Import vector of variables labels or values")
-		self.btnImportIndVar.SetFont(wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
+		self.btnImportIndVar = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "import.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Import independent variable IDs", longHelp="Import independent variable IDs")
 		self.btnImportIndVar.Enable(False)
-		self.btnImportIndVar.Bind(wx.EVT_BUTTON, self.OnBtnImportIndVarButton, id=ID_BTNIMPIND)
+		self.Bind(wx.EVT_BUTTON, self.OnBtnImportIndVarButton, id=self.btnImportIndVar.GetId())
 
 		self.stcRangeFrom = wx.lib.bcrtl.user.StaticTextCtrl.StaticTextCtrl(parent=self, id=-1, caption="", name="stcRangeFrom", pos=wx.Point(825, 30), size=wx.Size(39, 23), style=wx.TAB_TRAVERSAL, value="")
 		self.stcRangeFrom.SetCaptionAlignment(wx.LEFT)
@@ -519,11 +527,9 @@ class IndTitleBar(bp.ButtonPanel):
 		self.stcRangeTo.SetCaptionOffset(wx.Point(-3, 4))
 		self.stcRangeTo.SetToolTip("")
 
-		self.btnInsertRange = wx.Button(parent=self, id=BTNINSRANGE, label="Insert", name="btnInsertRange", pos=wx.Point(932, 30), size=wx.Size(75, 23), style=0)
-		self.btnInsertRange.SetToolTip("Insert linear range of real-valued numbers")
-		self.btnInsertRange.SetFont(wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
+		self.btnInsertRange = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "insertxvar.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Insert X-variables", longHelp="Insert X-variables using range")
 		self.btnInsertRange.Enable(False)
-		self.btnInsertRange.Bind(wx.EVT_BUTTON, self.OnBtnInsertRangeButton, id=BTNINSRANGE)
+		self.Bind(wx.EVT_BUTTON, self.OnBtnInsertRangeButton, id=self.btnInsertRange.GetId())
 
 	def __init__(self, parent, id, text, style, alignment):
 
@@ -542,12 +548,13 @@ class IndTitleBar(bp.ButtonPanel):
 
 		self.SetProperties()
 
-		self.AddControl(self.btnImportIndVar)
-		self.AddControl(wx.StaticText(self, -1, "Insert range: "))
+		self.AddButton(self.btnImportIndVar)
+		self.AddSeparator()
+		self.AddControl(wx.lib.stattext.GenStaticText(self, -1, "Insert range: ", style=wx.TRANSPARENT_WINDOW))
 		self.AddControl(self.stcRangeFrom)
-		self.AddControl(wx.StaticText(self, -1, " to "))
+		self.AddControl(wx.lib.stattext.GenStaticText(self, -1, " to ", style=wx.TRANSPARENT_WINDOW))
 		self.AddControl(self.stcRangeTo)
-		self.AddControl(self.btnInsertRange)
+		self.AddButton(self.btnInsertRange)
 
 		self.Thaw()
 
@@ -567,7 +574,7 @@ class IndTitleBar(bp.ButtonPanel):
 		bpArt.SetColor(bp.BP_BORDER_COLOUR, bp.BrightenColour(background, 0.85))
 		bpArt.SetColor(bp.BP_SEPARATOR_COLOUR, bp.BrightenColour(background, 0.85))
 		bpArt.SetColor(bp.BP_BUTTONTEXT_COLOUR, wx.BLACK)
-		bpArt.SetColor(bp.BP_SELECTION_BRUSH_COLOUR, wx.Colour(167, 167, 243))  # wx.Colour(242, 242, 235))
+		bpArt.SetColor(bp.BP_SELECTION_BRUSH_COLOUR, wx.Colour(242, 242, 235))
 		bpArt.SetColor(bp.BP_SELECTION_PEN_COLOUR, wx.Colour(206, 206, 195))
 
 	def OnBtnImportIndVarButton(self, event):

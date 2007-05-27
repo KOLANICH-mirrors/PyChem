@@ -1329,16 +1329,18 @@ class PlotCanvas(wx.Panel):
 		if not self._adjustingSB:
 			self._sb_ignore = True
 			sbpos = evt.GetPosition()
-			print(evt)
-			if evt.GetOrientation() == wx.VERTICAL:
-				fullrange, pagesize = self.sb_vert.GetRange(), self.sb_vert.GetPageSize()
-				sbpos = fullrange - pagesize - sbpos
-				dist = sbpos * self._sb_yunit - (self._getYCurrentRange()[0] - self._sb_yfullrange[0])
-				self.ScrollUp(dist)
+			try:
+				if evt.GetOrientation() == wx.VERTICAL:
+					fullrange, pagesize = self.sb_vert.GetRange(), self.sb_vert.GetPageSize()
+					sbpos = fullrange - pagesize - sbpos
+					dist = sbpos * self._sb_yunit - (self._getYCurrentRange()[0] - self._sb_yfullrange[0])
+					self.ScrollUp(dist)
 
-			if evt.GetOrientation() == wx.HORIZONTAL:
-				dist = sbpos * self._sb_xunit - (self._getXCurrentRange()[0] - self._sb_xfullrange[0])
-				self.ScrollRight(dist)
+				if evt.GetOrientation() == wx.HORIZONTAL:
+					dist = sbpos * self._sb_xunit - (self._getXCurrentRange()[0] - self._sb_xfullrange[0])
+					self.ScrollRight(dist)
+			except:
+				pass
 
 	# Private Methods **************************************************
 	def _setSize(self, width=None, height=None):

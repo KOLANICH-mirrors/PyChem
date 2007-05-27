@@ -1,18 +1,32 @@
+# -----------------------------------------------------------------------------
+# Name:		   Dfa.py
+# Purpose:
+#
+# Author:	   Roger Jarvis
+#
+# Created:	   2007/05/22
+# RCS-ID:	   $Id$
+# Copyright:   (c) 2006
+# Licence:	   GNU General Public Licence
+# -----------------------------------------------------------------------------
 # Boa:FramePanel:Dfa
 
+import os
 import string
 
+import mva.chemometrics
 import scipy
 import wx
 import wx.lib.agw.buttonpanel as bp
 import wx.lib.buttons
 import wx.lib.plot
+import wx.lib.stattext
+from mva.chemometrics import _index
 from scipy import newaxis as nA
 from wx.lib.anchors import LayoutAnchors
 
-from . import chemometrics
-from .chemometrics import _index
 from .Pca import MyPlotCanvas, plotLine, plotStem, plotText
+from .utils.io import str_array
 
 [
 	wxID_DFA,
@@ -97,7 +111,6 @@ class Dfa(wx.Panel):
 	def _init_ctrls(self, prnt):
 		# generated method, don't edit
 		wx.Panel.__init__(self, id=wxID_DFA, name="Dfa", parent=prnt, pos=wx.Point(47, 118), size=wx.Size(796, 460), style=wx.TAB_TRAVERSAL)
-		self.SetBackgroundColour(wx.Colour(167, 167, 243))
 		self.SetClientSize(wx.Size(788, 426))
 		self.SetToolTip("")
 		self.SetAutoLayout(True)
@@ -156,7 +169,7 @@ class Dfa(wx.Panel):
 		self.titleBar.spnDfaScore1.SetValue(1)
 		self.titleBar.spnDfaScore2.SetValue(2)
 
-		objects = {"plcDFAeigs": ["Eigenvalues", "Discriminant Function", "Eigenvalue"], "plcDfaError": ["95% Confidence Ellipsoids", "DF 1", "DF 2"], "plcDFAscores": ["DFA Model", "DF 1", "DF 2"], "plcDfaLoadsV": ["DFA Loading", "Arbitrary", "Arbitrary"]}
+		objects = {"plcDFAeigs": ["Eigenvalues", "Discriminant Function", "Eigenvalue"], "plcDfaError": ["95% Confidence Ellipsoids", "DF 1", "DF 2"], "plcDFAscores": ["DFA Scores", "DF 1", "DF 2"], "plcDfaLoadsV": ["DFA Loading", "Arbitrary", "Arbitrary"]}
 		curve = wx.lib.plot.PolyLine([[0, 0], [1, 1]], colour="white", width=1, style=wx.TRANSPARENT)
 
 		for each in list(objects.keys()):
@@ -170,12 +183,9 @@ class TitleBar(bp.ButtonPanel):
 		self.cbxData = wx.Choice(choices=["PC Scores", "Raw spectra", "Processed spectra"], id=-1, name="cbxData", parent=self, pos=wx.Point(118, 21), size=wx.Size(100, 23), style=0)
 		self.cbxData.SetSelection(0)
 
-		self.btnRunDfa = wx.lib.buttons.GenButton(id=-1, label="Run", name="btnRunDfa", parent=self, pos=wx.Point(8, 256), size=wx.Size(60, 23), style=0)
-		self.btnRunDfa.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "MS Sans Serif"))
-		self.btnRunDfa.SetToolTip("")
-		self.btnRunDfa.SetBackgroundColour(wx.Colour(167, 167, 243))
+		self.btnRunDfa = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "run.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Run DFA", longHelp="Run Discriminant Function Analysis")
 		self.btnRunDfa.Enable(False)
-		self.btnRunDfa.Bind(wx.EVT_BUTTON, self.OnBtnRunDfaButton, id=-1)
+		self.Bind(wx.EVT_BUTTON, self.OnBtnRunDfaButton, id=self.btnRunDfa.GetId())
 
 		self.spnDfaPcs = wx.SpinCtrl(id=-1, initial=1, max=100, min=3, name="spnDfaPcs", parent=self, pos=wx.Point(104, 104), size=wx.Size(46, 23), style=wx.SP_ARROW_KEYS)
 		self.spnDfaPcs.SetValue(3)
@@ -185,17 +195,14 @@ class TitleBar(bp.ButtonPanel):
 		self.spnDfaDfs.SetValue(2)
 		self.spnDfaDfs.SetToolTip("")
 
-		self.cbDfaXval = wx.CheckBox(id=-1, label="Cross validate", name="cbDfaXval", parent=self, pos=wx.Point(16, 216), size=wx.Size(90, 23), style=0)
+		self.cbDfaXval = wx.CheckBox(id=-1, label="", name="cbDfaXval", parent=self, pos=wx.Point(16, 216), size=wx.Size(14, 13), style=0)
 		self.cbDfaXval.SetValue(False)
 		self.cbDfaXval.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "MS Sans Serif"))
 		self.cbDfaXval.SetToolTip("")
 
-		self.btnExpDfa = wx.lib.buttons.GenButton(id=-1, label="Export", name="btnExpDfa", parent=self, pos=wx.Point(8, 296), size=wx.Size(60, 23), style=0)
-		self.btnExpDfa.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "MS Sans Serif"))
-		self.btnExpDfa.SetToolTip("")
-		self.btnExpDfa.SetBackgroundColour(wx.Colour(167, 167, 243))
+		self.btnExpDfa = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "export.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Export DFA Results", longHelp="Export DFA Results")
 		self.btnExpDfa.Enable(False)
-		self.btnExpDfa.Bind(wx.EVT_BUTTON, self.OnBtnExpDfaButton, id=-1)
+		self.Bind(wx.EVT_BUTTON, self.OnBtnExpDfaButton, id=self.btnExpDfa.GetId())
 
 		self.spnDfaScore1 = wx.SpinCtrl(id=-1, initial=1, max=100, min=1, name="spnDfaScore1", parent=self, pos=wx.Point(199, 4), size=wx.Size(46, 23), style=wx.SP_ARROW_KEYS)
 		self.spnDfaScore1.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "MS Sans Serif"))
@@ -225,19 +232,21 @@ class TitleBar(bp.ButtonPanel):
 		self.SetProperties()
 
 		self.AddControl(self.cbxData)
-		self.AddControl(wx.StaticText(self, -1, "No. PCs"))
+		self.AddControl(wx.lib.stattext.GenStaticText(self, -1, "No. PCs", style=wx.TRANSPARENT_WINDOW))
 		self.AddControl(self.spnDfaPcs)
-		self.AddControl(wx.StaticText(self, -1, "No. DFs"))
+		self.AddControl(wx.lib.stattext.GenStaticText(self, -1, "No. DFs", style=wx.TRANSPARENT_WINDOW))
 		self.AddControl(self.spnDfaDfs)
+		self.AddControl(wx.lib.stattext.GenStaticText(self, -1, "Cross validate?", style=wx.TRANSPARENT_WINDOW))
 		self.AddControl(self.cbDfaXval)
-		self.AddControl(self.btnRunDfa)
 		self.AddSeparator()
-		self.AddControl(wx.StaticText(self, -1, "DF "))
+		self.AddControl(wx.lib.stattext.GenStaticText(self, -1, "DF ", style=wx.TRANSPARENT_WINDOW))
 		self.AddControl(self.spnDfaScore1)
-		self.AddControl(wx.StaticText(self, -1, " vs. "))
+		self.AddControl(wx.lib.stattext.GenStaticText(self, -1, " vs. ", style=wx.TRANSPARENT_WINDOW))
 		self.AddControl(self.spnDfaScore2)
 		self.AddSeparator()
-		self.AddControl(self.btnExpDfa)
+		self.AddButton(self.btnRunDfa)
+		self.AddSeparator()
+		self.AddButton(self.btnExpDfa)
 
 		self.Thaw()
 
@@ -257,70 +266,79 @@ class TitleBar(bp.ButtonPanel):
 		bpArt.SetColor(bp.BP_BORDER_COLOUR, bp.BrightenColour(background, 0.85))
 		bpArt.SetColor(bp.BP_SEPARATOR_COLOUR, bp.BrightenColour(background, 0.85))
 		bpArt.SetColor(bp.BP_BUTTONTEXT_COLOUR, wx.BLACK)
-		bpArt.SetColor(bp.BP_SELECTION_BRUSH_COLOUR, wx.Colour(167, 167, 243))  # wx.Colour(242, 242, 235))
+		bpArt.SetColor(bp.BP_SELECTION_BRUSH_COLOUR, wx.Colour(242, 242, 235))
 		bpArt.SetColor(bp.BP_SELECTION_PEN_COLOUR, wx.Colour(206, 206, 195))
 
 	def getData(self, data):
 		self.data = data
 
 	def OnBtnRunDfaButton(self, event):
-		##		  try:
-		# run discriminant function analysis
-		if self.cbxData.GetSelection() == 0:
-			xdata = self.data["pcscores"]
-			xdata = xdata[:, 0 : self.spnDfaPcs.GetValue()]
-		elif self.cbxData.GetSelection() == 1:
-			xdata = self.data["rawtrunc"]
-		elif self.cbxData.GetSelection() == 2:
-			xdata = self.data["proctrunc"]
+		try:
+			# run discriminant function analysis
+			if self.cbxData.GetSelection() == 0:
+				xdata = self.data["pcscores"]
+				xdata = xdata[:, 0 : self.spnDfaPcs.GetValue()]
+			elif self.cbxData.GetSelection() == 1:
+				xdata = self.data["rawtrunc"]
+			elif self.cbxData.GetSelection() == 2:
+				xdata = self.data["proctrunc"]
 
-		# Reset controls
-		self.spnDfaScore1.Enable(1)
-		self.spnDfaScore2.Enable(1)
-		self.spnDfaScore1.SetRange(1, self.spnDfaDfs.GetValue())
-		self.spnDfaScore1.SetValue(1)
-		self.spnDfaScore2.SetRange(1, self.spnDfaDfs.GetValue())
-		self.spnDfaScore2.SetValue(2)
+			# check appropriate number of pcs/dfs
+			if self.spnDfaPcs.GetValue() < self.spnDfaDfs.GetValue():
+				self.spnDfaDfs.SetValue(self.spnDfaPcs.GetValue())
 
-		self.btnExpDfa.Enable(1)
+			# Reset controls
+			self.spnDfaScore1.Enable(1)
+			self.spnDfaScore2.Enable(1)
+			self.spnDfaScore1.SetRange(1, self.spnDfaDfs.GetValue())
+			self.spnDfaScore1.SetValue(1)
+			self.spnDfaScore2.SetRange(1, self.spnDfaDfs.GetValue())
+			self.spnDfaScore2.SetValue(2)
 
-		if self.cbDfaXval.GetValue() is False:
-			# just a fix to recover original loadings when using PC-DFA
-			if self.cbxData.GetSelection() > 0:
-				self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"], dummy = chemometrics.DFA(xdata, self.data["class"], self.spnDfaDfs.GetValue())
-			else:
-				self.data["dfscores"], dummy, self.data["dfeigs"], self.data["dfloads"] = chemometrics.DFA(xdata, self.data["class"], self.spnDfaDfs.GetValue(), self.data["pcloads"][0 : self.spnDfaPcs.GetValue(), :])
+			self.btnExpDfa.Enable(1)
 
-		elif self.cbDfaXval.GetValue() is True:
-			if self.cbxData.GetSelection() > 0:
-				self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"] = chemometrics.DFA_XVALRAW(xdata, self.data["class"], self.data["label"], self.data["validation"], self.spnDfaDfs.GetValue())
+			if self.cbDfaXval.GetValue() is False:
+				# just a fix to recover original loadings when using PC-DFA
+				if self.cbxData.GetSelection() > 0:
+					self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"], dummy = mva.chemometrics.DFA(xdata, self.data["class"], self.spnDfaDfs.GetValue())
+				else:
+					self.data["dfscores"], dummy, self.data["dfeigs"], self.data["dfloads"] = mva.chemometrics.DFA(xdata, self.data["class"], self.spnDfaDfs.GetValue(), self.data["pcloads"][0 : self.spnDfaPcs.GetValue(), :])
 
-			else:
-				# run pc-dfa
-				if self.data["niporsvd"] in ["nip"]:
-					self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"] = chemometrics.DFA_XVAL(self.data[self.data["pcadata"]], "NIPALS", self.spnDfaPcs.GetValue(), self.data["class"], self.data["label"], self.data["validation"], self.spnDfaDfs.GetValue(), ptype=self.data["pcatype"])
+			elif self.cbDfaXval.GetValue() is True:
+				if self.cbxData.GetSelection() > 0:
+					self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"] = mva.chemometrics.DFA_XVALRAW(xdata, self.data["class"], self.data["label"], self.data["validation"], self.spnDfaDfs.GetValue())
 
-				elif self.data["niporsvd"] in ["svd"]:
-					self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"] = chemometrics.DFA_XVAL(self.data[self.data["pcadata"]], "SVD", self.spnDfaPcs.GetValue(), self.data["class"], self.data["label"], self.data["validation"], self.spnDfaDfs.GetValue(), ptype=self.data["pcatype"])
+				else:
+					# run pc-dfa
+					if self.data["niporsvd"] in ["nip"]:
+						self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"] = mva.chemometrics.DFA_XVAL(self.data[self.data["pcadata"]], "NIPALS", self.spnDfaPcs.GetValue(), self.data["class"], self.data["label"], self.data["validation"], self.spnDfaDfs.GetValue(), ptype=self.data["pcatype"])
 
-		# plot dfa results
-		self.plotDfa()
+					elif self.data["niporsvd"] in ["svd"]:
+						self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"] = mva.chemometrics.DFA_XVAL(self.data[self.data["pcadata"]], "SVD", self.spnDfaPcs.GetValue(), self.data["class"], self.data["label"], self.data["validation"], self.spnDfaDfs.GetValue(), ptype=self.data["pcatype"])
 
-	##		  except Exception, error:
-	##			  errorBox(self,'%s' %str(error))
+			# plot dfa results
+			self.plotDfa()
+
+		except Exception as error:
+			errorBox(self, "%s" % str(error))
 
 	def OnBtnExpDfaButton(self, event):
-		event.Skip()
+		dlg = wx.FileDialog(self, "Choose a file", ".", "", "Any files (*.*)|*.*", wx.FD_SAVE)
+		try:
+			if dlg.ShowModal() == wx.ID_OK:
+				saveFile = dlg.GetPath()
+				out = "#DISCRIMINANT_FUNCTION_SCORES\n" + str_array(self.data["dfscores"], col_sep="\t") + "\n" + "#DISCRIMINANT_FUNCTION_LOADINGS\n" + str_array(self.data["dfloads"], col_sep="\t") + "\n" + "#EIGENVALUES\n" + str_array(self.data["dfeigs"], col_sep="\t")
+				f = file(saveFile, "w")
+				f.write(out)
+				f.close()
+		finally:
+			dlg.Destroy()
 
 	def OnSpnDfaScore1Spinctrl(self, event):
-		self.PlotDfaScores()
-		self.PlotCvaError()
-		self.PlotDfaLoads()
+		self.plotDfa()
 
 	def OnSpnDfaScore2Spinctrl(self, event):
-		self.PlotDfaScores()
-		self.PlotCvaError()
-		self.PlotDfaLoads()
+		self.plotDfa()
 
 	def plotDfa(self):
 		if self.cbxData.GetSelection() == 0:
