@@ -22,8 +22,9 @@ import wx.lib.agw.buttonpanel as bp
 import wx.lib.agw.foldpanelbar as fpb
 import wx.lib.bcrtl.user.StaticTextCtrl
 import wx.lib.stattext
-from mva.chemometrics import _sample
 from wx.lib.anchors import LayoutAnchors
+
+from .mva.chemometrics import _sample
 
 [
 	wxID_EXPSETUP,
@@ -64,7 +65,6 @@ def GetXaxis(From, To, Bins, Grid):
 		xaxis = scipy.around(scipy.reshape(xaxis, (len(xaxis), 1)), 2)
 
 		# Append row to independent label grid
-		Grid.AppendCols(1)
 		Grid.SetCellAlignment(0, Grid.GetNumberCols() - 1, wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
 		Grid.SetCellEditor(0, Grid.GetNumberCols() - 1, wx.grid.GridCellBoolEditor())
 		Grid.SetCellRenderer(0, Grid.GetNumberCols() - 1, wx.grid.GridCellBoolRenderer())
@@ -79,7 +79,6 @@ def GetXaxis(From, To, Bins, Grid):
 
 def ResizeGrids(grid, rows, cols, type=None):
 	grid.ClearGrid()
-
 	if grid.GetNumberCols() - 1 > cols + 1:
 		grid.DeleteCols(cols + 1, grid.GetNumberCols())
 	elif grid.GetNumberCols() - 1 < cols + 1:
@@ -603,6 +602,7 @@ class IndTitleBar(bp.ButtonPanel):
 
 	def OnBtnInsertRangeButton(self, event):
 		if self.stcRangeFrom.GetValue() and self.stcRangeTo.GetValue() not in [""]:
+			self.grid.AppendCols(1)
 			self.data["xaxis"] = GetXaxis(self.stcRangeFrom.GetValue(), self.stcRangeTo.GetValue(), self.data["raw"].shape[1], self.grid)
 
 

@@ -14,20 +14,17 @@
 import os
 import string
 
-import mva.chemometrics
-import mva.fitfun
-import mva.genetic
-import mva.process
 import scipy
 import wx
 import wx.lib.agw.buttonpanel as bp
 import wx.lib.buttons
 import wx.lib.plot
 import wx.lib.stattext
-from mva.chemometrics import _index
 from scipy import newaxis as nA
 from wx.lib.anchors import LayoutAnchors
 
+from .mva import chemometrics, fitfun, genetic, process
+from .mva.chemometrics import _index
 from .Pca import MyPlotCanvas, plotLine, plotStem, plotText
 from .Plsr import PlotPlsModel
 from .utils.io import str_array

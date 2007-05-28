@@ -14,17 +14,17 @@
 import os
 import string
 
-import mva.chemometrics
 import scipy
 import wx
 import wx.lib.agw.buttonpanel as bp
 import wx.lib.buttons
 import wx.lib.plot
 import wx.lib.stattext
-from mva.chemometrics import _index
 from scipy import newaxis as nA
 from wx.lib.anchors import LayoutAnchors
 
+from .mva import chemometrics
+from .mva.chemometrics import _index
 from .Pca import MyPlotCanvas, plotLine, plotStem, plotText
 from .utils.io import str_array
 

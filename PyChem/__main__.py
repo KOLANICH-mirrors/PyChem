@@ -23,9 +23,9 @@ import wx
 modules = {"Cluster": [0, "", "Cluster.py"], "Dfa": [0, "", "Dfa.py"], "Ga": [0, "", "Ga.py"], "Pca": [0, "", "Pca.py"], "Plsr": [0, "", "Plsr.py"], "PyChemMain": [1, "Main frame of Application", "PyChemMain.py"], "chemometrics": [0, "", "chemometrics.py"], "expSetup": [0, "", "expSetup.py"], "fitfun": [0, "", "fitfun.py"], "genetic": [0, "", "genetic.py"], "plotSpectra": [0, "", "plotSpectra.py"], "process": [0, "", "process.py"]}
 
 # whereami for binary dists etc
-whereami = mva.__path__[0].split("mva")[0]
+##whereami = mva.__path__[0].split('mva')[0]
 # whereami for stand alone dist
-##whereami = mva.__path__[0].split('\library.zip\mva')[0]
+whereami = mva.__path__[0].split("\library.zip\mva")[0]
 
 
 class BoaApp(wx.App):

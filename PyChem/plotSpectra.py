@@ -15,13 +15,13 @@ import copy
 import os
 import string
 
-import mva.process
 import scipy
 import wx
 import wx.lib.agw.buttonpanel as bp
 import wx.lib.plot
 from wx.lib.anchors import LayoutAnchors
 
+from .mva import process
 from .Pca import MyPlotCanvas
 
 [IDPLOTSPEC] = [wx.NewIdRef() for _init_ctrls in range(1)]

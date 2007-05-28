@@ -16,23 +16,22 @@ import string
 import sys
 
 import cElementTree as ET
-import mva
 import scipy
 import wx
 import wx.adv
 import wx.lib.filebrowsebutton
-from mva.chemometrics import _index
 from scipy import newaxis as nA
 from wx.lib.anchors import LayoutAnchors
 
-from . import Cluster, Dfa, Ga, Pca, Plsr, expSetup, plotSpectra
+from . import Cluster, Dfa, Ga, Pca, Plsr, expSetup, mva, plotSpectra
+from .mva.chemometrics import _index
 from .utils import getByPath
 from .utils.io import str_array
 
 # whereami for binary dists etc
-whereami = mva.__path__[0].split("mva")[0]
+##whereami = mva.__path__[0].split('mva')[0]
 # whereami for stand alone dist
-##whereami = mva.__path__[0].split('\library.zip\mva')[0]
+whereami = mva.__path__[0].split("\library.zip\mva")[0]
 
 
 def create(parent):
@@ -74,7 +73,10 @@ def create(parent):
 	wxID_PYCHEMMAINMNUTOOLSPREPROC,
 ] = [wx.NewIdRef() for _init_coll_mnuTools_Items in range(8)]
 
-[wxID_PYCHEMMAINMNUHELPCONTENTS] = [wx.NewIdRef() for _init_coll_mnuHelp_Items in range(1)]
+[
+	wxID_PYCHEMMAINMNUHELPCONTENTS,
+	wxID_PYCHEMMAINMNUABOUTCONTENTS,
+] = [wx.NewIdRef() for _init_coll_mnuHelp_Items in range(2)]
 
 [
 	wxID_WXIMPORTCONFIRMDIALOG,
@@ -169,7 +171,9 @@ class PyChemMain(wx.Frame):
 		# generated method, don't edit
 
 		parent.Append(help="", id=wxID_PYCHEMMAINMNUHELPCONTENTS, kind=wx.ITEM_NORMAL, text="Contents")
+		parent.Append(help="", id=wxID_PYCHEMMAINMNUABOUTCONTENTS, kind=wx.ITEM_NORMAL, text="About")
 		self.Bind(wx.EVT_MENU, self.OnMnuHelpContentsMenu, id=wxID_PYCHEMMAINMNUHELPCONTENTS)
+		self.Bind(wx.EVT_MENU, self.OnMnuAboutContentsMenu, id=wxID_PYCHEMMAINMNUABOUTCONTENTS)
 
 	def _init_coll_stbMain_Fields(self, parent):
 		# generated method, don't edit
@@ -227,7 +231,7 @@ class PyChemMain(wx.Frame):
 
 	def _init_ctrls(self, prnt):
 		# generated method, don't edit
-		wx.Frame.__init__(self, id=wxID_PYCHEMMAIN, name="PyChemMain", parent=prnt, pos=wx.Point(0, 0), size=wx.Size(1024, 738), style=wx.DEFAULT_FRAME_STYLE, title="PyChem 3.0.0 Beta")
+		wx.Frame.__init__(self, id=wxID_PYCHEMMAIN, name="PyChemMain", parent=prnt, pos=wx.Point(0, 0), size=wx.Size(1024, 738), style=wx.DEFAULT_FRAME_STYLE, title="PyChem 3.0.1 Beta")
 		self._init_utils()
 		self.SetClientSize(wx.Size(1016, 704))
 		self.SetToolTip("")
@@ -282,7 +286,22 @@ class PyChemMain(wx.Frame):
 		self.Reset()
 
 	def OnMnuHelpContentsMenu(self, event):
-		event.Skip()
+		from wx.tools import helpviewer
+
+		helpviewer.main(["", os.path.join(whereami, "docs", "PAChelp.hhp")])
+
+	def OnMnuAboutContentsMenu(self, event):
+		from wx.lib.wordwrap import wordwrap
+
+		info = wx.adv.AboutDialogInfo()
+		info.Name = "PyChem"
+		info.Version = "3.0.1 Beta"
+		info.Copyright = "(C) 2007 Roger Jarvis"
+		info.Description = wordwrap("PyChem is a software program for multivariate " "data analysis (MVA).	It includes algorithms for " "calibration and categorical analyses.	 In addition, " "novel genetic algorithm tools for spectral feature " "selection" "\n\nFor more information please go to the PyChem " "website using the link below, or email the project " "author, roger.jarvis@manchester.ac.uk", 350, wx.ClientDC(self))
+		info.WebSite = ("http://pychem.sf.net/", "PyChem home page")
+
+		# Then we call wx.adv.AboutBox giving it that info object
+		wx.adv.AboutBox(info)
 
 	def OnMnuFileLoadexpMenu(self, event):
 		loadFile = wx.FileSelector("Load PyChem Experiment", "", "", "", "XML files (*.xml)|*.xml")
@@ -455,17 +474,34 @@ class PyChemMain(wx.Frame):
 	def OnMnuGridDeleteColumn(self, event):
 		grid = self.data["gridsel"]
 		col = grid.GetGridCursorCol()
-		if col != 0:
-			count = {"Label": 0, "Class": 0, "Validation": 0}
-			heads = []
-			for i in range(1, grid.GetNumberCols()):
-				count[grid.GetCellValue(0, i)] += 1
-				heads.append(grid.GetColLabelValue(i))
-			this = count[grid.GetCellValue(0, col)]
+		this = 0
+		if grid == self.plExpset.grdNames:
+			if col != 0:
+				count = {"Label": 0, "Class": 0, "Validation": 0}
+				heads = []
+				for i in range(1, grid.GetNumberCols()):
+					count[grid.GetCellValue(0, i)] += 1
+					heads.append(grid.GetColLabelValue(i))
+				this = count[grid.GetCellValue(0, col)]
 			if this > 1:
 				dlg = wx.MessageDialog(self, "Are you sure you want to delete the column?", "Confirm", wx.OK | wx.CANCEL | wx.ICON_WARNING)
 				try:
 					if dlg.ShowModal() == wx.ID_OK:
+						grid.DeleteCols(col)
+						# restore col headings
+						del heads[col - 1]
+						for i in range(1, len(heads) + 1):
+							grid.SetColLabelValue(i, heads[i - 1])
+				finally:
+					dlg.Destroy()
+		else:
+			if (grid.GetNumberCols() > 2) & (col != 0) is True:
+				dlg = wx.MessageDialog(self, "Are you sure you want to delete the column?", "Confirm", wx.OK | wx.CANCEL | wx.ICON_WARNING)
+				try:
+					if dlg.ShowModal() == wx.ID_OK:
+						heads = []
+						for i in range(1, grid.GetNumberCols()):
+							heads.append(grid.GetColLabelValue(i))
 						grid.DeleteCols(col)
 						# restore col headings
 						del heads[col - 1]
