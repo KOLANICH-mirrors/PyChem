@@ -992,8 +992,8 @@ class PyChemMain(wx.Frame):
 
 		# get x-axis labels/values
 		num = 1
+		xaxis = []
 		for j in range(1, self.plExpset.grdIndLabels.GetNumberCols()):
-			xaxis = []
 			if self.plExpset.grdIndLabels.GetCellValue(0, j) == "1":
 				self.data["variableidx"] = []
 				for i in range(1, self.plExpset.grdIndLabels.GetNumberRows()):
@@ -1014,7 +1014,6 @@ class PyChemMain(wx.Frame):
 		try:
 			if num == 1:
 				self.data["xaxis"] = np.array(xaxis)[:, nA]
-
 			else:
 				self.data["xaxis"] = scipy.arange(1, self.data["raw"].shape[1] + 1)[:, nA]
 

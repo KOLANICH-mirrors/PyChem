@@ -587,87 +587,90 @@ class plotProperties(wx.Frame):
 		self._init_coll_gbsPlotProps_Items(self.gbsPlotProps)
 		self._init_coll_gbsPlotProps_Growables(self.gbsPlotProps)
 
-		self.SetSizer(self.gbsPlotProps)
+		self.panel.SetSizer(self.gbsPlotProps)
 
 	def _init_plot_prop_ctrls(self, prnt):
 		# generated method, don't edit
 		wx.Frame.__init__(self, id=wxID_FRAME1, name="", parent=prnt, pos=wx.Point(0, 0), size=wx.Size(250, 466), style=wx.DEFAULT_FRAME_STYLE, title="Plot Properties")
 
-		self.stTitle = wx.StaticText(id=wxID_FRAME1STTITLE, label="Title", name="stTitle", parent=self, pos=wx.Point(0, 0), size=wx.Size(40, 24), style=0)
+		self.panel = wx.Panel(id=-1, name="panel", parent=self, pos=wx.Point(0, 0), size=wx.Size(180, 739), style=wx.TAB_TRAVERSAL)
+		self.panel.SetToolTip("")
+
+		self.stTitle = wx.StaticText(id=wxID_FRAME1STTITLE, label="Title", name="stTitle", parent=self.panel, pos=wx.Point(0, 0), size=wx.Size(40, 24), style=0)
 		self.stTitle.SetToolTip("")
 
-		self.stYfrom = wx.StaticText(id=wxID_FRAME1STYFROM, label="Y-Axis From:", name="stYfrom", parent=self, pos=wx.Point(0, 131), size=wx.Size(40, 24), style=0)
+		self.stYfrom = wx.StaticText(id=wxID_FRAME1STYFROM, label="Y-Axis From:", name="stYfrom", parent=self.panel, pos=wx.Point(0, 131), size=wx.Size(40, 24), style=0)
 		self.stYfrom.SetToolTip("")
 
-		self.stYto = wx.StaticText(id=wxID_FRAME1STYTO, label="To:", name="stYto", parent=self, pos=wx.Point(144, 131), size=wx.Size(40, 24), style=0)
+		self.stYto = wx.StaticText(id=wxID_FRAME1STYTO, label="To:", name="stYto", parent=self.panel, pos=wx.Point(144, 131), size=wx.Size(40, 24), style=0)
 		self.stYto.SetToolTip("")
 
-		self.stXfrom = wx.StaticText(id=wxID_FRAME1STXFROM, label="X-Axis From:", name="stXfrom", parent=self, pos=wx.Point(0, 103), size=wx.Size(40, 24), style=0)
+		self.stXfrom = wx.StaticText(id=wxID_FRAME1STXFROM, label="X-Axis From:", name="stXfrom", parent=self.panel, pos=wx.Point(0, 103), size=wx.Size(40, 24), style=0)
 		self.stXfrom.SetToolTip("")
 
-		self.stXto = wx.StaticText(id=wxID_FRAME1STXTO, label="To:", name="stXto", parent=self, pos=wx.Point(144, 103), size=wx.Size(40, 24), style=0)
+		self.stXto = wx.StaticText(id=wxID_FRAME1STXTO, label="To:", name="stXto", parent=self.panel, pos=wx.Point(144, 103), size=wx.Size(40, 24), style=0)
 		self.stXto.SetToolTip("")
 
-		self.stXlabel = wx.StaticText(id=wxID_FRAME1STXLABEL, label="X label", name="stXlabel", parent=self, pos=wx.Point(0, 53), size=wx.Size(40, 21), style=0)
+		self.stXlabel = wx.StaticText(id=wxID_FRAME1STXLABEL, label="X label", name="stXlabel", parent=self.panel, pos=wx.Point(0, 53), size=wx.Size(40, 21), style=0)
 		self.stXlabel.SetToolTip("")
 
-		self.stYlabel = wx.StaticText(id=wxID_FRAME1STYLABEL, label="Y label", name="stYlabel", parent=self, pos=wx.Point(0, 78), size=wx.Size(40, 21), style=0)
+		self.stYlabel = wx.StaticText(id=wxID_FRAME1STYLABEL, label="Y label", name="stYlabel", parent=self.panel, pos=wx.Point(0, 78), size=wx.Size(40, 21), style=0)
 		self.stYlabel.SetToolTip("")
 
-		self.txtTitle = wx.TextCtrl(id=wxID_FRAME1TXTTITLE, name="txtTitle", parent=self, pos=wx.Point(15, 0), size=wx.Size(40, 24), style=0, value="")
+		self.txtTitle = wx.TextCtrl(id=wxID_FRAME1TXTTITLE, name="txtTitle", parent=self.panel, pos=wx.Point(15, 0), size=wx.Size(40, 24), style=0, value="")
 		self.txtTitle.SetToolTip("")
 
-		self.txtYlabel = wx.TextCtrl(id=wxID_FRAME1TXTYLABEL, name="txtYlabel", parent=self, pos=wx.Point(15, 78), size=wx.Size(40, 21), style=0, value="")
+		self.txtYlabel = wx.TextCtrl(id=wxID_FRAME1TXTYLABEL, name="txtYlabel", parent=self.panel, pos=wx.Point(15, 78), size=wx.Size(40, 21), style=0, value="")
 		self.txtYlabel.SetToolTip("")
 
-		self.txtXlabel = wx.TextCtrl(id=wxID_FRAME1TXTXLABEL, name="txtXlabel", parent=self, pos=wx.Point(15, 53), size=wx.Size(40, 21), style=0, value="")
+		self.txtXlabel = wx.TextCtrl(id=wxID_FRAME1TXTXLABEL, name="txtXlabel", parent=self.panel, pos=wx.Point(15, 53), size=wx.Size(40, 21), style=0, value="")
 		self.txtXlabel.SetToolTip("")
 
-		self.txtXmin = wx.TextCtrl(id=wxID_FRAME1TXTXMIN, name="txtXmin", parent=self, pos=wx.Point(15, 103), size=wx.Size(40, 24), style=0, value="")
+		self.txtXmin = wx.TextCtrl(id=wxID_FRAME1TXTXMIN, name="txtXmin", parent=self.panel, pos=wx.Point(15, 103), size=wx.Size(40, 24), style=0, value="")
 		self.txtXmin.SetToolTip("")
 
-		self.spnXmin = wx.SpinButton(id=wxID_FRAME1SPNXMIN, name="spnXmin", parent=self, pos=wx.Point(96, 103), size=wx.Size(15, 24), style=wx.SP_VERTICAL)
+		self.spnXmin = wx.SpinButton(id=wxID_FRAME1SPNXMIN, name="spnXmin", parent=self.panel, pos=wx.Point(96, 103), size=wx.Size(15, 24), style=wx.SP_VERTICAL)
 		self.spnXmin.SetToolTip("")
 		self.spnXmin.Bind(wx.EVT_SPIN_DOWN, self.OnSpnXminSpinDown, id=wxID_FRAME1SPNXMIN)
 		self.spnXmin.Bind(wx.EVT_SPIN_UP, self.OnSpnXminSpinUp, id=wxID_FRAME1SPNXMIN)
 
-		self.spnXmax = wx.SpinButton(id=wxID_FRAME1SPNXMAX, name="spnXmax", parent=self, pos=wx.Point(240, 103), size=wx.Size(15, 24), style=wx.SP_VERTICAL)
+		self.spnXmax = wx.SpinButton(id=wxID_FRAME1SPNXMAX, name="spnXmax", parent=self.panel, pos=wx.Point(240, 103), size=wx.Size(15, 24), style=wx.SP_VERTICAL)
 		self.spnXmax.SetToolTip("")
 		self.spnXmax.Bind(wx.EVT_SPIN_DOWN, self.OnSpnXmaxSpinDown, id=wxID_FRAME1SPNXMAX)
 		self.spnXmax.Bind(wx.EVT_SPIN_UP, self.OnSpnXmaxSpinUp, id=wxID_FRAME1SPNXMAX)
 
-		self.spnYmax = wx.SpinButton(id=wxID_FRAME1SPNYMAX, name="spnYmax", parent=self, pos=wx.Point(240, 131), size=wx.Size(15, 24), style=wx.SP_VERTICAL)
+		self.spnYmax = wx.SpinButton(id=wxID_FRAME1SPNYMAX, name="spnYmax", parent=self.panel, pos=wx.Point(240, 131), size=wx.Size(15, 24), style=wx.SP_VERTICAL)
 		self.spnYmax.SetToolTip("")
 		self.spnYmax.Bind(wx.EVT_SPIN_DOWN, self.OnSpnYmaxSpinDown, id=wxID_FRAME1SPNYMAX)
 		self.spnYmax.Bind(wx.EVT_SPIN_UP, self.OnSpnYmaxSpinUp, id=wxID_FRAME1SPNYMAX)
 
-		self.spnYmin = wx.SpinButton(id=wxID_FRAME1SPNYMIN, name="spnYmin", parent=self, pos=wx.Point(96, 131), size=wx.Size(15, 24), style=wx.SP_VERTICAL)
+		self.spnYmin = wx.SpinButton(id=wxID_FRAME1SPNYMIN, name="spnYmin", parent=self.panel, pos=wx.Point(96, 131), size=wx.Size(15, 24), style=wx.SP_VERTICAL)
 		self.spnYmin.SetToolTip("")
 		self.spnYmin.Bind(wx.EVT_SPIN_DOWN, self.OnSpnYminSpinDown, id=wxID_FRAME1SPNYMIN)
 		self.spnYmin.Bind(wx.EVT_SPIN_UP, self.OnSpnYminSpinUp, id=wxID_FRAME1SPNYMIN)
 
-		self.txtXmax = wx.TextCtrl(id=wxID_FRAME1TXTXMAX, name="txtXmax", parent=self, pos=wx.Point(192, 103), size=wx.Size(40, 24), style=0, value="")
+		self.txtXmax = wx.TextCtrl(id=wxID_FRAME1TXTXMAX, name="txtXmax", parent=self.panel, pos=wx.Point(192, 103), size=wx.Size(40, 24), style=0, value="")
 		self.txtXmax.SetToolTip("")
 
-		self.txtYmax = wx.TextCtrl(id=wxID_FRAME1TXTYMAX, name="txtYmax", parent=self, pos=wx.Point(192, 131), size=wx.Size(40, 24), style=0, value="")
+		self.txtYmax = wx.TextCtrl(id=wxID_FRAME1TXTYMAX, name="txtYmax", parent=self.panel, pos=wx.Point(192, 131), size=wx.Size(40, 24), style=0, value="")
 		self.txtYmax.SetToolTip("")
 
-		self.txtYmin = wx.TextCtrl(id=wxID_FRAME1TXTYMIN, name="txtYmin", parent=self, pos=wx.Point(15, 131), size=wx.Size(40, 24), style=0, value="")
+		self.txtYmin = wx.TextCtrl(id=wxID_FRAME1TXTYMIN, name="txtYmin", parent=self.panel, pos=wx.Point(15, 131), size=wx.Size(40, 24), style=0, value="")
 		self.txtYmin.SetToolTip("")
 
-		self.stFont = wx.StaticText(id=wxID_FRAME1STFONT, label="Font size axes and title (pt)", name="stFont", parent=self, pos=wx.Point(0, 28), size=wx.Size(40, 21), style=0)
+		self.stFont = wx.StaticText(id=wxID_FRAME1STFONT, label="Font size axes and title (pt)", name="stFont", parent=self.panel, pos=wx.Point(0, 28), size=wx.Size(40, 21), style=0)
 		self.stFont.SetToolTip("")
 
-		self.spnFontSizeAxes = wx.SpinCtrl(id=wxID_FRAME1SPNFONTSIZEAXES, initial=8, max=76, min=4, name="spnFontSizeAxes", parent=self, pos=wx.Point(15, 28), size=wx.Size(40, 21), style=wx.SP_ARROW_KEYS)
+		self.spnFontSizeAxes = wx.SpinCtrl(id=wxID_FRAME1SPNFONTSIZEAXES, initial=8, max=76, min=4, name="spnFontSizeAxes", parent=self.panel, pos=wx.Point(15, 28), size=wx.Size(40, 21), style=wx.SP_ARROW_KEYS)
 		self.spnFontSizeAxes.SetToolTip("")
 		self.spnFontSizeAxes.SetValue(8)
 		self.spnFontSizeAxes.SetRange(4, 76)
 
-		self.cbGrid = wx.CheckBox(id=wxID_FRAME1CBGRID, label="Show grid", name="cbGrid", parent=self, pos=wx.Point(0, 159), size=wx.Size(50, 21), style=0)
+		self.cbGrid = wx.CheckBox(id=wxID_FRAME1CBGRID, label="Show grid", name="cbGrid", parent=self.panel, pos=wx.Point(0, 159), size=wx.Size(50, 21), style=0)
 		self.cbGrid.SetValue(False)
 		self.cbGrid.SetToolTip("")
 
-		self.btnApply = wx.Button(id=wxID_FRAME1BTNAPPLY, label="Apply", name="btnApply", parent=self, pos=wx.Point(0, 184), size=wx.Size(50, 28), style=0)
+		self.btnApply = wx.Button(id=wxID_FRAME1BTNAPPLY, label="Apply", name="btnApply", parent=self.panel, pos=wx.Point(0, 184), size=wx.Size(50, 28), style=0)
 		self.btnApply.Bind(wx.EVT_BUTTON, self.OnBtnApplyButton)
 
 		self._init_plot_prop_sizers()

@@ -326,7 +326,6 @@ class selFun(wx.Frame):
 		# generated method, don't edit
 		wx.Frame.__init__(self, id=wxID_SELFUN, name="selFun", parent=prnt, pos=wx.Point(22, 29), size=wx.Size(180, 500), style=wx.DEFAULT_FRAME_STYLE, title="Pre-processing Functions")
 		self.SetClientSize(wx.Size(269, 466))
-		self.Center(wx.BOTH)
 		self.SetToolTip("")
 		self.Bind(wx.EVT_CLOSE, self.OnMiniFrameClose)
 

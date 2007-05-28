@@ -1015,13 +1015,13 @@ class selParam(wx.Frame):
 			xdata = self.prnt.data["proc"]
 
 		if pos1 == pos2:
-			coords = scipy.reshape(scipy.take(xdata, [var1], 1), (len(xdata), 1))
+			coords = scipy.reshape(scipy.take(xdata, [int(chrom[pos1])], 1), (len(xdata), 1))
 			L1 = "Dummy"
 			L2 = str(self.prnt.data["indlabels"][int(chrom[pos1])])
 
 			DrawGaVars = plotText(canvas, coords, self.prnt.data["validation"], self.prnt.data["class"], self.prnt.data["label"], 0, 0, "", "Variable", xL=L1, yL=L2)
 		else:
-			coords = scipy.reshape(scipy.take(xdata, [var1, var2], 1), (len(xdata), 2))
+			coords = scipy.reshape(scipy.take(xdata, [int(chrom[pos1]), int(chrom[pos2])], 1), (len(xdata), 2))
 			L1 = str(self.prnt.data["indlabels"][int(chrom[pos1])])
 			L2 = str(self.prnt.data["indlabels"][int(chrom[pos2])])
 

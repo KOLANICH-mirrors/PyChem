@@ -516,14 +516,10 @@ class IndTitleBar(bp.ButtonPanel):
 		self.btnImportIndVar.Enable(False)
 		self.Bind(wx.EVT_BUTTON, self.OnBtnImportIndVarButton, id=self.btnImportIndVar.GetId())
 
-		self.stcRangeFrom = wx.lib.bcrtl.user.StaticTextCtrl.StaticTextCtrl(parent=self, id=-1, caption="", name="stcRangeFrom", pos=wx.Point(825, 30), size=wx.Size(39, 23), style=wx.TAB_TRAVERSAL, value="")
-		self.stcRangeFrom.SetCaptionAlignment(wx.LEFT)
-		self.stcRangeFrom.SetCaptionOffset(wx.Point(0, 4))
+		self.stcRangeFrom = wx.TextCtrl(id=-1, name="stcRangeFrom", parent=self, pos=wx.Point(136, 56), size=wx.Size(75, 21), style=0, value="")
 		self.stcRangeFrom.SetToolTip("")
 
-		self.stcRangeTo = wx.lib.bcrtl.user.StaticTextCtrl.StaticTextCtrl(parent=self, id=-1, caption="", name="stcRangeTo", pos=wx.Point(889, 30), size=wx.Size(39, 23), style=wx.TAB_TRAVERSAL, value="")
-		self.stcRangeTo.SetCaptionAlignment(wx.LEFT)
-		self.stcRangeTo.SetCaptionOffset(wx.Point(-3, 4))
+		self.stcRangeTo = wx.TextCtrl(id=-1, name="stcRangeTo", parent=self, pos=wx.Point(136, 56), size=wx.Size(75, 21), style=0, value="")
 		self.stcRangeTo.SetToolTip("")
 
 		self.btnInsertRange = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "insertxvar.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Insert X-variables", longHelp="Insert X-variables using range")
