@@ -235,7 +235,7 @@ def __inverse__(a):
 def _index(y, num):
 	"""use this to get tuple index for take"""
 	idx = []
-	for i in range(y.shape[0]):
+	for i in range(len(y)):
 		if y[i] == num:
 			idx.append(i)
 	return tuple(idx)
@@ -282,8 +282,8 @@ def PCA_SVD(myarray, type="covar"):
 	array([[ 0.15026487,  0.40643255, -0.90123973],
 		   [ 0.46898935,  0.77318935,  0.4268808 ],
 		   [ 0.87032721, -0.48681703, -0.07442934]])
-	>>> # This is the 'rotation matrix' - you can imagine colm names
-	>>> # of PC1, PC2, PC3 and row names of variable1, variable2, variable3.
+	>>> # This is the 'rotation matrix' - you can imagine colm labels
+	>>> # of PC1, PC2, PC3 and row labels of variable1, variable2, variable3.
 	>>> pr
 	array([[  0.		],
 		   [ 97.1073744 ],
@@ -607,12 +607,21 @@ def PLS(xdata, ydata, mask, factors, stb=None):
 	return W, T, P, Q, facs, predy, predyv, predyt, RMSEC, RMSEPC, rmsec, rmsepc, RMSEPT
 
 
-def DFA_XVALRAW(X, group, names, mask, nofac):
-	"""Perform DFA with full cross validation"""
-	if max(mask) > 1:
-		x1, x2, x3, y1, y2, y3, n1, n2, n3 = __split__(X, np.array(group, "i"), mask, names)
-	elif max(mask) < 2:
-		x1, x2, y1, y2, n1, n2 = __split__(X, np.array(group, "i"), mask, names)
+def DFA_XVALRAW(X, group, mask, nofac):
+	"""Perform DFA with full cross validation
+
+	>>> import scipy
+	>>> X = np.array([[ 0.19343116,	0.49655245,	 0.72711322,  0.79482108,  0.13651874],[ 0.68222322,  0.89976918,  0.30929016,	0.95684345,	 0.01175669],[ 0.3027644 ,	0.82162916,	 0.83849604,  0.52259035,  0.89389797],[ 0.54167385,  0.64491038,  0.56807246,	0.88014221,	 0.19913807],[ 0.15087298,	0.81797434,	 0.37041356,  0.17295614,  0.29872301],[ 0.69789848,  0.66022756,  0.70273991,	0.9797469 ,	 0.66144258],[ 0.378373	 ,	0.34197062,	 0.54657115,  0.27144726,  0.28440859],[ 0.8600116 ,  0.2897259 ,  0.4448802 ,	0.25232935,	 0.46922429],[ 0.85365513,	0.34119357,	 0.69456724,  0.8757419 ,  0.06478112],[ 0.59356291,  0.53407902,  0.62131013,	0.73730599,	 0.98833494]])
+	>>> group = np.array([[1],[1],[1],[1],[2],[2],[2],[3],[3],[3]])
+	>>> mask = np.array([[0],[1],[0],[0],[0],[0],[1],[0],[0],[1]])
+	>>> scores,loads,eigs = DFA_XVALRAW(X,group,mask,2)
+
+
+	"""
+	if int(max(mask)) > 1:
+		x1, x2, x3, y1, y2, y3, dummy1, dummy2, dummy3 = __split__(X, np.array(group, "i"), mask)
+	elif int(max(mask)) < 2:
+		x1, x2, y1, y2, dummy1, dummy2 = __split__(X, np.array(group, "i"), mask)
 
 	# get indices
 	idxn = scipy.arange(X.shape[0])[:, nA]
@@ -649,12 +658,20 @@ def DFA_XVALRAW(X, group, names, mask, nofac):
 	return scores, loads, eigs
 
 
-def DFA_XVAL(X, pca, noloads, group, names, mask, nofac, ptype="covar"):
-	"""Perform DFA with full cross validation"""
-	if max(mask) > 1:
-		rx1, rx2, rx3, ry1, ry2, ry3, rn1, rn2, rn3 = __split__(X, np.array(group, "i")[:, nA], mask[:, nA], names)
-	elif max(mask) < 2:
-		rx1, rx2, ry1, ry2, rn1, rn2 = __split__(X, np.array(group, "i")[:, nA], mask[:, nA], names)
+def DFA_XVAL(X, pca, noloads, group, mask, nofac, ptype="covar"):
+	"""Perform DFA with full cross validation
+
+	>>> import scipy
+	>>> X = np.array([[ 0.19343116,	0.49655245,	 0.72711322,  0.79482108,  0.13651874],[ 0.68222322,  0.89976918,  0.30929016,	0.95684345,	 0.01175669],[ 0.3027644 ,	0.82162916,	 0.83849604,  0.52259035,  0.89389797],[ 0.54167385,  0.64491038,  0.56807246,	0.88014221,	 0.19913807],[ 0.15087298,	0.81797434,	 0.37041356,  0.17295614,  0.29872301],[ 0.69789848,  0.66022756,  0.70273991,	0.9797469 ,	 0.66144258],[ 0.378373	 ,	0.34197062,	 0.54657115,  0.27144726,  0.28440859],[ 0.8600116 ,  0.2897259 ,  0.4448802 ,	0.25232935,	 0.46922429],[ 0.85365513,	0.34119357,	 0.69456724,  0.8757419 ,  0.06478112],[ 0.59356291,  0.53407902,  0.62131013,	0.73730599,	 0.98833494]])
+	>>> group = np.array([[1],[1],[1],[1],[2],[2],[2],[3],[3],[3]])
+	>>> mask = np.array([[0],[1],[0],[0],[0],[0],[1],[0],[0],[1]])
+	>>> scores,loads,eigs = DFA_XVAL(X,'NIPALS',3,group,mask,2,'covar')
+
+	"""
+	if int(max(mask)) > 1:
+		rx1, rx2, rx3, ry1, ry2, ry3, dummy1, dummy2, dummy3 = __split__(X, np.array(group, "i")[:, nA], mask[:, nA])
+	elif int(max(mask)) < 2:
+		rx1, rx2, ry1, ry2, dummy1, dummy2 = __split__(X, np.array(group, "i")[:, nA], mask[:, nA])
 
 	if pca == "SVD":
 		pcscores, pp, pr, pceigs = PCA_SVD(rx1, type=ptype)
