@@ -17,6 +17,7 @@ import string
 import scipy
 import wx
 import wx.lib.agw.buttonpanel as bp
+import wx.lib.agw.foldpanelbar as fpb
 import wx.lib.buttons
 import wx.lib.plot
 import wx.lib.stattext
@@ -25,7 +26,7 @@ from wx.lib.anchors import LayoutAnchors
 
 from .mva import chemometrics, fitfun, genetic, process
 from .mva.chemometrics import _index
-from .Pca import MyPlotCanvas, plotLine, plotStem, plotText
+from .Pca import MyPlotCanvas, plotLine, plotLoads, plotScores, plotStem, plotText
 from .Plsr import PlotPlsModel
 from .utils.io import str_array
 
@@ -49,7 +50,7 @@ class Ga(wx.Panel):
 		# generated method, don't edit
 
 		parent.AddWindow(self.titleBar, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.grsGa, 1, border=0, flag=wx.EXPAND)
+		parent.AddWindow(self.Splitter, 1, border=0, flag=wx.EXPAND)
 
 	def _init_coll_grsGa_Items(self, parent):
 		# generated method, don't edit
@@ -79,26 +80,35 @@ class Ga(wx.Panel):
 		self._init_coll_grsGa_Items(self.grsGa)
 
 		self.SetSizer(self.bxsGa1)
+		self.p1.SetSizer(self.grsGa)
 
 	def _init_ctrls(self, prnt):
 		wx.Panel.__init__(self, id=-1, name="Ga", parent=prnt, pos=wx.Point(47, 118), size=wx.Size(796, 460), style=wx.TAB_TRAVERSAL)
 		self.SetToolTip("")
 		self.SetAutoLayout(True)
 
-		self.plcGaPlot = MyPlotCanvas(id=-1, name="plcGaPlot", parent=self, pos=wx.Point(0, 0), size=wx.Size(310, 272), style=0)
+		self.Splitter = wx.SplitterWindow(id=-1, name="Splitter", parent=self, pos=wx.Point(16, 24), size=wx.Size(272, 168), style=wx.SP_3D | wx.SP_LIVE_UPDATE)
+		self.Splitter.SetAutoLayout(True)
+		self.Splitter.Bind(wx.EVT_SPLITTER_DCLICK, self.OnSplitterDclick)
+		self.Splitter.splitPrnt = self
+
+		self.p1 = wx.Panel(self.Splitter)
+		self.p1.prnt = self.Splitter
+		self.p1.SetAutoLayout(True)
+
+		self.optDlg = selParam(self.Splitter)
+
+		self.plcGaPlot = MyPlotCanvas(id=-1, name="plcGaPlot", parent=self.p1, pos=wx.Point(0, 0), size=wx.Size(310, 272), style=0)
 		self.plcGaPlot.enableZoom = True
 		self.plcGaPlot.fontSizeAxis = 8
 		self.plcGaPlot.fontSizeLegend = 8
 		self.plcGaPlot.fontSizeTitle = 10
 		self.plcGaPlot.SetToolTip("")
-		self.plcGaPlot.SetAutoLayout(True)
-		self.plcGaPlot.SetConstraints(LayoutAnchors(self.plcGaPlot, True, True, True, True))
 		self.plcGaPlot.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
-		self.nbGaModPlot = wx.Notebook(id=-1, name="nbGaModPlot", parent=self, pos=wx.Point(760, 326), size=wx.Size(310, 272), style=wx.NB_BOTTOM)
+		self.nbGaModPlot = wx.Notebook(id=-1, name="nbGaModPlot", parent=self.p1, pos=wx.Point(760, 326), size=wx.Size(310, 272), style=wx.NB_BOTTOM)
+		self.nbGaModPlot.prnt = self.p1
 		self.nbGaModPlot.SetToolTip("")
-		self.nbGaModPlot.SetAutoLayout(True)
-		self.nbGaModPlot.SetConstraints(LayoutAnchors(self.nbGaModPlot, True, True, True, True))
 
 		self.plcGaEigs = MyPlotCanvas(id=-1, name="plcGaEigs", parent=self.nbGaModPlot, pos=wx.Point(0, 0), size=wx.Size(310, 272), style=0)
 		self.plcGaEigs.enableZoom = True
@@ -106,8 +116,6 @@ class Ga(wx.Panel):
 		self.plcGaEigs.fontSizeLegend = 8
 		self.plcGaEigs.fontSizeTitle = 10
 		self.plcGaEigs.SetToolTip("")
-		self.plcGaEigs.SetAutoLayout(True)
-		self.plcGaEigs.SetConstraints(LayoutAnchors(self.plcGaEigs, True, True, True, True))
 		self.plcGaEigs.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
 		self.plcGaSpecLoad = MyPlotCanvas(id=-1, name="plcGaSpecLoad", parent=self.nbGaModPlot, pos=wx.Point(0, 24), size=wx.Size(503, 279), style=0)
@@ -116,28 +124,22 @@ class Ga(wx.Panel):
 		self.plcGaSpecLoad.fontSizeAxis = 8
 		self.plcGaSpecLoad.fontSizeLegend = 8
 		self.plcGaSpecLoad.fontSizeTitle = 10
-		self.plcGaSpecLoad.SetAutoLayout(True)
-		self.plcGaSpecLoad.SetConstraints(LayoutAnchors(self.plcGaSpecLoad, True, True, True, True))
 		self.plcGaSpecLoad.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
-		self.plcGaFreqPlot = MyPlotCanvas(id=-1, name="plcGaFreqPlot", parent=self, pos=wx.Point(760, 0), size=wx.Size(310, 272), style=0)
+		self.plcGaFreqPlot = MyPlotCanvas(id=-1, name="plcGaFreqPlot", parent=self.p1, pos=wx.Point(760, 0), size=wx.Size(310, 272), style=0)
 		self.plcGaFreqPlot.enableZoom = True
 		self.plcGaFreqPlot.fontSizeAxis = 8
 		self.plcGaFreqPlot.fontSizeLegend = 8
 		self.plcGaFreqPlot.fontSizeTitle = 10
 		self.plcGaFreqPlot.SetToolTip("")
-		self.plcGaFreqPlot.SetAutoLayout(True)
-		self.plcGaFreqPlot.SetConstraints(LayoutAnchors(self.plcGaFreqPlot, True, True, True, True))
 		self.plcGaFreqPlot.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
-		self.plcGaFeatPlot = MyPlotCanvas(id=-1, name="plcGaFeatPlot", parent=self, pos=wx.Point(0, 24), size=wx.Size(310, 272), style=0)
+		self.plcGaFeatPlot = MyPlotCanvas(id=-1, name="plcGaFeatPlot", parent=self.p1, pos=wx.Point(0, 24), size=wx.Size(310, 272), style=0)
 		self.plcGaFeatPlot.SetToolTip("")
 		self.plcGaFeatPlot.enableZoom = True
 		self.plcGaFeatPlot.fontSizeAxis = 8
 		self.plcGaFeatPlot.fontSizeLegend = 8
 		self.plcGaFeatPlot.fontSizeTitle = 10
-		self.plcGaFeatPlot.SetAutoLayout(True)
-		self.plcGaFeatPlot.SetConstraints(LayoutAnchors(self.plcGaFeatPlot, True, True, True, True))
 		self.plcGaFeatPlot.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
 		self.plcGaGrpDistPlot = MyPlotCanvas(id=-1, name="plcGaGrpDistPlot", parent=self.nbGaModPlot, pos=wx.Point(0, 0), size=wx.Size(310, 272), style=0)
@@ -147,8 +149,6 @@ class Ga(wx.Panel):
 		self.plcGaGrpDistPlot.fontSizeLegend = 8
 		self.plcGaGrpDistPlot.fontSizeTitle = 10
 		self.plcGaGrpDistPlot.SetToolTip("")
-		self.plcGaGrpDistPlot.SetAutoLayout(True)
-		self.plcGaGrpDistPlot.SetConstraints(LayoutAnchors(self.plcGaGrpDistPlot, True, True, True, True))
 		self.plcGaGrpDistPlot.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
 		self.plcGaOptPlot = MyPlotCanvas(id=-1, name="plcGaOptPlot", parent=self.nbGaModPlot, pos=wx.Point(0, 0), size=wx.Size(310, 272), style=0)
@@ -159,10 +159,11 @@ class Ga(wx.Panel):
 		self.plcGaOptPlot.fontSizeTitle = 10
 		self.plcGaOptPlot.SetToolTip("")
 		self.plcGaOptPlot.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
-		self.plcGaOptPlot.SetAutoLayout(True)
-		self.plcGaOptPlot.SetConstraints(LayoutAnchors(self.plcGaOptPlot, True, True, True, True))
 
 		self.titleBar = TitleBar(self, id=-1, text="", style=bp.BP_USE_GRADIENT, alignment=bp.BP_ALIGN_LEFT, gatype=self.type)
+
+		self.Splitter.SplitVertically(self.optDlg, self.p1, 1)
+		self.Splitter.SetMinimumPaneSize(1)
 
 		self._init_coll_nbGaModPlot_Pages(self.nbGaModPlot)
 
@@ -189,6 +190,12 @@ class Ga(wx.Panel):
 
 		for each in list(objects.keys()):
 			exec("self." + each + ".Draw(wx.lib.plot.PlotGraphics([curve]," + 'objects["' + each + '"][0],' + 'objects["' + each + '"][1],' + 'objects["' + each + '"][2]))')
+
+	def OnSplitterDclick(self, event):
+		if self.Splitter.GetSashPosition() == 1:
+			self.Splitter.SetSashPosition(250)
+		else:
+			self.Splitter.SetSashPosition(1)
 
 
 class TitleBar(bp.ButtonPanel):
@@ -233,10 +240,6 @@ class TitleBar(bp.ButtonPanel):
 		self.type = gatype
 
 		self._init_btnpanel_ctrls(parent)
-
-		self.dlg = selParam(self)
-
-		self.dlg.SetTitle("GA-" + self.type + " Parameters")
 
 		self.spnGaScoreFrom.Show(0)
 		self.spnGaScoreTo.Show(False)
@@ -292,14 +295,13 @@ class TitleBar(bp.ButtonPanel):
 		bpArt.SetColor(bp.BP_SELECTION_PEN_COLOUR, wx.Colour(206, 206, 195))
 
 	def OnBtnbtnSetParamsButton(self, event):
-		height = wx.GetDisplaySize()[1]
-		self.dlg.SetSize(wx.Size(250, height))
-		self.dlg.SetPosition(wx.Point(0, 0))
-		self.dlg.Iconize(False)
-		self.dlg.Show()
+		if self.parent.Splitter.GetSashPosition() == 1:
+			self.parent.Splitter.SetSashPosition(250)
+		else:
+			self.parent.Splitter.SetSashPosition(1)
 
 	def OnBtnrungaButton(self, event):
-		self.runGa(varfrom=self.dlg.spnGaVarsFrom.GetValue(), varto=self.dlg.spnGaVarsTo.GetValue(), inds=self.dlg.spnGaNoInds.GetValue(), runs=self.dlg.spnGaNoRuns.GetValue(), xovr=float(self.dlg.stGaXoverRate.GetValue()), mutr=float(self.dlg.stGaMutRate.GetValue()), insr=float(self.dlg.stGaInsRate.GetValue()), maxf=self.dlg.spnGaMaxFac.GetValue(), mgen=self.dlg.spnGaMaxGen.GetValue(), rgen=self.dlg.spnGaRepUntil.GetValue())
+		self.runGa(varfrom=self.parent.optDlg.spnGaVarsFrom.GetValue(), varto=self.parent.optDlg.spnGaVarsTo.GetValue(), inds=self.parent.optDlg.spnGaNoInds.GetValue(), runs=self.parent.optDlg.spnGaNoRuns.GetValue(), xovr=float(self.parent.optDlg.stGaXoverRate.GetValue()), mutr=float(self.parent.optDlg.stGaMutRate.GetValue()), insr=float(self.parent.optDlg.stGaInsRate.GetValue()), maxf=self.parent.optDlg.spnGaMaxFac.GetValue(), mgen=self.parent.optDlg.spnGaMaxGen.GetValue(), rgen=self.parent.optDlg.spnGaRepUntil.GetValue())
 
 	def OnBtnexportgaButton(self, event):
 		dlg = wx.FileDialog(self, "Choose a file", ".", "", "Any files (*.*)|*.*", wx.FD_SAVE)
@@ -315,23 +317,23 @@ class TitleBar(bp.ButtonPanel):
 
 	def OnSpnGascorefromSpinctrl(self, event):
 		# GA scores plot
-		gaOrdPlot = plotText(self.parent.plcGaPlot, self.data["gadfadfscores"], self.data["validation"], self.data["class"], self.data["label"], self.spnGaScoreFrom.GetValue() - 1, self.spnGaScoreTo.GetValue() - 1, "", "Discriminant Function")
+		plotScores(self.parent.plcGaPlot, self.data["gadfadfscores"], self.data["class"], self.data["label"], self.data["validation"], self.spnGaScoreFrom.GetValue() - 1, self.spnGaScoreTo.GetValue() - 1, title="DF Scores", xLabel="Discriminant Function " + str(self.spnGaScoreFrom.GetValue()), yLabel="Discriminant Function " + str(self.spnGaScoreTo.GetValue()), xval=True)
 
 		# DF loadings
-		exec("drawGaLoad = self.dlg.plotGaLoads(self.dlg.currentChrom,self.data['ga" + self.type.lower() + self.type.lower() + "loads'],self.parent.plcGaSpecLoad,self.spnGaScoreFrom.GetValue()-1)")
+		exec("self.parent.optDlg.plotGaLoads(self.parent.optDlg.currentChrom,self.data['ga" + self.type.lower() + self.type.lower() + "loads'],self.parent.plcGaSpecLoad,self.spnGaScoreFrom.GetValue()-1)")
 
 	def OnSpnGascoretoSpinctrl(self, event):
 		# GA scores plot
-		gaOrdPlot = plotText(self.parent.plcGaPlot, self.data["gadfadfscores"], self.data["validation"], self.data["class"], self.data["label"], self.spnGaScoreFrom.GetValue() - 1, self.spnGaScoreTo.GetValue() - 1, "", "Discriminant Function")
+		plotScores(self.parent.plcGaPlot, self.data["gadfadfscores"], self.data["class"], self.data["label"], self.data["validation"], self.spnGaScoreFrom.GetValue() - 1, self.spnGaScoreTo.GetValue() - 1, title="DF Scores", xLabel="Discriminant Function " + str(self.spnGaScoreFrom.GetValue()), yLabel="Discriminant Function " + str(self.spnGaScoreTo.GetValue()), xval=True)
 
 		# DF loadings
-		exec("drawGaLoad = self.dlg.plotGaLoads(self.dlg.currentChrom,self.data['ga" + self.type.lower() + self.type.lower() + "loads'],self.parent.plcGaSpecLoad,self.spnGaScoreFrom.GetValue()-1)")
+		exec("self.parent.optDlg.plotGaLoads(self.parent.optDlg.currentChrom,self.data['ga" + self.type.lower() + self.type.lower() + "loads'],self.parent.plcGaSpecLoad,self.spnGaScoreFrom.GetValue()-1)")
 
 	def OnCbxfeature1(self, event):
-		gaFeatPlot = self.dlg.PlotGaVariables(self.parent.plcGaFeatPlot)
+		self.parent.optDlg.PlotGaVariables(self.parent.plcGaFeatPlot)
 
 	def OnCbxfeature2(self, event):
-		gaFeatPlot = self.dlg.PlotGaVariables(self.parent.plcGaFeatPlot)
+		self.parent.optDlg.PlotGaVariables(self.parent.plcGaFeatPlot)
 
 	def runGa(self, **_attr):
 		"""Runs GA
@@ -407,7 +409,7 @@ class TitleBar(bp.ButtonPanel):
 						count = 0
 
 						# set stopping criterion
-						if self.dlg.cbGaRepUntil.GetValue() is False:
+						if self.parent.optDlg.cbGaRepUntil.GetValue() is False:
 							stop = mgen
 						else:
 							stop = 1000
@@ -421,11 +423,11 @@ class TitleBar(bp.ButtonPanel):
 							chromSel = mva.genetic.select(ranksc, chrom, insr)
 
 							# perform crossover
-							if self.dlg.cbGaXover.GetValue() is True:
+							if self.parent.optDlg.cbGaXover.GetValue() is True:
 								chromSel = mva.genetic.xover(chromSel, xovr, xdata.shape[1])
 
 							# perform mutation
-							if self.dlg.cbGaMut.GetValue() is True:
+							if self.parent.optDlg.cbGaMut.GetValue() is True:
 								chromSel = mva.genetic.mutate(chromSel, mutr, xdata.shape[1])
 
 							# evaluate chromSel
@@ -444,7 +446,7 @@ class TitleBar(bp.ButtonPanel):
 								scoresOut.append(min(min(scores)))
 
 							# Build history for second stopping criterion
-							if self.dlg.cbGaRepUntil.GetValue() is True:
+							if self.parent.optDlg.cbGaRepUntil.GetValue() is True:
 								Best = scores[0]
 								tChrom = chrom[0]
 								chromRecord = scipy.concatenate((chromRecord, tChrom[nA, :]), 0)
@@ -527,7 +529,7 @@ class TitleBar(bp.ButtonPanel):
 				exec("self.data['ga" + self.type.lower() + "curves'] = cUrves")
 
 				# Create results tree
-				self.CreateGaResultsTree(self.dlg.treGaResults, gacurves=cUrves, chroms=chromList, varfrom=varfrom, varto=varto, runs=runs - 1)
+				self.CreateGaResultsTree(self.parent.optDlg.treGaResults, gacurves=cUrves, chroms=chromList, varfrom=varfrom, varto=varto, runs=runs - 1)
 
 				# enable export btn
 				self.btnExportGa.Enable(1)
@@ -602,139 +604,145 @@ class TitleBar(bp.ButtonPanel):
 			tree.Expand(TreeItemIdList[i])
 
 
-class selParam(wx.Frame):
-	def _init_coll_gbsGa_Growables(self, parent):
-		# generated method, don't edit
+class selParam(fpb.FoldPanelBar):
+	def _init_coll_gbsGaParams_Growables(self, parent):
 
-		parent.AddGrowableRow(12)
 		parent.AddGrowableCol(0)
 		parent.AddGrowableCol(1)
 		parent.AddGrowableCol(2)
 
-	def _init_coll_gbsGa_Items(self, parent):
-		# generated method, don't edit
+	def _init_coll_gbsGaParams_Items(self, parent):
 
-		parent.AddWindow(wx.StaticText(self.panel, -1, "No. vars. from", style=wx.ALIGN_RIGHT), (0, 0), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(wx.StaticText(self.plParams, -1, "No. vars. from", style=wx.ALIGN_RIGHT), (0, 0), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddWindow(self.spnGaVarsFrom, (0, 1), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddSpacer(wx.Size(8, 8), (0, 2), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(wx.StaticText(self.panel, -1, "No. vars. to", style=wx.ALIGN_RIGHT), (1, 0), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(wx.StaticText(self.plParams, -1, "No. vars. to", style=wx.ALIGN_RIGHT), (1, 0), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddWindow(self.spnGaVarsTo, (1, 1), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddSpacer(wx.Size(8, 8), (1, 2), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(wx.StaticText(self.panel, -1, "No. inds.", style=wx.ALIGN_RIGHT), (2, 0), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(wx.StaticText(self.plParams, -1, "No. inds.", style=wx.ALIGN_RIGHT), (2, 0), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddWindow(self.spnGaNoInds, (2, 1), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddSpacer(wx.Size(8, 8), (2, 2), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(wx.StaticText(self.panel, -1, "No. runs", style=wx.ALIGN_RIGHT), (3, 0), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(wx.StaticText(self.plParams, -1, "No. runs", style=wx.ALIGN_RIGHT), (3, 0), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddWindow(self.spnGaNoRuns, (3, 1), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddSpacer(wx.Size(8, 8), (3, 2), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(wx.StaticText(self.panel, -1, "Crossover rate", style=wx.ALIGN_RIGHT), (4, 0), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(wx.StaticText(self.plParams, -1, "Crossover rate", style=wx.ALIGN_RIGHT), (4, 0), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddWindow(self.stGaXoverRate, (4, 1), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddWindow(self.cbGaXover, (4, 2), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(wx.StaticText(self.panel, -1, "Mutation rate", style=wx.ALIGN_RIGHT), (5, 0), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(wx.StaticText(self.plParams, -1, "Mutation rate", style=wx.ALIGN_RIGHT), (5, 0), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddWindow(self.stGaMutRate, (5, 1), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddWindow(self.cbGaMut, (5, 2), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(wx.StaticText(self.panel, -1, "Insertion rate", style=wx.ALIGN_RIGHT), (6, 0), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(wx.StaticText(self.plParams, -1, "Insertion rate", style=wx.ALIGN_RIGHT), (6, 0), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddWindow(self.stGaInsRate, (6, 1), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddSpacer(wx.Size(8, 8), (6, 2), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(wx.StaticText(self.panel, -1, "Max. factors", style=wx.ALIGN_RIGHT), (7, 0), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(wx.StaticText(self.plParams, -1, "Max. factors", style=wx.ALIGN_RIGHT), (7, 0), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddWindow(self.spnGaMaxFac, (7, 1), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddSpacer(wx.Size(8, 8), (7, 2), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(wx.StaticText(self.panel, -1, "Max. gens", style=wx.ALIGN_RIGHT), (8, 0), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(wx.StaticText(self.plParams, -1, "Max. gens", style=wx.ALIGN_RIGHT), (8, 0), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddWindow(self.spnGaMaxGen, (8, 1), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddWindow(self.cbGaMaxGen, (8, 2), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(wx.StaticText(self.panel, -1, "Repeat until", style=wx.ALIGN_RIGHT), (9, 0), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(wx.StaticText(self.plParams, -1, "Repeat until", style=wx.ALIGN_RIGHT), (9, 0), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddWindow(self.spnGaRepUntil, (9, 1), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddWindow(self.cbGaRepUntil, (9, 2), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddSpacer(wx.Size(8, 8), (10, 0), border=10, flag=wx.EXPAND, span=(1, 3))
-		parent.AddWindow(self.staticText1, (11, 0), border=10, flag=wx.EXPAND, span=(1, 3))
-		parent.AddWindow(self.treGaResults, (12, 0), border=10, flag=wx.EXPAND, span=(1, 3))
+		parent.AddSpacer(wx.Size(8, 8), (10, 2), border=10, flag=wx.EXPAND, span=(2, 3))
 
 	def _init_selparam_sizers(self):
 		# generated method, don't edit
-		self.gbsGa = wx.GridBagSizer(hgap=4, vgap=4)
-		self.gbsGa.SetCols(3)
-		self.gbsGa.SetRows(13)
-		self.gbsGa.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_SPECIFIED)
-		self.gbsGa.SetMinSize(wx.Size(100, 439))
-		self.gbsGa.SetEmptyCellSize(wx.Size(0, 0))
-		self.gbsGa.SetFlexibleDirection(wx.VERTICAL)
+		self.gbsGaParams = wx.GridBagSizer(5, 5)
+		self.gbsGaParams.SetCols(3)
+		self.gbsGaParams.SetRows(12)
 
-		self._init_coll_gbsGa_Items(self.gbsGa)
-		self._init_coll_gbsGa_Growables(self.gbsGa)
+		self._init_coll_gbsGaParams_Items(self.gbsGaParams)
+		self._init_coll_gbsGaParams_Growables(self.gbsGaParams)
 
-		self.panel.SetSizer(self.gbsGa)
+		self.fpParams.SetSizer(self.gbsGaParams)
 
 	def _init_selparam_ctrls(self, prnt):
-		# generated method, don't edit
-		wx.Frame.__init__(self, id=-1, name="selFun", parent=prnt, pos=wx.Point(0, 0), size=wx.Size(180, 739), style=wx.DEFAULT_FRAME_STYLE, title="Define GA Parameters")
-		self.SetToolTip("")
-		self.Bind(wx.EVT_CLOSE, self.OnMiniFrameClose)
+		fpb.FoldPanelBar.__init__(self, prnt, -1, pos=wx.DefaultPosition, size=wx.DefaultSize, style=fpb.FPB_DEFAULT_STYLE | fpb.FPB_SINGLE_FOLD)
+		self.SetAutoLayout(True)
 
-		self.panel = wx.Panel(id=-1, name="panel", parent=self, pos=wx.Point(0, 0), size=wx.Size(180, 739), style=wx.TAB_TRAVERSAL)
-		self.panel.SetToolTip("")
+		icons = wx.ImageList(16, 16)
+		icons.Add(wx.Bitmap(os.path.join("bmp", "arrown.png"), wx.BITMAP_TYPE_PNG))
+		icons.Add(wx.Bitmap(os.path.join("bmp", "arrows.png"), wx.BITMAP_TYPE_PNG))
 
-		self.staticText1 = wx.StaticText(id=-1, label="Results", name="staticText1", parent=self.panel, pos=wx.Point(72, 8), size=wx.Size(54, 21), style=0)
-		self.staticText1.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, True, "MS Shell Dlg 2"))
+		self.fpParams = self.AddFoldPanel("Parameters", collapsed=True, foldIcons=icons)
+		self.fpParams.SetAutoLayout(True)
+		##		  self.fpParams.Bind(wx.EVT_SIZE, self.OnFpbResize)
 
-		self.spnGaVarsFrom = wx.SpinCtrl(id=-1, initial=2, max=100, min=2, name="spnGaVarsFrom", parent=self.panel, pos=wx.Point(73, 0), size=wx.Size(15, 21), style=wx.SP_ARROW_KEYS)
+		self.fpResults = self.AddFoldPanel("Results", collapsed=True, foldIcons=icons)
+		self.fpResults.SetAutoLayout(True)
+		self.fpResults.Bind(wx.EVT_SIZE, self.OnFpbResize)
+
+		self.plParams = wx.Panel(id=-1, name="plParams", parent=self.fpParams, pos=wx.Point(0, 0), size=wx.Size(200, 350), style=wx.TAB_TRAVERSAL)
+		self.plParams.SetToolTip("")
+		self.plParams.SetConstraints(LayoutAnchors(self.plParams, True, True, True, True))
+
+		self.spnGaVarsFrom = wx.SpinCtrl(id=-1, initial=2, max=100, min=2, name="spnGaVarsFrom", parent=self.plParams, pos=wx.Point(73, 0), size=wx.Size(15, 21), style=wx.SP_ARROW_KEYS)
 		self.spnGaVarsFrom.SetToolTip("Variable range from")
 
-		self.spnGaVarsTo = wx.SpinCtrl(id=-1, initial=2, max=100, min=2, name="spnGaVarsTo", parent=self.panel, pos=wx.Point(219, 0), size=wx.Size(15, 21), style=wx.SP_ARROW_KEYS)
+		self.spnGaVarsTo = wx.SpinCtrl(id=-1, initial=2, max=100, min=2, name="spnGaVarsTo", parent=self.plParams, pos=wx.Point(219, 0), size=wx.Size(15, 21), style=wx.SP_ARROW_KEYS)
 		self.spnGaVarsTo.SetToolTip("Variable range to")
 
-		self.spnGaNoInds = wx.SpinCtrl(id=-1, initial=10, max=1000, min=10, name="spnGaNoInds", parent=self.panel, pos=wx.Point(73, 23), size=wx.Size(15, 21), style=wx.SP_ARROW_KEYS)
+		self.spnGaNoInds = wx.SpinCtrl(id=-1, initial=10, max=1000, min=10, name="spnGaNoInds", parent=self.plParams, pos=wx.Point(73, 23), size=wx.Size(15, 21), style=wx.SP_ARROW_KEYS)
 		self.spnGaVarsTo.SetToolTip("Number of individuals")
 
-		self.spnGaNoRuns = wx.SpinCtrl(id=-1, initial=1, max=1000, min=1, name="spnGaNoRuns", parent=self.panel, pos=wx.Point(219, 23), size=wx.Size(15, 21), style=wx.SP_ARROW_KEYS)
+		self.spnGaNoRuns = wx.SpinCtrl(id=-1, initial=1, max=1000, min=1, name="spnGaNoRuns", parent=self.plParams, pos=wx.Point(219, 23), size=wx.Size(15, 21), style=wx.SP_ARROW_KEYS)
 		self.spnGaVarsTo.SetToolTip("Number of independent GA runs")
 
-		self.stGaXoverRate = wx.TextCtrl(id=-1, name="stGaXoverRate", value="0.8", parent=self.panel, pos=wx.Point(216, 48), size=wx.Size(15, 21), style=0)
+		self.stGaXoverRate = wx.TextCtrl(id=-1, name="stGaXoverRate", value="0.8", parent=self.plParams, pos=wx.Point(216, 48), size=wx.Size(15, 21), style=0)
 		self.stGaXoverRate.SetToolTip("Crossover rate")
 
-		self.cbGaXover = wx.CheckBox(id=-1, label="", name="cbGaXover", parent=self.panel, pos=wx.Point(0, 46), size=wx.Size(10, 21), style=wx.ALIGN_LEFT)
+		self.cbGaXover = wx.CheckBox(id=-1, label="", name="cbGaXover", parent=self.plParams, pos=wx.Point(0, 46), size=wx.Size(10, 21), style=wx.ALIGN_LEFT)
 		self.cbGaXover.SetValue(True)
 		self.cbGaXover.SetToolTip("")
 
-		self.stGaMutRate = wx.TextCtrl(id=-1, name="stGaMutRate", value="0.4", parent=self.panel, pos=wx.Point(216, 48), size=wx.Size(15, 21), style=0)
+		self.stGaMutRate = wx.TextCtrl(id=-1, name="stGaMutRate", value="0.4", parent=self.plParams, pos=wx.Point(216, 48), size=wx.Size(15, 21), style=0)
 		self.stGaMutRate.SetToolTip("Mutation rate")
 
-		self.cbGaMut = wx.CheckBox(id=-1, label="", name="cbGaMut", parent=self.panel, pos=wx.Point(146, 46), size=wx.Size(10, 21), style=wx.ALIGN_LEFT)
+		self.cbGaMut = wx.CheckBox(id=-1, label="", name="cbGaMut", parent=self.plParams, pos=wx.Point(146, 46), size=wx.Size(10, 21), style=wx.ALIGN_LEFT)
 		self.cbGaMut.SetValue(True)
 		self.cbGaMut.SetToolTip("")
 
-		self.stGaInsRate = wx.TextCtrl(id=-1, name="stGaInsRate", value="0.8", parent=self.panel, pos=wx.Point(216, 48), size=wx.Size(15, 21), style=0)
+		self.stGaInsRate = wx.TextCtrl(id=-1, name="stGaInsRate", value="0.8", parent=self.plParams, pos=wx.Point(216, 48), size=wx.Size(15, 21), style=0)
 		self.stGaXoverRate.SetToolTip("Insertion rate")
 
-		self.spnGaMaxFac = wx.SpinCtrl(id=-1, initial=1, max=100, min=1, name="spnGaMaxFac", parent=self.panel, pos=wx.Point(219, 69), size=wx.Size(15, 21), style=wx.SP_ARROW_KEYS)
+		self.spnGaMaxFac = wx.SpinCtrl(id=-1, initial=1, max=100, min=1, name="spnGaMaxFac", parent=self.plParams, pos=wx.Point(219, 69), size=wx.Size(15, 21), style=wx.SP_ARROW_KEYS)
 		self.spnGaMaxFac.SetToolTip("Maximum number of latent variables")
 
-		self.spnGaMaxGen = wx.SpinCtrl(id=-1, initial=5, max=1000, min=5, name="spnGaMaxGen", parent=self.panel, pos=wx.Point(73, 92), size=wx.Size(15, 21), style=wx.SP_ARROW_KEYS)
+		self.spnGaMaxGen = wx.SpinCtrl(id=-1, initial=5, max=1000, min=5, name="spnGaMaxGen", parent=self.plParams, pos=wx.Point(73, 92), size=wx.Size(15, 21), style=wx.SP_ARROW_KEYS)
 		self.spnGaMaxGen.SetToolTip("Maximum number of generations")
 
-		self.cbGaMaxGen = wx.CheckBox(id=-1, label="", name="cbGaMaxGen", parent=self.panel, pos=wx.Point(0, 92), size=wx.Size(10, 21), style=wx.ALIGN_LEFT)
+		self.cbGaMaxGen = wx.CheckBox(id=-1, label="", name="cbGaMaxGen", parent=self.plParams, pos=wx.Point(0, 92), size=wx.Size(10, 21), style=wx.ALIGN_LEFT)
 		self.cbGaMaxGen.SetValue(True)
 		self.cbGaMaxGen.SetToolTip("")
 		self.cbGaMaxGen.Show(False)
 
-		self.spnGaRepUntil = wx.SpinCtrl(id=-1, initial=5, max=1000, min=5, name="spnGaRepUntil", parent=self.panel, pos=wx.Point(219, 92), size=wx.Size(15, 21), style=wx.SP_ARROW_KEYS)
+		self.spnGaRepUntil = wx.SpinCtrl(id=-1, initial=5, max=1000, min=5, name="spnGaRepUntil", parent=self.plParams, pos=wx.Point(219, 92), size=wx.Size(15, 21), style=wx.SP_ARROW_KEYS)
 		self.spnGaRepUntil.SetToolTip("Repeat generations until")
 
-		self.cbGaRepUntil = wx.CheckBox(id=-1, label="", name="cbGaRepUntil", parent=self.panel, pos=wx.Point(146, 92), size=wx.Size(10, 21), style=wx.ALIGN_LEFT)
+		self.cbGaRepUntil = wx.CheckBox(id=-1, label="", name="cbGaRepUntil", parent=self.plParams, pos=wx.Point(146, 92), size=wx.Size(10, 21), style=wx.ALIGN_LEFT)
 		self.cbGaRepUntil.SetValue(False)
 		self.cbGaRepUntil.SetToolTip("")
 
-		self.treGaResults = wx.TreeCtrl(id=-1, name="treGaResults", parent=self.panel, pos=wx.Point(0, 115), size=wx.Size(100, 100), style=wx.TR_DEFAULT_STYLE | wx.TR_HAS_BUTTONS, validator=wx.DefaultValidator)
+		self.treGaResults = wx.TreeCtrl(id=-1, name="treGaResults", parent=self.fpResults, pos=wx.Point(0, 23), size=wx.Size(100, 100), style=wx.TR_DEFAULT_STYLE | wx.TR_HAS_BUTTONS, validator=wx.DefaultValidator)
 		self.treGaResults.SetToolTip("")
-		self.treGaResults.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.OnTregaaresultsTreeItemActivated, id=-1)
+		self.treGaResults.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.OnTregaaresultsTreeItemActivated)
+		self.treGaResults.SetConstraints(LayoutAnchors(self.treGaResults, True, True, True, True))
+
+		self.AddFoldPanelWindow(self.fpParams, self.plParams, fpb.FPB_ALIGN_WIDTH)
+		self.AddFoldPanelWindow(self.fpResults, self.treGaResults, fpb.FPB_ALIGN_WIDTH)
 
 		self._init_selparam_sizers()
 
 	def __init__(self, parent):
 		self._init_selparam_ctrls(parent)
 
+		self.Expand(self.fpParams)
+		self.Expand(self.fpResults)
+
 		self.prnt = parent
 
-	def OnMiniFrameClose(self, event):
-		self.Hide()
+	def OnFpbResize(self, event):
+		self.treGaResults.SetSize((self.treGaResults.GetSize()[0], self.GetSize()[1] - 50))
 
 	def CountForOptCurve(self, curve):
 		count = 0
@@ -745,9 +753,9 @@ class selParam(wx.Frame):
 
 	def OnTregaaresultsTreeItemActivated(self, event):
 		# define dfa or pls
-		exec("self.chroms = self.prnt.data['ga" + self.prnt.type.lower() + "chroms']")
-		exec("self.scores = self.prnt.data['ga" + self.prnt.type.lower() + "scores']")
-		exec("self.curves = self.prnt.data['ga" + self.prnt.type.lower() + "curves']")
+		exec("self.chroms = self.prnt.splitPrnt.titleBar.data['ga" + self.prnt.splitPrnt.type.lower() + "chroms']")
+		exec("self.scores = self.prnt.splitPrnt.titleBar.data['ga" + self.prnt.splitPrnt.type.lower() + "scores']")
+		exec("self.curves = self.prnt.splitPrnt.titleBar.data['ga" + self.prnt.splitPrnt.type.lower() + "curves']")
 
 		# colours and markers for plotting
 		markerList = ["circle", "square", "cross", "plus"]
@@ -756,10 +764,10 @@ class selParam(wx.Frame):
 		# set busy cursor
 		##		  wx.BeginBusyCursor()
 
-		if self.prnt.cbxData.GetSelection() == 0:
-			xdata = self.prnt.data["raw"]
-		elif self.prnt.cbxData.GetSelection() == 1:
-			xdata = self.prnt.data["proc"]
+		if self.prnt.splitPrnt.titleBar.cbxData.GetSelection() == 0:
+			xdata = self.prnt.splitPrnt.titleBar.data["raw"]
+		elif self.prnt.splitPrnt.titleBar.cbxData.GetSelection() == 1:
+			xdata = self.prnt.splitPrnt.titleBar.data["proc"]
 
 		currentItem = event.GetItem()
 		chromId = self.treGaResults.GetItemText(currentItem)
@@ -788,27 +796,27 @@ class selParam(wx.Frame):
 			Lvs = int(self.spnGaMaxFac.GetValue())
 
 		# run dfa
-		if self.prnt.type in ["DFA"]:
-			self.prnt.data["gadfadfscores"], self.prnt.data["gadfadfaloads"], gaError = mva.fitfun.rerun_dfa(currentChrom, xdata, self.prnt.data["validation"], self.prnt.data["class"], self.prnt.data["label"], Lvs)
+		if self.prnt.splitPrnt.type in ["DFA"]:
+			self.prnt.splitPrnt.titleBar.data["gadfadfscores"], self.prnt.splitPrnt.titleBar.data["gadfadfaloads"], gaError = mva.fitfun.rerun_dfa(currentChrom, xdata, self.prnt.splitPrnt.titleBar.data["validation"], self.prnt.splitPrnt.titleBar.data["class"], self.prnt.splitPrnt.titleBar.data["label"], Lvs)
 
 			# plot scores
-			self.prnt.spnGaScoreFrom.SetRange(1, self.prnt.data["gadfadfaloads"].shape[1])
-			self.prnt.spnGaScoreFrom.SetValue(1)
-			self.prnt.spnGaScoreTo.SetRange(1, self.prnt.data["gadfadfaloads"].shape[1])
-			self.prnt.spnGaScoreTo.SetValue(1)
-			if self.prnt.data["gadfadfaloads"].shape[1] > 1:
-				self.prnt.spnGaScoreTo.SetValue(2)
+			self.prnt.splitPrnt.titleBar.spnGaScoreFrom.SetRange(1, self.prnt.splitPrnt.titleBar.data["gadfadfaloads"].shape[1])
+			self.prnt.splitPrnt.titleBar.spnGaScoreFrom.SetValue(1)
+			self.prnt.splitPrnt.titleBar.spnGaScoreTo.SetRange(1, self.prnt.splitPrnt.titleBar.data["gadfadfaloads"].shape[1])
+			self.prnt.splitPrnt.titleBar.spnGaScoreTo.SetValue(1)
+			if self.prnt.splitPrnt.titleBar.data["gadfadfaloads"].shape[1] > 1:
+				self.prnt.splitPrnt.titleBar.spnGaScoreTo.SetValue(2)
 
-			gaOrdPlot = plotText(self.prnt.parent.plcGaPlot, self.prnt.data["gadfadfscores"], self.prnt.data["validation"], self.prnt.data["class"], self.prnt.data["label"], self.prnt.spnGaScoreFrom.GetValue() - 1, self.prnt.spnGaScoreTo.GetValue() - 1, "", "Discriminant Function")
+			plotScores(self.prnt.splitPrnt.plcGaPlot, self.prnt.splitPrnt.titleBar.data["gadfadfscores"], self.prnt.splitPrnt.titleBar.data["class"], self.prnt.splitPrnt.titleBar.data["label"], self.prnt.splitPrnt.titleBar.data["validation"], self.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue() - 1, self.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue() - 1, title="DF Scores", xLabel="Discriminant Function " + str(self.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue()), yLabel="Discriminant Function " + str(self.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue()), xval=True)
 
-		if self.prnt.type in ["PLS"]:
+		if self.prnt.splitPrnt.type in ["PLS"]:
 			# select only chrom vars from x
-			self.prnt.data["gaplsplsloads"], T, P, Q, facs, predy, predyv, predyt, RMSEC, RMSEPC, rmsec, rmsepc, RMSEPT = mva.fitfun.rerun_pls(currentChrom, xdata, np.array(self.prnt.data["class"])[:, nA], self.prnt.data["validation"][:, nA], Lvs)
+			self.prnt.splitPrnt.titleBar.data["gaplsplsloads"], T, P, Q, facs, predy, predyv, predyt, RMSEC, RMSEPC, rmsec, rmsepc, RMSEPT = mva.fitfun.rerun_pls(currentChrom, xdata, np.array(self.prnt.splitPrnt.titleBar.data["class"])[:, nA], self.prnt.splitPrnt.titleBar.data["validation"][:, nA], Lvs)
 
 			gaError = scipy.concatenate((np.array(rmsec)[nA, :], np.array(rmsepc)[nA, :]), 0)
 
-			# plot pls model
-			plsModel = PlotPlsModel(self, self.prnt.parent.plcGaPlot, np.array(self.prnt.data["class"])[:, nA], predy, predyv, predyt, self.prnt.data["validation"][:, nA], RMSEPT, Lvs)
+			# plot pls predictions
+			plsModel = PlotPlsModel(self, self.prnt.splitPrnt.plcGaPlot, np.array(self.prnt.splitPrnt.titleBar.data["class"])[:, nA], predy, predyv, predyt, self.prnt.splitPrnt.titleBar.data["validation"][:, nA], RMSEPT, Lvs)
 
 		##			  if self.cbDfaSavePc.GetValue() is False:
 		NoRuns = int(self.spnGaNoRuns.GetValue())
@@ -850,15 +858,15 @@ class selParam(wx.Frame):
 		# plot variable frequencies
 		LineObj = []
 		for i in range(VarFreq.shape[0]):
-			Start = scipy.concatenate((scipy.reshape(self.prnt.data["xaxis"][int(VarFreq[i, 0])], (1, 1)), scipy.reshape(0.0, (1, 1))), 1)
-			FullVarFreq = scipy.concatenate((scipy.reshape(self.prnt.data["xaxis"][int(VarFreq[i, 0])], (1, 1)), scipy.reshape(VarFreq[i, 1], (1, 1))), 1)
+			Start = scipy.concatenate((scipy.reshape(self.prnt.splitPrnt.titleBar.data["xaxis"][int(VarFreq[i, 0])], (1, 1)), scipy.reshape(0.0, (1, 1))), 1)
+			FullVarFreq = scipy.concatenate((scipy.reshape(self.prnt.splitPrnt.titleBar.data["xaxis"][int(VarFreq[i, 0])], (1, 1)), scipy.reshape(VarFreq[i, 1], (1, 1))), 1)
 			FullVarFreq = scipy.concatenate((Start, FullVarFreq), 0)
 			if int(VarFreq[i, 0]) in currentChrom:
 				LineObj.append(wx.lib.plot.PolyLine(FullVarFreq, colour="red", width=2, style=wx.SOLID))
 			else:
 				LineObj.append(wx.lib.plot.PolyLine(FullVarFreq, colour="black", width=2, style=wx.SOLID))
 
-		meanSpec = scipy.concatenate((scipy.reshape(self.prnt.data["xaxis"], (len(self.prnt.data["xaxis"]), 1)), scipy.reshape(mva.process.norm01(scipy.reshape(scipy.mean(xdata, 0), (1, xdata.shape[1]))) * max(VarFreq[:, 1]), (xdata.shape[1], 1))), 1)
+		meanSpec = scipy.concatenate((scipy.reshape(self.prnt.splitPrnt.titleBar.data["xaxis"], (len(self.prnt.splitPrnt.titleBar.data["xaxis"]), 1)), scipy.reshape(mva.process.norm01(scipy.reshape(scipy.mean(xdata, 0), (1, xdata.shape[1]))) * max(VarFreq[:, 1]), (xdata.shape[1], 1))), 1)
 
 		meanSpec = wx.lib.plot.PolyLine(meanSpec, colour="black", width=0.75, style=wx.SOLID)
 
@@ -866,40 +874,41 @@ class selParam(wx.Frame):
 
 		DfaPlotFreq = wx.lib.plot.PlotGraphics(LineObj, "Frequency of Variable Selection", "Variable ID", "Frequency (%)")
 
-		xAx = (self.prnt.data["xaxis"].min(), self.prnt.data["xaxis"].max())
+		xAx = (self.prnt.splitPrnt.titleBar.data["xaxis"].min(), self.prnt.splitPrnt.titleBar.data["xaxis"].max())
 
 		yAx = (0, max(VarFreq[:, 1]) * 1.1)
 
-		self.prnt.parent.plcGaFreqPlot.Draw(DfaPlotFreq, xAxis=xAx, yAxis=yAx)
+		self.prnt.splitPrnt.plcGaFreqPlot.Draw(DfaPlotFreq, xAxis=xAx, yAxis=yAx)
 
 		##			  self.DfaPlotFreq = [DfaPlotFreq,xAx,yAx]
 
 		# plot variables
 		list = []
 		for each in currentChrom:
-			list.append(str(self.prnt.data["indlabels"][int(each)]))
+			list.append(str(self.prnt.splitPrnt.titleBar.data["indlabels"][int(each)]))
 
-		self.prnt.cbxFeature1.SetItems(list)
-		self.prnt.cbxFeature2.SetItems(list)
-		self.prnt.cbxFeature1.SetSelection(0)
-		self.prnt.cbxFeature2.SetSelection(0)
+		self.prnt.splitPrnt.titleBar.cbxFeature1.SetItems(list)
+		self.prnt.splitPrnt.titleBar.cbxFeature2.SetItems(list)
+		self.prnt.splitPrnt.titleBar.cbxFeature1.SetSelection(0)
+		self.prnt.splitPrnt.titleBar.cbxFeature2.SetSelection(0)
 
-		gaFeatPlot = self.PlotGaVariables(self.prnt.parent.plcGaFeatPlot)
+		self.PlotGaVariables(self.prnt.splitPrnt.plcGaFeatPlot)
 
 		# plot ga optimisation curve
 		noGens = self.CountForOptCurve(self.curves[chromId])
-		gaPlotOptLine = plotLine(self.prnt.parent.plcGaOptPlot, scipy.reshape(self.curves[chromId, 0:noGens], (1, noGens)), scipy.arange(1, noGens + 1)[:, nA], 0, "GA Optimisation Curve", "Generation", "Objective function score")
+		gaPlotOptLine = plotLine(self.prnt.splitPrnt.plcGaOptPlot, scipy.reshape(self.curves[chromId, 0:noGens], (1, noGens)), scipy.arange(1, noGens + 1)[:, nA], 0, "GA Optimisation Curve", "Generation", "Objective function score", wdth=3)
 
 		# plot loadings
-		exec("drawGaLoad = self.plotGaLoads(currentChrom,self.prnt.data['ga" + self.prnt.type.lower() + self.prnt.type.lower() + "loads'],self.prnt.parent.plcGaSpecLoad,0)")
+		self.prnt.splitPrnt.titleBar.data["gacurrentchrom"] = currentChrom
+		exec("self.plotGaLoads(currentChrom,self.prnt.splitPrnt.titleBar.data['ga" + self.prnt.splitPrnt.type.lower() + self.prnt.splitPrnt.type.lower() + "loads'],self.prnt.splitPrnt.plcGaSpecLoad,0)")
 
 		# plot eigenvalues
 		if gaError.shape[0] == 1:
-			errorCurve = plotLine(self.prnt.parent.plcGaEigs, gaError, scipy.arange(1, gaError.shape[0] + 1)[:, nA], 0, "", "Eigenvalues", "Discriminant Function")
+			errorCurve = plotLine(self.prnt.splitPrnt.plcGaEigs, gaError, scipy.arange(1, gaError.shape[0] + 1)[:, nA], 0, "", "Eigenvalues", "Discriminant Function", wdth=3)
 		else:
-			errorCurve = plotLine(self.prnt.parent.plcGaEigs, gaError, scipy.arange(1, gaError.shape[1] + 1)[:, nA], 0, "", "PLS Factor", "RMS Error", type="multi", ledge=["Train err", "Test err"])
+			errorCurve = plotLine(self.prnt.splitPrnt.plcGaEigs, gaError, scipy.arange(1, gaError.shape[1] + 1)[:, nA], 0, "", "PLS Factor", "RMS Error", type="multi", ledge=["Train err", "Test err"], wdth=3)
 
-			self.prnt.parent.nbGaModPlot.SetPageText(1, "Model Error")
+			self.prnt.splitPrnt.nbGaModPlot.SetPageText(1, "Model Error")
 
 		# plot variables vs. error for pairs
 		gaVarFrom = int(self.spnGaVarsFrom.GetValue())
@@ -981,15 +990,15 @@ class selParam(wx.Frame):
 
 			Yax = (MinVarErr, MaxVarErr)
 
-			self.prnt.parent.plcGaGrpDistPlot.Draw(gaPlotVarErr, xAxis=Xax, yAxis=Yax)
+			self.prnt.splitPrnt.plcGaGrpDistPlot.Draw(gaPlotVarErr, xAxis=Xax, yAxis=Yax)
 
 			##				  self.gaPlotVarErr = [gaPlotVarErr,Xax,Yax]
 
 			# Enable ctrls
-			self.prnt.spnGaScoreFrom.Enable(1)
-			self.prnt.spnGaScoreTo.Enable(1)
-			self.prnt.cbxFeature1.Enable(1)
-			self.prnt.cbxFeature2.Enable(1)
+			self.prnt.splitPrnt.titleBar.spnGaScoreFrom.Enable(1)
+			self.prnt.splitPrnt.titleBar.spnGaScoreTo.Enable(1)
+			self.prnt.splitPrnt.titleBar.cbxFeature1.Enable(1)
+			self.prnt.splitPrnt.titleBar.cbxFeature2.Enable(1)
 
 	##		  else:
 	##			  dlg = wx.MessageDialog(self, 'Model not valid - unable to calculate results',
@@ -1005,41 +1014,42 @@ class selParam(wx.Frame):
 	def PlotGaVariables(self, canvas):
 		chrom = self.currentChrom
 
-		pos1 = int(self.prnt.cbxFeature1.GetSelection())
-		pos2 = int(self.prnt.cbxFeature2.GetSelection())
-		var1 = int(self.prnt.cbxFeature1.GetCurrentSelection())
-		var2 = int(self.prnt.cbxFeature2.GetCurrentSelection())
-		xdata = self.prnt.data["raw"]
+		pos1 = int(self.prnt.splitPrnt.titleBar.cbxFeature1.GetSelection())
+		pos2 = int(self.prnt.splitPrnt.titleBar.cbxFeature2.GetSelection())
+		xdata = self.prnt.splitPrnt.titleBar.data["raw"]
 
-		if self.prnt.cbxData.GetSelection() == 1:
-			xdata = self.prnt.data["proc"]
+		if self.prnt.splitPrnt.titleBar.cbxData.GetSelection() == 1:
+			xdata = self.prnt.splitPrnt.titleBar.data["proc"]
 
 		if pos1 == pos2:
 			coords = scipy.reshape(scipy.take(xdata, [int(chrom[pos1])], 1), (len(xdata), 1))
 			L1 = "Dummy"
-			L2 = str(self.prnt.data["indlabels"][int(chrom[pos1])])
+			L2 = str(self.prnt.splitPrnt.titleBar.data["indlabels"][int(chrom[pos1])])
+			plotScores(canvas, coords, self.prnt.splitPrnt.titleBar.data["class"], self.prnt.splitPrnt.titleBar.data["label"], self.prnt.splitPrnt.titleBar.data["validation"], 0, 0, title=canvas.last_draw[0].title, xLabel=L1, yLabel=L2, xval=True, pconf=False)
 
-			DrawGaVars = plotText(canvas, coords, self.prnt.data["validation"], self.prnt.data["class"], self.prnt.data["label"], 0, 0, "", "Variable", xL=L1, yL=L2)
 		else:
 			coords = scipy.reshape(scipy.take(xdata, [int(chrom[pos1]), int(chrom[pos2])], 1), (len(xdata), 2))
-			L1 = str(self.prnt.data["indlabels"][int(chrom[pos1])])
-			L2 = str(self.prnt.data["indlabels"][int(chrom[pos2])])
+			L1 = str(self.prnt.splitPrnt.titleBar.data["indlabels"][int(chrom[pos1])])
+			L2 = str(self.prnt.splitPrnt.titleBar.data["indlabels"][int(chrom[pos2])])
+			plotScores(canvas, coords, self.prnt.splitPrnt.titleBar.data["class"], self.prnt.splitPrnt.titleBar.data["label"], self.prnt.splitPrnt.titleBar.data["validation"], 0, 1, title=canvas.last_draw[0].title, xLabel=L1, yLabel=L2, xval=False, pconf=False)
 
-			DrawGaVars = plotText(canvas, coords, self.prnt.data["validation"], self.prnt.data["class"], self.prnt.data["label"], 0, 1, "", "Variable", xL=L1, yL=L2)
+	def plotGaLoads(self, chrom, loads, canvas, xL="Variable"):
+		# facors
+		col1 = self.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue() - 1
+		col2 = self.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue() - 1
 
-		return DrawGaVars
+		# Plot loadings
+		labels = []
+		for each in self.prnt.splitPrnt.titleBar.data["gacurrentchrom"]:
+			labels.append(self.prnt.splitPrnt.titleBar.data["indlabels"][int(each)])
 
-	def plotGaLoads(self, chrom, loads, canvas, loadCol, width=4, xLabel="Variable"):
-		# this width thing is a fix to allow for plotting of GA vars and also
-		# PCA & DFA loadings using stem
-		if width == 4:
-			plotVals = scipy.concatenate((scipy.take(self.prnt.data["xaxis"], chrom)[:, nA], scipy.reshape(loads[:, loadCol], (len(loads), 1))), 1)
+		if col1 != col2:
+			# gather values
+			plotVals = scipy.concatenate((loads[:, col1][:, nA], loads[:, col2][:, nA]), 1)
+
+			plotLoads(canvas, plotVals, labels, 0, 1, title="DF Loadings", xLabel="Loading " + str(self.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue()), yLabel="Loading " + str(self.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue()), type=0)
 		else:
-			plotVals = scipy.concatenate((scipy.take(self.prnt.data["xaxis"], chrom)[:, nA], scipy.reshape(scipy.transpose(loads)[:, loadCol], (loads.shape[1], 1))), 1)
+			# plot loadings as stem
+			plotVals = scipy.concatenate((scipy.take(self.prnt.splitPrnt.titleBar.data["xaxis"], chrom)[:, nA], loads[:, col1][:, nA]), 1)
 
-		if self.prnt.spnGaScoreFrom.GetValue() != self.prnt.spnGaScoreTo.GetValue():
-			plotOut = plotText(canvas, loads, scipy.zeros((len(loads), 1)), None, plotVals[:, 0], self.prnt.spnGaScoreFrom.GetValue() - 1, self.prnt.spnGaScoreTo.GetValue() - 1, "DF Loadings", "DF Loading", 0)
-		else:
-			plotOut = plotStem(canvas, plotVals, "", xLabel, "", width)
-
-		return plotOut
+			plotStem(canvas, plotVals, xLabel="Variable")

@@ -205,6 +205,8 @@ class expSetup(wx.Panel):
 		self.SetToolTip("")
 
 		self.pnl = fpb.FoldPanelBar(self, -1, wx.DefaultPosition, wx.DefaultSize, fpb.FPB_DEFAULT_STYLE, fpb.FPB_EXCLUSIVE_FOLD)
+		self.pnl.SetConstraints(LayoutAnchors(self.pnl, True, True, True, True))
+		self.pnl.SetAutoLayout(True)
 
 		self.depTitleBar = DepTitleBar(self, id=-1, text="Experiment setup", style=bp.BP_USE_GRADIENT, alignment=bp.BP_ALIGN_LEFT)
 
@@ -234,15 +236,16 @@ class expSetup(wx.Panel):
 		icons.Add(wx.Bitmap(os.path.join("bmp", "arrows.png"), wx.BITMAP_TYPE_PNG))
 
 		# meta-data input
-		self.depparamsitem = self.pnl.AddFoldPanel("Experiment setup parameters", collapsed=False)  # , foldIcons=icons)
+		self.depparamsitem = self.pnl.AddFoldPanel("Experiment setup parameters", collapsed=False, foldIcons=icons)
 		self.depparamsitem.Bind(wx.EVT_SIZE, self.OnDepWinSize, id=-1)
 		self.depparamsitem.Bind(fpb.EVT_CAPTIONBAR, self.OnSelectDep, id=-1)
 
-		self.grdNames = wx.grid.Grid(self.depparamsitem, id=wx.ID_ANY, pos=wx.Point(0, 0), size=wx.Size(40, 40), style=wx.SUNKEN_BORDER | wx.HSCROLL | wx.VSCROLL)
+		self.grdNames = wx.grid.Grid(self.depparamsitem, id=wx.ID_ANY, pos=wx.Point(0, 23), size=wx.Size(40, 40), style=wx.SUNKEN_BORDER | wx.HSCROLL | wx.VSCROLL)
 		self.grdNames.SetColLabelSize(20)
 		self.grdNames.SetDefaultCellFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "MS Shell Dlg"))
 		self.grdNames.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "MS Shell Dlg"))
 		self.grdNames.SetLabelFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.BOLD, False, "MS Shell Dlg"))
+		self.grdNames.SetConstraints(LayoutAnchors(self.grdNames, True, True, True, True))
 		self.grdNames.SetRowLabelSize(50)
 		self.grdNames.SetToolTip("")
 		self.grdNames.SetDefaultCellBackgroundColour(wx.Colour(255, 255, 255))
@@ -252,15 +255,16 @@ class expSetup(wx.Panel):
 		self.grdNames.CreateGrid(1, 3)
 
 		# variable id input
-		self.indparamsitem = self.pnl.AddFoldPanel("Independent variable labels", collapsed=True)  # , foldIcons=icons)
+		self.indparamsitem = self.pnl.AddFoldPanel("Independent variable labels", collapsed=True, foldIcons=icons)
 		self.indparamsitem.Bind(wx.EVT_SIZE, self.OnIndWinSize, id=-1)
 		self.indparamsitem.Bind(fpb.EVT_CAPTIONBAR, self.OnSelectInd, id=-1)
 
-		self.grdIndLabels = wx.grid.Grid(self.indparamsitem, id=wx.ID_ANY, pos=wx.Point(0, 0), size=wx.Size(40, 40), style=wx.SUNKEN_BORDER | wx.HSCROLL | wx.VSCROLL)
+		self.grdIndLabels = wx.grid.Grid(self.indparamsitem, id=wx.ID_ANY, pos=wx.Point(0, 23), size=wx.Size(40, 40), style=wx.SUNKEN_BORDER | wx.HSCROLL | wx.VSCROLL)
 		self.grdIndLabels.SetColLabelSize(20)
 		self.grdIndLabels.SetDefaultCellFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "MS Shell Dlg"))
 		self.grdIndLabels.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "MS Shell Dlg"))
 		self.grdIndLabels.SetLabelFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.BOLD, False, "MS Shell Dlg"))
+		self.grdIndLabels.SetConstraints(LayoutAnchors(self.grdIndLabels, True, True, True, True))
 		self.grdIndLabels.SetRowLabelSize(50)
 		self.grdIndLabels.SetToolTip("")
 		self.grdIndLabels.SetDefaultCellBackgroundColour(wx.Colour(255, 255, 255))
@@ -274,6 +278,14 @@ class expSetup(wx.Panel):
 
 		self.depTitleBar.getGrid(self.grdNames)
 		self.indTitleBar.getGrid(self.grdIndLabels)
+
+	##		  depsizer = wx.BoxSizer(wx.VERTICAL)
+	##		  depsizer.Add(self.grdNames, 0, wx.EXPAND)
+	##		  self.depparamsitem.SetSizer(depsizer)
+	##
+	##		  indsizer = wx.BoxSizer(wx.VERTICAL)
+	##		  indsizer.Add(self.grdIndLabels, 0, wx.EXPAND)
+	##		  self.indparamsitem.SetSizer(indsizer)
 
 	def getFrame(self, frameParent):
 		frameParent._init_utils()
@@ -307,13 +319,19 @@ class expSetup(wx.Panel):
 			for i in range(1, self.grdIndLabels.GetNumberRows()):
 				self.grdIndLabels.SetCellValue(i, 0, value)
 
-	def OnDepWinSize(self, event):
-		self.grdNames.SetSize((self.grdNames.GetSize()[0], self.pnl.GetSize()[1] * 0.95))
+	def SizeGrdNames(self):
+		self.grdNames.SetSize((self.grdNames.GetSize()[0], self.pnl.GetSize()[1] - 50))
 		self.depTitleBar.SetSize((self.pnl.GetSize()[0], 49))
 
-	def OnIndWinSize(self, event):
-		self.grdIndLabels.SetSize((self.grdIndLabels.GetSize()[0], self.pnl.GetSize()[1] * 0.95))
+	def OnDepWinSize(self, event):
+		self.SizeGrdNames()
+
+	def SizeGrdIndLabels(self):
+		self.grdIndLabels.SetSize((self.grdIndLabels.GetSize()[0], self.pnl.GetSize()[1] - 50))
 		self.indTitleBar.SetSize((self.pnl.GetSize()[0], 49))
+
+	def OnIndWinSize(self, event):
+		self.SizeGrdIndLabels()
 
 	def OnSelectInd(self, event):
 		self.indTitleBar.Show(0)
@@ -323,7 +341,6 @@ class expSetup(wx.Panel):
 		self._init_dep_sizers()
 
 	def OnSelectDep(self, event):
-		sizer = self.depTitleBar.GetSizer()
 		self.indTitleBar.Show(1)
 		self.depTitleBar.Show(0)
 		self.pnl.Collapse(self.depparamsitem)

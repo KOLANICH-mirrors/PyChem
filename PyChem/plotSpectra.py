@@ -18,6 +18,7 @@ import string
 import scipy
 import wx
 import wx.lib.agw.buttonpanel as bp
+import wx.lib.agw.foldpanelbar as fpb
 import wx.lib.plot
 from wx.lib.anchors import LayoutAnchors
 
@@ -25,16 +26,6 @@ from .mva import process
 from .Pca import MyPlotCanvas
 
 [IDPLOTSPEC] = [wx.NewIdRef() for _init_ctrls in range(1)]
-
-[
-	wxID_SELFUN,
-	wxID_SELFUNBTNSPECTRADELETE,
-	wxID_SELFUNBTNSPECTRADOWN,
-	wxID_SELFUNBTNSPECTRARESET,
-	wxID_SELFUNBTNSPECTRAUP,
-	wxID_SELFUNLBSPECTRA1,
-	wxID_SELFUNLBSPECTRA2,
-] = [wx.NewIdRef() for _init_selfun_ctrls in range(7)]
 
 
 def errorBox(window, error):
@@ -46,11 +37,6 @@ def errorBox(window, error):
 
 
 class plotSpectra(wx.Panel):
-	def _init_coll_grsPspc1_Items(self, parent):
-		# generated method, don't edit
-
-		parent.AddWindow(self.plcSpectraRaw, 0, border=0, flag=wx.EXPAND)
-
 	def _init_coll_bxsPspc1_Items(self, parent):
 		# generated method, don't edit
 
@@ -60,7 +46,7 @@ class plotSpectra(wx.Panel):
 		# generated method, don't edit
 
 		parent.AddWindow(self.titleBar, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.grsPspc1, 1, border=0, flag=wx.EXPAND)
+		parent.AddWindow(self.Splitter, 1, border=0, flag=wx.EXPAND)
 
 	def _init_sizers(self):
 		# generated method, don't edit
@@ -68,11 +54,8 @@ class plotSpectra(wx.Panel):
 
 		self.bxsPspc2 = wx.BoxSizer(orient=wx.VERTICAL)
 
-		self.grsPspc1 = wx.GridSizer(cols=1, hgap=2, rows=1, vgap=2)
-
 		self._init_coll_bxsPspc1_Items(self.bxsPspc1)
 		self._init_coll_bxsPspc2_Items(self.bxsPspc2)
-		self._init_coll_grsPspc1_Items(self.grsPspc1)
 
 		self.SetSizer(self.bxsPspc1)
 
@@ -83,15 +66,26 @@ class plotSpectra(wx.Panel):
 		self.SetToolTip("")
 		self.SetAutoLayout(True)
 
-		self.plcSpectraRaw = MyPlotCanvas(id=IDPLOTSPEC, name="plcSpectraRaw", parent=self, pos=wx.Point(272, 0), size=wx.Size(20, 20), style=0)
+		self.Splitter = wx.SplitterWindow(id=-1, name="Splitter", parent=self, pos=wx.Point(16, 24), size=wx.Size(272, 168), style=wx.SP_3D | wx.SP_LIVE_UPDATE)
+		self.Splitter.SetAutoLayout(True)
+		self.Splitter.Bind(wx.EVT_SPLITTER_DCLICK, self.OnSplitterDclick)
+
+		self.p1 = wx.Panel(self.Splitter)
+		self.p1.SetAutoLayout(True)
+
+		self.optDlg = selFun(self.Splitter)
+
+		self.plcSpectraRaw = MyPlotCanvas(id=IDPLOTSPEC, name="plcSpectraRaw", parent=self.p1, pos=wx.Point(0, 0), size=wx.Size(200, 200), style=wx.SUNKEN_BORDER)
 		self.plcSpectraRaw.enableZoom = True
 		self.plcSpectraRaw.fontSizeTitle = 12
 		self.plcSpectraRaw.SetToolTip("")
 		self.plcSpectraRaw.fontSizeAxis = 10
 		self.plcSpectraRaw.SetConstraints(LayoutAnchors(self.plcSpectraRaw, True, True, True, True))
-		self.plcSpectraRaw.SetAutoLayout(True)
 
 		self.titleBar = TitleBar(self, id=-1, text="Spectral Preprocessing", style=bp.BP_USE_GRADIENT, alignment=bp.BP_ALIGN_LEFT, canvasList=[self.plcSpectraRaw])
+
+		self.Splitter.SplitVertically(self.optDlg, self.p1, 1)
+		self.Splitter.SetMinimumPaneSize(1)
 
 		self._init_sizers()
 
@@ -104,6 +98,14 @@ class plotSpectra(wx.Panel):
 		curve = wx.lib.plot.PolyLine([[0, 0], [1, 1]], colour="white", width=1, style=wx.TRANSPARENT)
 		curve = wx.lib.plot.PlotGraphics([curve], "Experimental Data", "Arbitrary", "Arbitrary")
 		self.plcSpectraRaw.Draw(curve)
+
+		self.optDlg.lbSpectra2.Clear()
+
+	def OnSplitterDclick(self, event):
+		if self.Splitter.GetSashPosition() == 1:
+			self.Splitter.SetSashPosition(250)
+		else:
+			self.Splitter.SetSashPosition(1)
 
 
 class TitleBar(bp.ButtonPanel):
@@ -136,8 +138,6 @@ class TitleBar(bp.ButtonPanel):
 		self.parent = parent
 
 		self.canvas = canvasList[0]
-
-		self.dlg = selFun(self)
 
 	def CreateButtons(self):
 		self.Freeze()
@@ -252,15 +252,14 @@ class TitleBar(bp.ButtonPanel):
 		self.parent.parent.parent.GetExperimentDetails()
 
 	def OnBtnSetProcButton(self, event):
-		height = wx.GetDisplaySize()[1]
-		self.dlg.SetSize(wx.Size(250, height))
-		self.dlg.SetPosition(wx.Point(0, 0))
-		self.dlg.Iconize(False)
-		self.dlg.Show()
+		if self.parent.Splitter.GetSashPosition() == 1:
+			self.parent.Splitter.SetSashPosition(250)
+		else:
+			self.parent.Splitter.SetSashPosition(1)
 
 	def getData(self, data):
 		self.data = data
-		self.dlg.getData(data)
+		self.parent.optDlg.getData(data)
 
 	def PlotSpectra(self, array, title, xaxis, type=0):
 		compileSpecPlot, ColourCount, Count = [], 0, 0
@@ -282,85 +281,92 @@ class TitleBar(bp.ButtonPanel):
 
 			DrawSpecPlot = wx.lib.plot.PlotGraphics(compileSpecPlot, title, "Arbitrary", "Arbitrary")
 
-			xAx = (min(min(xaxis)), max(max(xaxis)))
-			yAx = (array.min(), array.max())
-			self.canvas.Draw(DrawSpecPlot)  # ,xAx,yAx)
-			self.DrawSpecPlot = [DrawSpecPlot, xAx, yAx]
+			self.canvas.Draw(DrawSpecPlot)
 
 
-class selFun(wx.Frame):
+class selFun(fpb.FoldPanelBar):
 	def _init_coll_gbsSelfun_Growables(self, parent):
 		# generated method, don't edit
 
-		parent.AddGrowableRow(1)
-		parent.AddGrowableRow(3)
+		parent.AddGrowableRow(0)
 		parent.AddGrowableCol(0)
 		parent.AddGrowableCol(1)
 
 	def _init_coll_gbsSelfun_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(wx.StaticText(self.panel, -1, "Select Function", style=wx.ALIGN_LEFT), (0, 0), border=2, flag=wx.EXPAND, span=(1, 2))
-		parent.AddWindow(self.lbSpectra1, (1, 0), border=2, flag=wx.EXPAND, span=(1, 2))
-		parent.AddWindow(wx.StaticText(self.panel, -1, "Preprocessing Steps", style=wx.ALIGN_LEFT), (2, 0), border=2, flag=wx.EXPAND, span=(1, 2))
-		parent.AddWindow(self.lbSpectra2, (3, 0), border=2, flag=wx.EXPAND, span=(1, 2))
-		parent.AddWindow(self.btnSpectraUp, (4, 0), border=2, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.btnSpectraDown, (4, 1), border=2, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.btnSpectraDelete, (5, 0), border=2, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.btnSpectraReset, (5, 1), border=2, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.lbSpectra2, (0, 0), flag=wx.EXPAND, span=(1, 2))
+		parent.AddWindow(self.btnSpectraUp, (1, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.btnSpectraDown, (1, 1), flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.btnSpectraDelete, (2, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.btnSpectraReset, (2, 1), flag=wx.EXPAND, span=(1, 1))
+		parent.AddSpacer(wx.Size(8, 8), (3, 0), flag=wx.EXPAND, span=(2, 2))
 
 	def _init_selparam_sizers(self):
 		# generated method, don't edit
-		self.gbsSelfun = wx.GridBagSizer(hgap=4, vgap=4)
+		self.gbsSelfun = wx.GridBagSizer(5, 5)
 		self.gbsSelfun.SetCols(2)
-		self.gbsSelfun.SetRows(6)
-		self.gbsSelfun.SetMinSize(wx.Size(100, 439))
-		self.gbsSelfun.SetEmptyCellSize(wx.Size(0, 0))
+		self.gbsSelfun.SetRows(5)
 
 		self._init_coll_gbsSelfun_Items(self.gbsSelfun)
 		self._init_coll_gbsSelfun_Growables(self.gbsSelfun)
 
-		self.panel.SetSizer(self.gbsSelfun)
+		self.fpSelected.SetSizer(self.gbsSelfun)
 
 	def _init_selfun_ctrls(self, prnt):
 		# generated method, don't edit
-		wx.Frame.__init__(self, id=wxID_SELFUN, name="selFun", parent=prnt, pos=wx.Point(22, 29), size=wx.Size(180, 500), style=wx.DEFAULT_FRAME_STYLE, title="Pre-processing Functions")
-		self.SetClientSize(wx.Size(269, 466))
-		self.SetToolTip("")
-		self.Bind(wx.EVT_CLOSE, self.OnMiniFrameClose)
+		fpb.FoldPanelBar.__init__(self, prnt, -1, pos=wx.DefaultPosition, size=wx.DefaultSize, style=fpb.FPB_DEFAULT_STYLE | fpb.FPB_SINGLE_FOLD)
+		self.SetConstraints(LayoutAnchors(self, True, True, True, True))
+		self.SetAutoLayout(True)
 
-		self.panel = wx.Panel(id=-1, name="panel", parent=self, pos=wx.Point(0, 0), size=wx.Size(180, 739), style=wx.TAB_TRAVERSAL)
-		self.panel.SetToolTip("")
+		icons = wx.ImageList(16, 16)
+		icons.Add(wx.Bitmap(os.path.join("bmp", "arrown.png"), wx.BITMAP_TYPE_PNG))
+		icons.Add(wx.Bitmap(os.path.join("bmp", "arrows.png"), wx.BITMAP_TYPE_PNG))
 
-		self.lbSpectra1 = wx.ListBox(choices=["", "Scaling", "	Normalise to 0 for min, +1 for max.", "  Normalise max. bin to +1", "	Normalise to total", "	Mean centre", "	 Column normalisation", "  Row normalisation", "", "Filtering", "  Linear mean filter, frame width 3", "  Linear mean filter, frame width 4", "	 Linear mean filter, frame width 5", "	Linear mean filter, frame width 6", "  Linear mean filter, frame width 7", "  Linear mean filter, frame width 8", "	 Linear mean filter, frame width 9", "	Linear mean filter, frame width 10", "", "Baseline Correction", "  Set first bin to zero", "  Subtract average of first and last bin", "  Subtract a linearly increasing baseline", "", "Derivatisation", "	 Linear derivatisation, frame width 3", "  Linear derivatisation, frame width 4", "	 Linear derivatisation, frame width 5", "  Linear derivatisation, frame width 6", "	 Linear derivatisation, frame width 7", "  Linear derivatisation, frame width 8", "	 Linear derivatisation, frame width 9", "  Linear derivatisation, frame width 10", ""], id=wxID_SELFUNLBSPECTRA1, name="lbSpectra1", parent=self.panel, pos=wx.Point(6, 8), size=wx.Size(170, 296), style=wx.HSCROLL, validator=wx.DefaultValidator)
+		self.fpFunctions = self.AddFoldPanel("Preprocessing functions", collapsed=True, foldIcons=icons)
+		self.fpFunctions.SetAutoLayout(True)
+
+		self.fpSelected = self.AddFoldPanel("Selected functions", collapsed=True, foldIcons=icons)
+		self.fpSelected.SetAutoLayout(True)
+		##		  self.fpResults.Bind(wx.EVT_SIZE, self.OnFpbResize)
+
+		self.plSelected = wx.Panel(id=-1, name="plSelected", parent=self.fpSelected, pos=wx.Point(0, 0), size=wx.Size(200, 350), style=wx.TAB_TRAVERSAL)
+		self.plSelected.SetToolTip("")
+		self.plSelected.SetConstraints(LayoutAnchors(self.plSelected, True, True, True, True))
+
+		self.lbSpectra1 = wx.ListBox(choices=["", "Scaling", "	Normalise to 0 for min, +1 for max.", "  Normalise max. bin to +1", "	Normalise to total", "	Mean centre", "	 Column normalisation", "  Row normalisation", "", "Filtering", "  Linear mean filter, frame width 3", "  Linear mean filter, frame width 4", "	 Linear mean filter, frame width 5", "	Linear mean filter, frame width 6", "  Linear mean filter, frame width 7", "  Linear mean filter, frame width 8", "	 Linear mean filter, frame width 9", "	Linear mean filter, frame width 10", "", "Baseline Correction", "  Set first bin to zero", "  Subtract average of first and last bin", "  Subtract a linearly increasing baseline", "", "Derivatisation", "	 Linear derivatisation, frame width 3", "  Linear derivatisation, frame width 4", "	 Linear derivatisation, frame width 5", "  Linear derivatisation, frame width 6", "	 Linear derivatisation, frame width 7", "  Linear derivatisation, frame width 8", "	 Linear derivatisation, frame width 9", "  Linear derivatisation, frame width 10", ""], id=-1, name="lbSpectra1", parent=self.fpFunctions, pos=wx.Point(0, 23), size=wx.Size(250, 280), style=wx.HSCROLL, validator=wx.DefaultValidator)
 		self.lbSpectra1.SetToolTip("")
-		self.lbSpectra1.Show(True)
-		self.lbSpectra1.SetLabel("Pre-processing Functions")
-		self.lbSpectra1.Bind(wx.EVT_LISTBOX_DCLICK, self.OnLbspectra1ListboxDclick, id=wxID_SELFUNLBSPECTRA1)
+		self.lbSpectra1.Bind(wx.EVT_LISTBOX_DCLICK, self.OnLbspectra1ListboxDclick)
 
-		self.lbSpectra2 = wx.ListBox(choices=[], id=wxID_SELFUNLBSPECTRA2, name="lbSpectra2", parent=self.panel, pos=wx.Point(6, 312), size=wx.Size(170, 112), style=wx.HSCROLL, validator=wx.DefaultValidator)
+		self.lbSpectra2 = wx.ListBox(choices=[], id=-1, name="lbSpectra2", parent=self.plSelected, pos=wx.Point(0, 0), size=wx.Size(250, 150), style=wx.HSCROLL, validator=wx.DefaultValidator)
 		self.lbSpectra2.SetToolTip("")
 
-		self.btnSpectraUp = wx.Button(id=wxID_SELFUNBTNSPECTRAUP, label="Up", name="btnSpectraUp", parent=self.panel, pos=wx.Point(6, 434), size=wx.Size(48, 23), style=0)
+		self.btnSpectraUp = wx.Button(id=-1, label="Up", name="btnSpectraUp", parent=self.plSelected, pos=wx.Point(0, 0), size=wx.Size(48, 23), style=0)
 		self.btnSpectraUp.SetToolTip("Move up")
-		self.btnSpectraUp.Bind(wx.EVT_BUTTON, self.OnBtnspectraupButton, id=wxID_SELFUNBTNSPECTRAUP)
+		self.btnSpectraUp.Bind(wx.EVT_BUTTON, self.OnBtnspectraupButton)
 
-		self.btnSpectraDelete = wx.Button(id=wxID_SELFUNBTNSPECTRADELETE, label="Del", name="btnSpectraDelete", parent=self.panel, pos=wx.Point(144, 434), size=wx.Size(48, 23), style=0)
+		self.btnSpectraDelete = wx.Button(id=-1, label="Del", name="btnSpectraDelete", parent=self.plSelected, pos=wx.Point(0, 0), size=wx.Size(48, 23), style=0)
 		self.btnSpectraDelete.SetToolTip("Delete selected function")
-		self.btnSpectraDelete.Bind(wx.EVT_BUTTON, self.OnBtnspectradeleteButton, id=wxID_SELFUNBTNSPECTRADELETE)
+		self.btnSpectraDelete.Bind(wx.EVT_BUTTON, self.OnBtnspectradeleteButton)
 
-		self.btnSpectraDown = wx.Button(id=wxID_SELFUNBTNSPECTRADOWN, label="Down", name="btnSpectraDown", parent=self.panel, pos=wx.Point(76, 434), size=wx.Size(48, 23), style=0)
+		self.btnSpectraDown = wx.Button(id=-1, label="Down", name="btnSpectraDown", parent=self.plSelected, pos=wx.Point(0, 0), size=wx.Size(48, 23), style=0)
 		self.btnSpectraDown.SetToolTip("Move down")
-		self.btnSpectraDown.Bind(wx.EVT_BUTTON, self.OnBtnspectradownButton, id=wxID_SELFUNBTNSPECTRADOWN)
+		self.btnSpectraDown.Bind(wx.EVT_BUTTON, self.OnBtnspectradownButton)
 
-		self.btnSpectraReset = wx.Button(id=wxID_SELFUNBTNSPECTRARESET, label="Reset", name="btnSpectraReset", parent=self.panel, pos=wx.Point(216, 434), size=wx.Size(46, 23), style=0)
+		self.btnSpectraReset = wx.Button(id=-1, label="Reset", name="btnSpectraReset", parent=self.plSelected, pos=wx.Point(0, 0), size=wx.Size(46, 23), style=0)
 		self.btnSpectraReset.SetToolTip("Reset")
-		self.btnSpectraReset.Bind(wx.EVT_BUTTON, self.OnBtnspectraresetButton, id=wxID_SELFUNBTNSPECTRARESET)
+		self.btnSpectraReset.Bind(wx.EVT_BUTTON, self.OnBtnspectraresetButton)
+
+		self.AddFoldPanelWindow(self.fpFunctions, self.lbSpectra1, fpb.FPB_ALIGN_WIDTH)
+		self.AddFoldPanelWindow(self.fpSelected, self.plSelected, fpb.FPB_ALIGN_WIDTH)
 
 		self._init_selparam_sizers()
 
 	def __init__(self, parent):
 		self._init_selfun_ctrls(parent)
+
+		self.Expand(self.fpFunctions)
+		self.Expand(self.fpSelected)
 
 	def getData(self, data):
 		self.data = data
@@ -434,6 +440,3 @@ class selFun(wx.Frame):
 		self.lbSpectra2.Clear()
 		self.data["processlist"] = []
 		self.data["proc"] = None
-
-	def OnMiniFrameClose(self, event):
-		self.Hide()

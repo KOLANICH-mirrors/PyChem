@@ -17,6 +17,7 @@ import string
 import scipy
 import wx
 import wx.lib.agw.buttonpanel as bp
+import wx.lib.agw.foldpanelbar as fpb
 import wx.lib.buttons
 import wx.lib.plot
 from Bio.Cluster import *
@@ -69,77 +70,68 @@ def errorBox(window, error):
 
 
 class Cluster(wx.Panel):
-	def _init_coll_bxsPlc1_Items(self, parent):
+	def _init_coll_bxsClust1_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.bxsPlc2, 1, border=0, flag=wx.EXPAND)
+		parent.AddWindow(self.bxsClust2, 1, border=0, flag=wx.EXPAND)
 
-	def _init_coll_bxsPlc2_Items(self, parent):
+	def _init_coll_bxsClust2_Items(self, parent):
 		# generated method, don't edit
 
 		parent.AddWindow(self.titleBar, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.plcCluster, 1, border=0, flag=wx.EXPAND)
+		parent.AddWindow(self.Splitter, 1, border=0, flag=wx.EXPAND)
 
-	def _init_plc_sizers(self):
+	def _init_cluster_sizers(self):
 		# generated method, don't edit
-		self.bxsPlc1 = wx.BoxSizer(orient=wx.HORIZONTAL)
+		self.bxsClust1 = wx.BoxSizer(orient=wx.HORIZONTAL)
 
-		self.bxsPlc2 = wx.BoxSizer(orient=wx.VERTICAL)
+		self.bxsClust2 = wx.BoxSizer(orient=wx.VERTICAL)
 
-		self._init_coll_bxsPlc1_Items(self.bxsPlc1)
-		self._init_coll_bxsPlc2_Items(self.bxsPlc2)
+		self._init_coll_bxsClust1_Items(self.bxsClust1)
+		self._init_coll_bxsClust2_Items(self.bxsClust2)
 
-		self.SetSizer(self.bxsPlc1)
-
-	##	  def _init_coll_bxsTxt1_Items(self, parent):
-	##		  # generated method, don't edit
-	##
-	##		  parent.AddWindow(self.bxsTxt2, 1, border=0, flag=wx.EXPAND)
-	##
-	##	  def _init_coll_bxsTxt2_Items(self, parent):
-	##		  # generated method, don't edit
-	##
-	##		  parent.AddWindow(self.titleBar, 0, border=0, flag=wx.EXPAND)
-	##		  parent.AddWindow(self.txtCluster, 1, border=0, flag=wx.EXPAND)
-	##
-	##	  def _init_txt_sizers(self):
-	##		  # generated method, don't edit
-	##		  self.bxsTxt1 = wx.BoxSizer(orient=wx.HORIZONTAL)
-	##
-	##		  self.bxsTxt2 = wx.BoxSizer(orient=wx.VERTICAL)
-	##
-	##		  self._init_coll_bxsTxt1_Items(self.bxsTxt1)
-	##		  self._init_coll_bxsTxt2_Items(self.bxsTxt2)
-	##
-	##		  self.SetSizer(self.bxsTxt1)
+		self.SetSizer(self.bxsClust1)
 
 	def _init_ctrls(self, prnt):
 		# generated method, don't edit
 		wx.Panel.__init__(self, id=wxID_CLUSTER, name="Cluster", parent=prnt, pos=wx.Point(72, 35), size=wx.Size(907, 670), style=wx.TAB_TRAVERSAL)
-		self.SetClientSize(wx.Size(899, 636))
 		self.SetToolTip("")
 		self.SetAutoLayout(True)
 
-		self.plcCluster = MyPlotCanvas(id=-1, name="plcCluster", parent=self, pos=wx.Point(248, 0), size=wx.Size(731, 594), style=wx.SUNKEN_BORDER)
+		self.Splitter = wx.SplitterWindow(id=-1, name="Splitter", parent=self, pos=wx.Point(16, 24), size=wx.Size(272, 168), style=wx.SP_3D | wx.SP_LIVE_UPDATE)
+		self.Splitter.SetAutoLayout(True)
+		self.Splitter.Bind(wx.EVT_SPLITTER_DCLICK, self.OnSplitterDclick)
+
+		self.p1 = wx.Panel(self.Splitter)
+		self.p1.SetAutoLayout(True)
+		self.p1.Show(False)
+
+		self.p2 = wx.Panel(self.Splitter)
+		self.p2.SetAutoLayout(True)
+		self.p2.Show(True)
+
+		self.optDlg = selFun(self.Splitter)
+
+		self.plcCluster = MyPlotCanvas(id=-1, name="plcCluster", parent=self.p1, pos=wx.Point(0, 0), size=wx.Size(200, 200), style=wx.SUNKEN_BORDER)
 		self.plcCluster.SetToolTip("")
 		self.plcCluster.enableZoom = True
 		self.plcCluster.fontSizeTitle = 12
 		self.plcCluster.fontSizeAxis = 12
-		self.plcCluster.SetForegroundColour(wx.Colour(0, 0, 0))
 		self.plcCluster.xSpec = "none"
 		self.plcCluster.ySpec = "none"
 		self.plcCluster.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Small Fonts"))
+		self.plcCluster.SetConstraints(LayoutAnchors(self.plcCluster, True, True, True, True))
 
-		##		  self.txtCluster = wx.TextCtrl(id=-1, name='txtCluster', parent=self,
-		##				pos=wx.Point(248, 0), size=wx.Size(1730, 1225),
-		##				style=wx.TE_DONTWRAP | wx.HSCROLL | wx.TE_READONLY | wx.TE_MULTILINE | wx.VSCROLL ,
-		##				value='')
-		##		  self.txtCluster.SetToolTip('')
-		##		  self.txtCluster.Show(False)
+		self.txtCluster = wx.TextCtrl(id=-1, name="txtCluster", parent=self.p2, pos=wx.Point(0, 0), size=wx.Size(200, 200), style=wx.TE_DONTWRAP | wx.HSCROLL | wx.TE_READONLY | wx.SUNKEN_BORDER | wx.TE_MULTILINE | wx.VSCROLL, value="")
+		self.txtCluster.SetToolTip("")
+		self.txtCluster.SetConstraints(LayoutAnchors(self.txtCluster, True, True, True, True))
 
 		self.titleBar = TitleBar(self, id=-1, text="Cluster Analysis", style=bp.BP_USE_GRADIENT, alignment=bp.BP_ALIGN_LEFT)
 
-		self._init_plc_sizers()
+		self.Splitter.SplitVertically(self.optDlg, self.p2, 1)
+		self.Splitter.SetMinimumPaneSize(1)
+
+		self._init_cluster_sizers()
 
 	def __init__(self, parent, id, pos, size, style, name):
 		self._init_ctrls(parent)
@@ -150,6 +142,12 @@ class Cluster(wx.Panel):
 		curve = wx.lib.plot.PolyLine([[0, 0], [1, 1]], colour="white", width=1, style=wx.TRANSPARENT)
 		curve = wx.lib.plot.PlotGraphics([curve], "Hierarchical Cluster Analysis", "", "")
 		self.plcCluster.Draw(curve)
+
+	def OnSplitterDclick(self, event):
+		if self.Splitter.GetSashPosition() == 1:
+			self.Splitter.SetSashPosition(250)
+		else:
+			self.Splitter.SetSashPosition(1)
 
 
 class TitleBar(bp.ButtonPanel):
@@ -175,8 +173,6 @@ class TitleBar(bp.ButtonPanel):
 		self._init_btnpanel_ctrls(parent)
 
 		self.CreateButtons()
-
-		self.dlg = selFun(self)
 
 		self.parent = parent
 
@@ -221,11 +217,10 @@ class TitleBar(bp.ButtonPanel):
 		event.Skip()
 
 	def OnBtnSetParamsButton(self, event):
-		height = wx.GetDisplaySize()[1]
-		self.dlg.SetSize(wx.Size(250, height))
-		self.dlg.SetPosition(wx.Point(0, 0))  # int((wx.GetDisplaySize()[1]-height)/2.0)))
-		self.dlg.Iconize(False)
-		self.dlg.Show()
+		if self.parent.Splitter.GetSashPosition() == 1:
+			self.parent.Splitter.SetSashPosition(250)
+		else:
+			self.parent.Splitter.SetSashPosition(1)
 
 	def OnBtnRunClusteringButton(self, event):
 		self.RunClustering()
@@ -244,123 +239,114 @@ class TitleBar(bp.ButtonPanel):
 				xdata = self.data["dfscores"]
 
 			# get distance measure
-			if self.dlg.rbEuclidean.GetValue() is True:
+			if self.parent.optDlg.rbEuclidean.GetValue() is True:
 				seldist = "e"
-			elif self.dlg.rbCorrelation.GetValue() is True:
+			elif self.parent.optDlg.rbCorrelation.GetValue() is True:
 				seldist = "c"
-			elif self.dlg.rbAbsCorr.GetValue() is True:
+			elif self.parent.optDlg.rbAbsCorr.GetValue() is True:
 				seldist = "a"
-			elif self.dlg.rbUncentredCorr.GetValue() is True:
+			elif self.parent.optDlg.rbUncentredCorr.GetValue() is True:
 				seldist = "u"
-			elif self.dlg.rbAbsUncentCorr.GetValue() is True:
+			elif self.parent.optDlg.rbAbsUncentCorr.GetValue() is True:
 				seldist = "x"
-			elif self.dlg.rbSpearmans.GetValue() is True:
+			elif self.parent.optDlg.rbSpearmans.GetValue() is True:
 				seldist = "s"
-			elif self.dlg.rbKendalls.GetValue() is True:
+			elif self.parent.optDlg.rbKendalls.GetValue() is True:
 				seldist = "k"
-			elif self.dlg.rbHarmonicEuc.GetValue() is True:
+			elif self.parent.optDlg.rbHarmonicEuc.GetValue() is True:
 				seldist = "h"
-			elif self.dlg.rbCityBlock.GetValue() is True:
+			elif self.parent.optDlg.rbCityBlock.GetValue() is True:
 				seldist = "b"
 
-			##			  #run clustering
-			##			  if self.dlg.rbKmeans.GetValue() is True:
-			##				  if self.dlg.cbUseClass.GetValue() is True:
-			##					  cl = np.array(self.data['class'],'i')-1
-			##					  self.clusterid, error, nfound = kcluster(xdata, nclusters=int(max(self.data['class'])),
-			##																  transpose=0, npass=self.dlg.spnNoPass.GetValue(),
-			##																  method='a', dist=seldist,
-			##					  initialid = cl.tolist())
-			##
-			##				  else:
-			##					  self.clusterid, error, nfound = kcluster(xdata, nclusters=int(max(self.data['class'])),
-			##																  transpose=0, npass=self.dlg.spnNoPass.GetValue(),
-			##																  method='a', dist=seldist)
-			##
-			##				  self.parent._init_txt_sizers()
-			##
-			##				  self.parent.plcCluster.Show(False)
-			##				  self.parent.txtCluster.Show(True)
-			##
-			##				  sizeMask = xdata.shape
-			##
-			##				  centroids,mask = cluster.clustercentroids(xdata, mask=ones(sizeMask), clusterid=self.clusterid, method='a',transpose=0)
-			##
-			##				  self.ReportPartitioning(self.parent.txtCluster,self.clusterid,error,nfound,'k-means Summary',centroids)
-			##
-			##			  elif self.dlg.rbKmedian.GetValue() is True:
-			##				  if self.dlg.cbUseClass.GetValue() is True:
-			##					  cl = np.array(self.data['class'],'i')-1
-			##					  self.clusterid, error, nfound = kcluster(xdata, nclusters=int(max(self.data['class'])),
-			##																  transpose=0, npass=self.dlg.spnNoPass.GetValue(),
-			##																  method='m', dist=seldist,
-			##					  initialid = cl.tolist())
-			##
-			##				  else:
-			##					  self.clusterid, error, nfound = kcluster(xdata, nclusters=int(max(self.data['class'])),
-			##																  transpose=0, npass=self.dlg.spnNoPass.GetValue(),
-			##																  method='m', dist=seldist)
-			##
-			##				  self.parent.bxsPlc2.Remove(self.parent.titleBar)
-			##				  self.parent._init_txt_sizers()
-			##
-			##				  self.parent.plcCluster.Show(False)
-			##				  self.parent.txtCluster.Show(True)
-			##
-			##				  sizeMask = xdata.shape
-			##
-			##				  centroids,mask = cluster.clustercentroids(xdata, mask=ones(sizeMask), clusterid=self.clusterid, method='m',transpose=0)
-			##
-			##				  self.ReportPartitioning(self.parent.txtCluster,self.clusterid,error,nfound,'k-medians Summary',centroids)
-			##
-			##			  elif self.dlg.rbKmedoids.GetValue() ==1:
-			##				  distance = self.ConvDist(xdata,seldist)
-			##				  if self.dlg.cbUseClass.GetValue() is True:
-			##					  cl = np.array(self.data['class'],'i')-1
-			##					  self.clusterid, error, nfound = cluster.kmedoids(distance, nclusters=int(max(self.data['class'])),
-			##																  npass=self.dlg.spnNoPass.GetValue(),initialid=cl.tolist())
-			##
-			##				  else:
-			##					  self.clusterid, error, nfound = cluster.kmedoids(distance, nclusters=int(max(self.data['class'])),
-			##																  npass=self.dlg.spnNoPass.GetValue())
-			##
-			##				  #rename cluster ids
-			##				  for i in range(len(self.clusterid)):
-			##					  self.clusterid[i] = self.data['class'][self.clusterid[i]]-1
-			##
-			##
-			##				  self.parent._init_txt_sizers()
-			##
-			##				  self.parent.plcCluster.Show(False)
-			##				  self.parent.txtCluster.Show(True)
-			##
-			##				  self.ReportPartitioning(self.parent.txtCluster,self.clusterid,error,nfound,'k-medoids Summary')
+			# run clustering
+			if self.parent.optDlg.rbKmeans.GetValue() is True:
+				if self.parent.optDlg.cbUseClass.GetValue() is True:
+					cl = np.array(self.data["class"], "i") - 1
+					self.clusterid, error, nfound = kcluster(xdata, nclusters=int(max(self.data["class"])), transpose=0, npass=self.parent.optDlg.spnNoPass.GetValue(), method="a", dist=seldist, initialid=cl.tolist())
 
-			##			  elif self.dlg.rbHcluster.GetValue() is True:
-			# get clustering method
-			if self.dlg.rbSingleLink.GetValue() is True:
-				Hmeth = "s"
-			elif self.dlg.rbMaxLink.GetValue() is True:
-				Hmeth = "m"
-			elif self.dlg.rbAvLink.GetValue() is True:
-				Hmeth = "a"
-			elif self.dlg.rbCentLink.GetValue() is True:
-				Hmeth = "c"
+				else:
+					self.clusterid, error, nfound = kcluster(xdata, nclusters=int(max(self.data["class"])), transpose=0, npass=self.parent.optDlg.spnNoPass.GetValue(), method="a", dist=seldist)
 
-			# run hca
-			tree = treecluster(data=xdata, method=Hmeth, dist=seldist)
+				self.parent.plcCluster.Show(False)
+				self.parent.txtCluster.Show(True)
+				self.parent.Splitter.SplitVertically(self.parent.optDlg, self.parent.p2, 250)
+				self.parent.Splitter.Refresh()
 
-			# scale tree
-			tree.scale()
+				sizeMask = xdata.shape
 
-			# determine tree structure
-			self.data["tree"], self.data["order"] = self.treestructure(tree, scipy.arange(len(tree) + 1), transpose=0)
+				centroids, mask = cluster.clustercentroids(xdata, mask=ones(sizeMask), clusterid=self.clusterid, method="a", transpose=0)
 
-			# draw tree
-			self.DrawTree(self.parent.plcCluster, self.data["tree"], self.data["order"], self.data["label"])
+				self.ReportPartitioning(self.parent.txtCluster, self.clusterid, error, nfound, "k-means Summary", centroids)
+
+			elif self.parent.optDlg.rbKmedian.GetValue() is True:
+				if self.parent.optDlg.cbUseClass.GetValue() is True:
+					cl = np.array(self.data["class"], "i") - 1
+					self.clusterid, error, nfound = kcluster(xdata, nclusters=int(max(self.data["class"])), transpose=0, npass=self.parent.optDlg.spnNoPass.GetValue(), method="m", dist=seldist, initialid=cl.tolist())
+
+				else:
+					self.clusterid, error, nfound = kcluster(xdata, nclusters=int(max(self.data["class"])), transpose=0, npass=self.parent.optDlg.spnNoPass.GetValue(), method="m", dist=seldist)
+
+				self.parent.p1.Show(False)
+				self.parent.p2.Show(True)
+				self.parent.Splitter.SplitVertically(self.parent.optDlg, self.parent.p2, 250)
+				self.parent.Splitter.Refresh()
+
+				sizeMask = xdata.shape
+
+				centroids, mask = cluster.clustercentroids(xdata, mask=ones(sizeMask), clusterid=self.clusterid, method="m", transpose=0)
+
+				self.ReportPartitioning(self.parent.txtCluster, self.clusterid, error, nfound, "k-medians Summary", centroids)
+
+			elif self.parent.optDlg.rbKmedoids.GetValue() == 1:
+				distance = self.ConvDist(xdata, seldist)
+				if self.parent.optDlg.cbUseClass.GetValue() is True:
+					cl = np.array(self.data["class"], "i") - 1
+					self.clusterid, error, nfound = cluster.kmedoids(distance, nclusters=int(max(self.data["class"])), npass=self.parent.optDlg.spnNoPass.GetValue(), initialid=cl.tolist())
+
+				else:
+					self.clusterid, error, nfound = cluster.kmedoids(distance, nclusters=int(max(self.data["class"])), npass=self.parent.optDlg.spnNoPass.GetValue())
+
+				# rename cluster ids
+				for i in range(len(self.clusterid)):
+					self.clusterid[i] = self.data["class"][self.clusterid[i]] - 1
+
+				self.parent.p1.Show(False)
+				self.parent.p2.Show(True)
+				self.parent.Splitter.SplitVertically(self.parent.optDlg, self.parent.p2, 250)
+				self.parent.Splitter.Refresh()
+
+				self.ReportPartitioning(self.parent.txtCluster, self.clusterid, error, nfound, "k-medoids Summary")
+
+			elif self.parent.optDlg.rbHcluster.GetValue() is True:
+				# get clustering method
+				if self.parent.optDlg.rbSingleLink.GetValue() is True:
+					Hmeth = "s"
+				elif self.parent.optDlg.rbMaxLink.GetValue() is True:
+					Hmeth = "m"
+				elif self.parent.optDlg.rbAvLink.GetValue() is True:
+					Hmeth = "a"
+				elif self.parent.optDlg.rbCentLink.GetValue() is True:
+					Hmeth = "c"
+
+				# run hca
+				tree = treecluster(data=xdata, method=Hmeth, dist=seldist)
+
+				# scale tree
+				tree.scale()
+
+				# determine tree structure
+				self.data["tree"], self.data["order"] = self.treestructure(tree, scipy.arange(len(tree) + 1), transpose=0)
+
+				# draw tree
+				self.DrawTree(self.parent.plcCluster, self.data["tree"], self.data["order"], self.data["label"])
+
+				self.parent.p2.Show(False)
+				self.parent.p1.Show(True)
+				self.parent.Splitter.SplitVertically(self.parent.optDlg, self.parent.p1, 250)
+				self.parent.Splitter.Refresh()
 
 		##			  #enable export
-		##			  if self.dlg.rbHcluster.GetValue() is True:
+		##			  if self.parent.optDlg.rbHcluster.GetValue() is True:
 		##				  self.btnExportCluster.Enable(1)
 		##			  else:
 		##				  self.btnExportCluster.Enable(0)
@@ -476,7 +462,7 @@ class TitleBar(bp.ButtonPanel):
 				if ccount == len(colourList):
 					ccount = 0
 		minx = 0
-		if self.dlg.rbPlotColours.GetValue() is True:
+		if self.parent.optDlg.rbPlotColours.GetValue() is True:
 			canvas.enableLegend = 1
 			Line, List, Nlist, Store = [], [], [], {}
 			count = 0
@@ -495,7 +481,7 @@ class TitleBar(bp.ButtonPanel):
 			for i in range(1, len(Store) + 1):
 				Line.append(wx.lib.plot.PolyMarker(Store[str(i)], marker="square", size=font_size, colour=Cols[i - 1], legend=Nlist[i - 1]))
 
-		elif self.dlg.rbPlotName.GetValue() is True:
+		elif self.parent.optDlg.rbPlotName.GetValue() is True:
 			Line = []
 			count = 0
 			for i in range(len(order)):
@@ -651,198 +637,203 @@ class TitleBar(bp.ButtonPanel):
 		textctrl.SetValue(report)
 
 
-class selFun(wx.Frame):
-	def _init_coll_gbsCluster_Growables(self, parent):
-		# generated method, don't edit
+class selFun(fpb.FoldPanelBar):
+	def _init_coll_gbsClusterMethod_Items(self, parent):
+		parent.AddWindow(self.rbKmeans, (0, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.rbKmedian, (1, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.rbKmedoids, (2, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.rbHcluster, (3, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.AddSpacer(wx.Size(8, 8), (4, 0), flag=wx.EXPAND, span=(2, 1))
 
-		parent.AddGrowableCol(0)
-		parent.AddGrowableCol(1)
+	def _init_coll_gbsLinkageMethod_Items(self, parent):
+		parent.AddWindow(self.rbSingleLink, (0, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.rbMaxLink, (1, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.rbAvLink, (2, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.rbCentLink, (3, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.AddSpacer(wx.Size(8, 8), (4, 0), flag=wx.EXPAND, span=(1, 1))
 
-	def _init_coll_gbsCluster_Items(self, parent):
-		# generated method, don't edit
+	def _init_coll_gbsDistanceMeasure_Items(self, parent):
+		parent.AddWindow(self.rbAbsUncentCorr, (0, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.rbAbsCorr, (1, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.rbCityBlock, (2, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.rbCorrelation, (3, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.rbEuclidean, (4, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.rbHarmonicEuc, (5, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.rbKendalls, (6, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.rbSpearmans, (7, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.rbUncentredCorr, (8, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.AddSpacer(wx.Size(8, 8), (9, 0), flag=wx.EXPAND, span=(2, 1))
 
-		##		  parent.AddWindow(wx.StaticText(self, -1, 'Cluster Method', style=wx.ALIGN_LEFT),
-		##				(0, 0), border=2, flag=wx.EXPAND, span=(1, 2))
-		##		  parent.AddWindow(self.rbKmeans, (1, 0), border=2, flag=wx.EXPAND,
-		##				span=(1, 2))
-		##		  parent.AddWindow(self.rbKmedian, (2, 0), border=2, flag=wx.EXPAND,
-		##				span=(1, 2))
-		##		  parent.AddWindow(self.rbKmedoids, (3, 0), border=2, flag=wx.EXPAND,
-		##				span=(1, 2))
-		##		  parent.AddSpacer(wx.Size(8, 8), (4, 0), border=2, flag=wx.EXPAND,
-		##				span=(1, 2))
-		##		  parent.AddWindow(self.rbHcluster, (5, 0), border=2, flag=wx.EXPAND,
-		##				span=(1, 2))
-		parent.AddWindow(wx.StaticText(self.panel, -1, "Linkage Method", style=wx.ALIGN_LEFT), (0, 0), border=2, flag=wx.EXPAND, span=(1, 2))
-		parent.AddWindow(self.rbSingleLink, (1, 0), border=2, flag=wx.EXPAND, span=(1, 2))
-		parent.AddWindow(self.rbMaxLink, (2, 0), border=2, flag=wx.EXPAND, span=(1, 2))
-		parent.AddWindow(self.rbAvLink, (3, 0), border=2, flag=wx.EXPAND, span=(1, 2))
-		parent.AddWindow(self.rbCentLink, (4, 0), border=2, flag=wx.EXPAND, span=(1, 2))
-		parent.AddSpacer(wx.Size(8, 8), (5, 0), border=2, flag=wx.EXPAND, span=(2, 2))
-		parent.AddWindow(wx.StaticText(self.panel, -1, "Distance Measure", style=wx.ALIGN_LEFT), (7, 0), border=2, flag=wx.EXPAND, span=(1, 2))
-		parent.AddWindow(self.rbAbsUncentCorr, (8, 0), border=2, flag=wx.EXPAND, span=(1, 2))
-		parent.AddWindow(self.rbAbsCorr, (9, 0), border=2, flag=wx.EXPAND, span=(1, 2))
-		parent.AddWindow(self.rbCityBlock, (10, 0), border=2, flag=wx.EXPAND, span=(1, 2))
-		parent.AddWindow(self.rbCorrelation, (11, 0), border=2, flag=wx.EXPAND, span=(1, 2))
-		parent.AddWindow(self.rbEuclidean, (12, 0), border=2, flag=wx.EXPAND, span=(1, 2))
-		parent.AddWindow(self.rbHarmonicEuc, (13, 0), border=2, flag=wx.EXPAND, span=(1, 2))
-		parent.AddWindow(self.rbKendalls, (14, 0), border=2, flag=wx.EXPAND, span=(1, 2))
-		parent.AddWindow(self.rbSpearmans, (15, 0), border=2, flag=wx.EXPAND, span=(1, 2))
-		parent.AddWindow(self.rbUncentredCorr, (16, 0), border=2, flag=wx.EXPAND, span=(1, 2))
-		parent.AddSpacer(wx.Size(8, 8), (17, 0), border=2, flag=wx.EXPAND, span=(2, 2))
-
-	##		  parent.AddWindow(self.spnNumClass, (19, 0), border=2, flag=wx.EXPAND,
+	##		  parent.AddWindow(self.spnNumClass, (22, 0), flag=wx.EXPAND,
 	##				span=(1, 1))
 	##		  parent.AddWindow(wx.StaticText(self, -1, 'No. of centroids', style=wx.ALIGN_LEFT),
-	##				(19, 1), border=2, flag=wx.EXPAND, span=(1, 1))
-	##		  parent.AddWindow(self.cbUseClass, (22, 0), border=2, flag=wx.EXPAND,
-	##				span=(1, 2))
-	##		  parent.AddWindow(self.spnNoPass, (23, 0), border=2, flag=wx.EXPAND,
+	##				(22, 1), flag=wx.EXPAND, span=(1, 1))
+	####		parent.AddWindow(self.cbUseClass, (22, 0), flag=wx.EXPAND,
+	####			  span=(1, 2))
+	##		  parent.AddWindow(self.spnNoPass, (23, 0), flag=wx.EXPAND,
 	##				span=(1, 1))
 	##		  parent.AddWindow(wx.StaticText(self, -1, 'Iterations', style=wx.ALIGN_LEFT),
-	##				(23, 1), border=2, flag=wx.EXPAND, span=(1, 1))
-	##		  parent.AddWindow(self.rbPlotName, (20, 0), border=2, flag=wx.EXPAND,
-	##				span=(1, 2))
-	##		  parent.AddWindow(self.rbPlotColours, (21, 0), border=2, flag=wx.EXPAND,
-	##				span=(1, 2))
+	##				(23, 1), flag=wx.EXPAND, span=(1, 1))
+	####		parent.AddWindow(self.rbPlotName, (20, 0), flag=wx.EXPAND,
+	####			  span=(1, 2))
+	####		parent.AddWindow(self.rbPlotColours, (21, 0), flag=wx.EXPAND,
+	####			  span=(1, 2))
 
 	def _init_selparam_sizers(self):
-		# generated method, don't edit
-		self.gbsCluster = wx.GridBagSizer(hgap=4, vgap=4)
-		self.gbsCluster.SetCols(2)
-		self.gbsCluster.SetRows(26)
-		self.gbsCluster.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_SPECIFIED)
-		self.gbsCluster.SetMinSize(wx.Size(200, 439))
-		self.gbsCluster.SetEmptyCellSize(wx.Size(10, 8))
-		self.gbsCluster.SetFlexibleDirection(wx.VERTICAL)
+		self.gbsClusterMethod = wx.GridBagSizer(5, 5)
 
-		self._init_coll_gbsCluster_Items(self.gbsCluster)
-		self._init_coll_gbsCluster_Growables(self.gbsCluster)
+		self.gbsLinkageMethod = wx.GridBagSizer(5, 5)
 
-		self.panel.SetSizer(self.gbsCluster)
+		self.gbsDistanceMeasure = wx.GridBagSizer(5, 5)
+
+		self._init_coll_gbsClusterMethod_Items(self.gbsClusterMethod)
+		self._init_coll_gbsLinkageMethod_Items(self.gbsLinkageMethod)
+		self._init_coll_gbsDistanceMeasure_Items(self.gbsDistanceMeasure)
+
+		self.gbsClusterMethod.AddGrowableCol(0)
+		self.gbsLinkageMethod.AddGrowableCol(0)
+		self.gbsDistanceMeasure.AddGrowableCol(0)
+
+		self.clustType.SetSizer(self.gbsClusterMethod)
+		self.linkType.SetSizer(self.gbsLinkageMethod)
+		self.distType.SetSizer(self.gbsDistanceMeasure)
 
 	def _init_selfun_ctrls(self, prnt):
-		# generated method, don't edit
-		wx.Frame.__init__(self, id=wxID_SELFUN, name="selFun", parent=prnt, pos=wx.Point(194, 112), size=wx.Size(295, 540), style=wx.DEFAULT_FRAME_STYLE, title="Hierachical Clustering Options")
-		self.SetClientSize(wx.Size(287, 501))
-		self.SetToolTip("")
-		self.Center(wx.BOTH)
-		self.Bind(wx.EVT_CLOSE, self.OnMiniFrameClose)
+		fpb.FoldPanelBar.__init__(self, prnt, -1, pos=wx.DefaultPosition, size=wx.DefaultSize, style=fpb.FPB_DEFAULT_STYLE | fpb.FPB_SINGLE_FOLD)
+		self.SetConstraints(LayoutAnchors(self, True, True, True, True))
+		self.SetAutoLayout(True)
 
-		self.panel = wx.Panel(id=-1, name="panel", parent=self, pos=wx.Point(0, 0), size=wx.Size(180, 739), style=wx.TAB_TRAVERSAL)
-		self.panel.SetToolTip("")
+		icons = wx.ImageList(16, 16)
+		icons.Add(wx.Bitmap(os.path.join("bmp", "arrown.png"), wx.BITMAP_TYPE_PNG))
+		icons.Add(wx.Bitmap(os.path.join("bmp", "arrows.png"), wx.BITMAP_TYPE_PNG))
 
-		self.rbKmeans = wx.RadioButton(id=-1, label="k-means clustering", name="rbKmeans", parent=self.panel, pos=wx.Point(16, 48), size=wx.Size(128, 21), style=wx.RB_GROUP)
+		self.clustType = self.AddFoldPanel("Cluster method", collapsed=True, foldIcons=icons)
+
+		self.distType = self.AddFoldPanel("Distance measure", collapsed=True, foldIcons=icons)
+
+		self.linkType = self.AddFoldPanel("Linkage method", collapsed=True, foldIcons=icons)
+
+		self.methPnl = wx.Panel(id=-1, name="methPnl", parent=self.clustType, pos=wx.Point(0, 0), size=wx.Size(200, 120), style=wx.TAB_TRAVERSAL)
+		self.methPnl.SetToolTip("")
+
+		self.distPnl = wx.Panel(id=-1, name="distPnl", parent=self.distType, pos=wx.Point(0, 0), size=wx.Size(180, 300), style=wx.TAB_TRAVERSAL)
+		self.distPnl.SetToolTip("")
+
+		self.linkPnl = wx.Panel(id=-1, name="linkPnl", parent=self.linkType, pos=wx.Point(0, 0), size=wx.Size(200, 110), style=wx.TAB_TRAVERSAL)
+		self.linkPnl.SetToolTip("")
+
+		self.rbKmeans = wx.RadioButton(id=-1, label="k-means clustering", name="rbKmeans", parent=self.methPnl, pos=wx.Point(16, 48), size=wx.Size(128, 21), style=wx.RB_GROUP)
 		self.rbKmeans.SetValue(True)
 		self.rbKmeans.SetToolTip("")
-		self.rbKmeans.Show(False)
 
-		self.rbKmedian = wx.RadioButton(id=-1, label="k-medians clustering", name="rbKmedian", parent=self.panel, pos=wx.Point(16, 24), size=wx.Size(128, 21), style=0)
+		self.rbKmedian = wx.RadioButton(id=-1, label="k-medians clustering", name="rbKmedian", parent=self.methPnl, pos=wx.Point(16, 24), size=wx.Size(128, 21), style=0)
 		self.rbKmedian.SetValue(False)
 		self.rbKmedian.SetToolTip("")
-		self.rbKmedian.Show(False)
 
-		self.rbKmedoids = wx.RadioButton(id=-1, label="k-medoids clustering", name="rbKmedoids", parent=self.panel, pos=wx.Point(16, 72), size=wx.Size(120, 21), style=0)
+		self.rbKmedoids = wx.RadioButton(id=-1, label="k-medoids clustering", name="rbKmedoids", parent=self.methPnl, pos=wx.Point(16, 72), size=wx.Size(120, 21), style=0)
 		self.rbKmedoids.SetToolTip("")
 		self.rbKmedoids.SetValue(False)
-		self.rbKmedoids.Show(False)
 
-		self.rbHcluster = wx.RadioButton(id=-1, label="Hierarchical clustering", name="rbHcluster", parent=self.panel, pos=wx.Point(16, 96), size=wx.Size(152, 21), style=0)
+		self.rbHcluster = wx.RadioButton(id=-1, label="Hierarchical clustering", name="rbHcluster", parent=self.methPnl, pos=wx.Point(16, 96), size=wx.Size(152, 21), style=0)
 		self.rbHcluster.SetToolTip("")
-		self.rbHcluster.SetValue(False)
-		self.rbHcluster.Show(False)
+		self.rbHcluster.SetValue(True)
 
-		self.rbSingleLink = wx.RadioButton(id=-1, label="Single linkage", name="rbSingleLink", parent=self.panel, pos=wx.Point(168, 144), size=wx.Size(88, 21), style=wx.RB_GROUP)
+		self.rbSingleLink = wx.RadioButton(id=-1, label="Single linkage", name="rbSingleLink", parent=self.linkPnl, pos=wx.Point(168, 144), size=wx.Size(88, 21), style=wx.RB_GROUP)
 		self.rbSingleLink.SetValue(True)
 		self.rbSingleLink.SetToolTip("")
 
-		self.rbMaxLink = wx.RadioButton(id=-1, label="Maximum linkage", name="rbMaxLink", parent=self.panel, pos=wx.Point(40, 144), size=wx.Size(104, 21), style=0)
+		self.rbMaxLink = wx.RadioButton(id=-1, label="Maximum linkage", name="rbMaxLink", parent=self.linkPnl, pos=wx.Point(40, 144), size=wx.Size(104, 21), style=0)
 		self.rbMaxLink.SetValue(False)
 		self.rbMaxLink.SetToolTip("")
 
-		self.rbAvLink = wx.RadioButton(id=-1, label="Average linkage", name="rbAvLink", parent=self.panel, pos=wx.Point(40, 120), size=wx.Size(96, 21), style=0)
+		self.rbAvLink = wx.RadioButton(id=-1, label="Average linkage", name="rbAvLink", parent=self.linkPnl, pos=wx.Point(40, 120), size=wx.Size(96, 21), style=0)
 		self.rbAvLink.SetValue(False)
 		self.rbAvLink.SetToolTip("")
 
-		self.rbCentLink = wx.RadioButton(id=-1, label="Centroid linkage", name="rbCentLink", parent=self.panel, pos=wx.Point(168, 120), size=wx.Size(96, 21), style=0)
+		self.rbCentLink = wx.RadioButton(id=-1, label="Centroid linkage", name="rbCentLink", parent=self.linkPnl, pos=wx.Point(168, 120), size=wx.Size(96, 21), style=0)
 		self.rbCentLink.SetValue(False)
 		self.rbCentLink.SetToolTip("")
 
-		self.rbEuclidean = wx.RadioButton(id=-1, label="Euclidean", name="rbEuclidean", parent=self.panel, pos=wx.Point(16, 304), size=wx.Size(136, 21), style=wx.RB_GROUP)
+		self.rbEuclidean = wx.RadioButton(id=-1, label="Euclidean", name="rbEuclidean", parent=self.distPnl, pos=wx.Point(16, 304), size=wx.Size(136, 21), style=wx.RB_GROUP)
 		self.rbEuclidean.SetValue(True)
 		self.rbEuclidean.SetToolTip("")
 
-		self.rbCorrelation = wx.RadioButton(id=-1, label="Correlation", name="rbCorrelation", parent=self.panel, pos=wx.Point(16, 280), size=wx.Size(136, 21), style=0)
+		self.rbCorrelation = wx.RadioButton(id=-1, label="Correlation", name="rbCorrelation", parent=self.distPnl, pos=wx.Point(16, 280), size=wx.Size(136, 21), style=0)
 		self.rbCorrelation.SetValue(False)
 		self.rbCorrelation.SetToolTip("")
 
-		self.rbAbsCorr = wx.RadioButton(id=-1, label="Absolute value of correlation", name="rbAbsCorr", parent=self.panel, pos=wx.Point(16, 232), size=wx.Size(184, 21), style=0)
+		self.rbAbsCorr = wx.RadioButton(id=-1, label="Absolute value of correlation", name="rbAbsCorr", parent=self.distPnl, pos=wx.Point(16, 232), size=wx.Size(184, 21), style=0)
 		self.rbAbsCorr.SetValue(False)
 		self.rbAbsCorr.SetToolTip("")
 
-		self.rbUncentredCorr = wx.RadioButton(id=-1, label="Uncentred correlation", name="rbUncentredCorr", parent=self.panel, pos=wx.Point(16, 400), size=wx.Size(136, 21), style=0)
+		self.rbUncentredCorr = wx.RadioButton(id=-1, label="Uncentred correlation", name="rbUncentredCorr", parent=self.distPnl, pos=wx.Point(16, 400), size=wx.Size(136, 21), style=0)
 		self.rbUncentredCorr.SetValue(False)
 		self.rbUncentredCorr.SetToolTip("")
 
-		self.rbAbsUncentCorr = wx.RadioButton(id=-1, label="Absolute uncentred correlation", name="rbAbsUncentCorr", parent=self.panel, pos=wx.Point(16, 208), size=wx.Size(176, 21), style=0)
+		self.rbAbsUncentCorr = wx.RadioButton(id=-1, label="Absolute uncentred correlation", name="rbAbsUncentCorr", parent=self.distPnl, pos=wx.Point(16, 208), size=wx.Size(176, 21), style=0)
 		self.rbAbsUncentCorr.SetValue(False)
 		self.rbAbsUncentCorr.SetToolTip("")
 
-		self.rbSpearmans = wx.RadioButton(id=-1, label="Spearmans rank correlation", name="rbSpearmans", parent=self.panel, pos=wx.Point(16, 376), size=wx.Size(168, 21), style=0)
+		self.rbSpearmans = wx.RadioButton(id=-1, label="Spearmans rank correlation", name="rbSpearmans", parent=self.distPnl, pos=wx.Point(16, 376), size=wx.Size(168, 21), style=0)
 		self.rbSpearmans.SetValue(False)
 		self.rbSpearmans.SetToolTip("")
 
-		self.rbKendalls = wx.RadioButton(id=-1, label="Kendalls rho", name="rbKendalls", parent=self.panel, pos=wx.Point(16, 352), size=wx.Size(136, 21), style=0)
+		self.rbKendalls = wx.RadioButton(id=-1, label="Kendalls rho", name="rbKendalls", parent=self.distPnl, pos=wx.Point(16, 352), size=wx.Size(136, 21), style=0)
 		self.rbKendalls.SetValue(False)
 		self.rbKendalls.SetToolTip("")
 
-		self.rbHarmonicEuc = wx.RadioButton(id=-1, label="Harmonically summed Euclidean distance", name="rbHarmonicEuc", parent=self.panel, pos=wx.Point(16, 328), size=wx.Size(224, 21), style=0)
+		self.rbHarmonicEuc = wx.RadioButton(id=-1, label="Harmonically summed Euclidean distance", name="rbHarmonicEuc", parent=self.distPnl, pos=wx.Point(16, 328), size=wx.Size(224, 21), style=0)
 		self.rbHarmonicEuc.SetValue(False)
 		self.rbHarmonicEuc.SetToolTip("")
 
-		self.rbCityBlock = wx.RadioButton(id=-1, label="City-block distance", name="rbCityBlock", parent=self.panel, pos=wx.Point(16, 256), size=wx.Size(136, 21), style=0)
+		self.rbCityBlock = wx.RadioButton(id=-1, label="City-block distance", name="rbCityBlock", parent=self.distPnl, pos=wx.Point(16, 256), size=wx.Size(136, 21), style=0)
 		self.rbCityBlock.SetValue(False)
 		self.rbCityBlock.SetToolTip("")
 
-		self.cbUseClass = wx.CheckBox(id=-1, label="Use class structure", name="cbUseClass", parent=self.panel, pos=wx.Point(16, 448), size=wx.Size(112, 21), style=0)
+		self.cbUseClass = wx.CheckBox(id=-1, label="Use class structure", name="cbUseClass", parent=self.distPnl, pos=wx.Point(16, 448), size=wx.Size(112, 21), style=0)
 		self.cbUseClass.SetValue(True)
 		self.cbUseClass.SetToolTip("")
 		self.cbUseClass.Bind(wx.EVT_CHECKBOX, self.OnCbUseClassCheckbox, id=-1)
 		self.cbUseClass.Show(False)
 
-		self.spnNoPass = wx.SpinCtrl(id=-1, initial=1, max=1000, min=1, name="spnNoPass", parent=self.panel, pos=wx.Point(200, 444), size=wx.Size(80, 23), style=wx.SP_ARROW_KEYS)
+		self.spnNoPass = wx.SpinCtrl(id=-1, initial=1, max=1000, min=1, name="spnNoPass", parent=self.distPnl, pos=wx.Point(200, 444), size=wx.Size(80, 23), style=wx.SP_ARROW_KEYS)
 		self.spnNoPass.SetValue(1)
 		self.spnNoPass.SetToolTip("")
 		self.spnNoPass.Enable(False)
 		self.spnNoPass.SetRange(1, 1000)
 		self.spnNoPass.Show(False)
 
-		self.spnNumClass = wx.SpinCtrl(id=-1, initial=1, max=1000, min=1, name="spnNumClass", parent=self.panel, pos=wx.Point(200, 444), size=wx.Size(80, 23), style=wx.SP_ARROW_KEYS)
+		self.spnNumClass = wx.SpinCtrl(id=-1, initial=1, max=1000, min=1, name="spnNumClass", parent=self.distPnl, pos=wx.Point(200, 444), size=wx.Size(80, 23), style=wx.SP_ARROW_KEYS)
 		self.spnNumClass.SetValue(1)
 		self.spnNumClass.SetToolTip("")
 		self.spnNumClass.SetRange(1, 1000)
 		self.spnNumClass.Show(False)
 
-		self.rbPlotName = wx.RadioButton(id=-1, label="Plot using labels", name="rbPlotName", parent=self.panel, pos=wx.Point(16, 480), size=wx.Size(104, 21), style=wx.RB_GROUP)
+		self.rbPlotName = wx.RadioButton(id=-1, label="Plot using labels", name="rbPlotName", parent=self.distPnl, pos=wx.Point(16, 480), size=wx.Size(104, 21), style=wx.RB_GROUP)
 		self.rbPlotName.SetValue(True)
 		self.rbPlotName.SetToolTip("")
 		self.rbPlotName.Show(False)
 
-		self.rbPlotColours = wx.RadioButton(id=-1, label="Plot using colours", name="rbPlotColours", parent=self.panel, pos=wx.Point(144, 480), size=wx.Size(104, 21), style=0)
+		self.rbPlotColours = wx.RadioButton(id=-1, label="Plot using colours", name="rbPlotColours", parent=self.distPnl, pos=wx.Point(144, 480), size=wx.Size(104, 21), style=0)
 		self.rbPlotColours.SetValue(False)
 		self.rbPlotColours.SetToolTip("")
 		self.rbPlotColours.Show(False)
+
+		self.AddFoldPanelWindow(self.clustType, self.methPnl, fpb.FPB_ALIGN_WIDTH)
+		self.AddFoldPanelWindow(self.distType, self.distPnl, fpb.FPB_ALIGN_WIDTH)
+		self.AddFoldPanelWindow(self.linkType, self.linkPnl, fpb.FPB_ALIGN_WIDTH)
 
 		self._init_selparam_sizers()
 
 	def __init__(self, parent):
 		self._init_selfun_ctrls(parent)
 
+		self.Expand(self.clustType)
+		self.Expand(self.distType)
+		self.Expand(self.linkType)
+
 	def OnCbUseClassCheckbox(self, event):
 		if self.cbUseClass.GetValue() is False:
 			self.spnNoPass.Enable(True)
 		else:
 			self.spnNoPass.Enable(False)
-
-	def OnMiniFrameClose(self, event):
-		self.Hide()

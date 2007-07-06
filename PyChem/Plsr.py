@@ -25,7 +25,7 @@ from wx.lib.anchors import LayoutAnchors
 
 from .mva import chemometrics
 from .mva.chemometrics import _index
-from .Pca import MyPlotCanvas, plotLine, plotStem, plotText
+from .Pca import MyPlotCanvas, plotLine, plotLoads, plotStem, plotText
 from .utils.io import str_array
 
 [
@@ -369,8 +369,8 @@ class TitleBar(bp.ButtonPanel):
 			# Run PLS
 			self.data["plsloads"], T, P, Q, self.data["plsfactors"], self.data["plstrnpred"], self.data["plscvpred"], self.data["plststpred"], self.data["rmsec"], self.data["rmsepc"], rmsec, rmsepc, self.data["rmsept"] = mva.chemometrics.PLS(xdata, np.array(self.data["class"], "f")[:, nA], self.data["validation"], self.spnPLSmaxfac.GetValue())
 
-			# plot pls error curves
-			plotLine(self.parent.plcPLSerror, scipy.concatenate((scipy.reshape(rmsec, (1, len(rmsec))), scipy.reshape(rmsepc, (1, len(rmsepc)))), 0), scipy.arange(1, len(rmsec) + 1)[:, nA], 0, "PLS Error Curve", "PLS Factor", "RMS", type="multi", ledge=["Trn Err", "Tst Err"])
+			# plot pls error
+			plotLine(self.parent.plcPLSerror, scipy.concatenate((scipy.reshape(rmsec, (1, len(rmsec))), scipy.reshape(rmsepc, (1, len(rmsepc)))), 0), scipy.arange(1, len(rmsec) + 1)[:, nA], 0, "PLS Error Curve", "PLS Factor", "RMS", type="multi", ledge=["Trn Err", "Tst Err"], wdth=3)
 
 			# plot predicted vs. residuals for train and validation
 			TrainPlot = scipy.concatenate((self.data["plstrnpred"], self.data["plstrnpred"] - scipy.take(np.array(self.data["class"])[:, nA], _index(self.data["validation"], 0), 0)), 1)
@@ -392,8 +392,6 @@ class TitleBar(bp.ButtonPanel):
 			yAx = (y.min() - (0.01 * y.min()), y.max() + (0.01 * y.max()))
 
 			self.parent.plcPlsHetero.Draw(PlsHeteroPlot, xAx, yAx)
-			##
-			##		  self.PlsHeteroPlot = [PlsHeteroPlot,xAx,yAx]
 
 			# plot pls model
 			self.FullPlsModel = PlotPlsModel(self, self.parent.plcPLSmodel, np.array(self.data["class"])[:, nA], self.data["plstrnpred"], self.data["plscvpred"], self.data["plststpred"], np.array(self.data["validation"], "i")[:, nA], self.data["rmsept"], self.data["plsfactors"])
@@ -495,8 +493,9 @@ class TitleBar(bp.ButtonPanel):
 		writeto.Draw(write)
 
 	def plotPlsLoads(self):
+		# Plot loadings
 		if self.spnPLSfactor1.GetValue() != self.spnPLSfactor2.GetValue():
-			plotText(self.parent.plcPLSloading, self.data["plsloads"], self.data["validation"], self.data["class"], self.data["indlabels"], self.spnPLSfactor1.GetValue() - 1, self.spnPLSfactor2.GetValue() - 1, "PLS Loadings", "PLS Loading", 0)
+			plotLoads(self.parent.plcPLSloading, self.data["plsloads"], self.data["indlabels"], self.spnPLSfactor1.GetValue() - 1, self.spnPLSfactor2.GetValue() - 1, title="PLS Loadings", xLabel="Loading " + str(self.spnPLSfactor1.GetValue()), yLabel="Loading " + str(self.spnPLSfactor2.GetValue()), type=1)
 		else:
 			idx = self.spnPLSfactor1.GetValue() - 1
-			plotStem(self.parent.plcPLSloading, scipy.concatenate((self.data["xaxis"], self.data["plsloads"][:, idx][:, nA]), 1), "PLS Loadings", "Variable", "PLS Loading " + str(idx + 1))
+			plotStem(self.parent.plcPLSloading, scipy.concatenate((self.data["xaxis"], self.data["plsloads"][:, idx][:, nA]), 1), "PLS Loadings", "Variable", "Loading " + str(idx + 1))

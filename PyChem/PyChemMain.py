@@ -29,9 +29,9 @@ from .utils import getByPath
 from .utils.io import str_array
 
 # whereami for binary dists etc
-##whereami = mva.__path__[0].split('mva')[0]
+whereami = mva.__path__[0].split("mva")[0]
 # whereami for stand alone dist
-whereami = mva.__path__[0].split("\library.zip\mva")[0]
+##whereami = mva.__path__[0].split('\library.zip\mva')[0]
 
 
 def create(parent):
@@ -105,12 +105,6 @@ def create(parent):
 	MNUGRIDDELETECOL,
 	MNUGRIDRENAMECOL,
 ] = [wx.NewIdRef() for _init_grid_menu_Items in range(4)]
-
-[
-	MNUPLOTCOPY,
-	MNUPLOTPRINT,
-	MNUPLOTPROPERTIES,
-] = [wx.NewIdRef() for _init_plot_menu_Items in range(3)]
 
 
 def errorBox(window, error):
@@ -231,15 +225,16 @@ class PyChemMain(wx.Frame):
 
 	def _init_ctrls(self, prnt):
 		# generated method, don't edit
-		wx.Frame.__init__(self, id=wxID_PYCHEMMAIN, name="PyChemMain", parent=prnt, pos=wx.Point(0, 0), size=wx.Size(1024, 738), style=wx.DEFAULT_FRAME_STYLE, title="PyChem 3.0.1 Beta")
+		wx.Frame.__init__(self, id=wxID_PYCHEMMAIN, name="PyChemMain", parent=prnt, pos=wx.Point(0, 0), size=wx.Size(1024, 738), style=wx.DEFAULT_FRAME_STYLE, title="PyChem 3.0.2 Beta")
 		self._init_utils()
 		self.SetClientSize(wx.Size(1016, 704))
 		self.SetToolTip("")
 		self.SetHelpText("")
 		self.Center(wx.BOTH)
-		self.SetIcon(wx.Icon(os.path.join(whereami, "ico", "pychem.ico"), wx.BITMAP_TYPE_ICO))
+		self.SetIcon(wx.Icon(os.path.join("ico", "pychem.ico"), wx.BITMAP_TYPE_ICO))
 		self.SetMinSize(wx.Size(200, 400))
 		self.SetMenuBar(self.mnuMain)
+		self.Bind(wx.EVT_SIZE, self.OnMainFrameSize)
 
 		self.nbMain = wx.Notebook(id=wxID_PYCHEMMAINNBMAIN, name="nbMain", parent=self, pos=wx.Point(0, 0), size=wx.Size(1016, 661), style=0)
 		self.nbMain.SetToolTip("")
@@ -285,17 +280,23 @@ class PyChemMain(wx.Frame):
 		# set defaults
 		self.Reset()
 
+	def OnMainFrameSize(self, event):
+		event.Skip()
+
+	##		  self.plExpset.SizeGrdIndLabels()
+	##		  self.plExpset.SizeGrdNames()
+
 	def OnMnuHelpContentsMenu(self, event):
 		from wx.tools import helpviewer
 
-		helpviewer.main(["", os.path.join(whereami, "docs", "PAChelp.hhp")])
+		helpviewer.main(["", os.path.join("docs", "PAChelp.hhp")])
 
 	def OnMnuAboutContentsMenu(self, event):
 		from wx.lib.wordwrap import wordwrap
 
 		info = wx.adv.AboutDialogInfo()
 		info.Name = "PyChem"
-		info.Version = "3.0.1 Beta"
+		info.Version = "3.0.2 Beta"
 		info.Copyright = "(C) 2007 Roger Jarvis"
 		info.Description = wordwrap("PyChem is a software program for multivariate " "data analysis (MVA).	It includes algorithms for " "calibration and categorical analyses.	 In addition, " "novel genetic algorithm tools for spectral feature " "selection" "\n\nFor more information please go to the PyChem " "website using the link below, or email the project " "author, roger.jarvis@manchester.ac.uk", 350, wx.ClientDC(self))
 		info.WebSite = ("http://pychem.sf.net/", "PyChem home page")
@@ -398,6 +399,7 @@ class PyChemMain(wx.Frame):
 				else:
 					self.data["raw"] = scipy.transpose(scipy.io.read_array(f))
 				f.close()
+				self.data["processed"] = self.data["raw"]
 
 				# Resize grids
 				expSetup.ResizeGrids(self.plExpset.grdNames, self.data["raw"].shape[0], 3, 2)
@@ -580,17 +582,8 @@ class PyChemMain(wx.Frame):
 		wx.TheClipboard.SetData(wx.TextDataObject(Data))
 		wx.TheClipboard.Close()
 
-	def OnMnuPlotCopy(self, event):
-		event.Skip()
-
-	def OnMnuPlotPrint(self, event):
-		event.Skip()
-
-	def OnMnuPlotProperties(self, event):
-		event.Skip()
-
 	def Reset(self, case=0):
-		varList = "'proc':None,'class':None,'label':None," + "'split':None,'processlist':[],'xaxis':None," + "'class':None,'label':None,'validation':None," + "'pcscores':None,'pcloads':None,'pcpervar':None," + "'pceigs':None,'pcadata':None,'niporsvd':None," + "'indlabels':None,'plsloads':None,'pcatype':None," + "'dfscores':None,'dfloads':None,'dfeigs':None," + "'sampleidx':None,'variableidx':None," + "'rawtrunc':None,'proctrunc':None," + "'gadfachroms':None,'gadfascores':None," + "'gadfacurves':None,'gaplschroms':None," + "'gaplsscores':None,'gaplscurves':None," + "'gadfadfscores':None,'gadfadfloads':None," + "'gaplsplsloads':None,'gridsel':None,'plotsel':None," + "'tree':None,'order':None,'plstrnpred':None," + "'plscvpred':None,'plststpred':None,'plsfactors':None," + "'rmsec':None,'rmsepc':None,'rmsept':None"
+		varList = "'proc':None,'class':None,'label':None," + "'split':None,'processlist':[],'xaxis':None," + "'class':None,'label':None,'validation':None," + "'pcscores':None,'pcloads':None,'pcpervar':None," + "'pceigs':None,'pcadata':None,'niporsvd':None," + "'indlabels':None,'plsloads':None,'pcatype':None," + "'dfscores':None,'dfloads':None,'dfeigs':None," + "'sampleidx':None,'variableidx':None," + "'rawtrunc':None,'proctrunc':None," + "'gadfachroms':None,'gadfascores':None," + "'gadfacurves':None,'gaplschroms':None," + "'gaplsscores':None,'gaplscurves':None," + "'gadfadfscores':None,'gadfadfaloads':None," + "'gaplsplsloads':None,'gridsel':None,'plotsel':None," + "'tree':None,'order':None,'plstrnpred':None," + "'plscvpred':None,'plststpred':None,'plsfactors':None," + "'rmsec':None,'rmsepc':None,'rmsept':None," + "'gacurrentchrom':None"
 
 		if case == 0:
 			exec('self.data = {"raw":None,"exppath":None,' + varList + "}")
@@ -689,7 +682,7 @@ class PyChemMain(wx.Frame):
 			# save spin, string and boolean ctrl values
 			Controls = ET.SubElement(locals()[workspace], "Controls")
 			# spin controls
-			spinCtrls = ["plGadfa.titleBar.spnGaScoreFrom", "plGadfa.titleBar.spnGaScoreTo", "plGadfa.titleBar.dlg.spnGaMaxFac", "plGadfa.titleBar.dlg.spnGaMaxGen", "plGadfa.titleBar.dlg.spnGaVarsFrom", "plGadfa.titleBar.dlg.spnGaVarsTo", "plGadfa.titleBar.dlg.spnGaNoInds", "plGadfa.titleBar.dlg.spnGaNoRuns", "plGadfa.titleBar.dlg.spnGaRepUntil", "plGapls.titleBar.spnGaScoreFrom", "plGapls.titleBar.spnGaScoreTo", "plGapls.titleBar.dlg.spnGaMaxFac", "plGapls.titleBar.dlg.spnGaMaxGen", "plGapls.titleBar.dlg.spnGaVarsFrom", "plGapls.titleBar.dlg.spnGaVarsTo", "plGapls.titleBar.dlg.spnGaNoInds", "plGapls.titleBar.dlg.spnGaNoRuns", "plGapls.titleBar.dlg.spnGaRepUntil", "plPls.titleBar.spnPLSmaxfac", "plPls.titleBar.spnPLSfactor1", "plPls.titleBar.spnPLSfactor2", "plPca.titleBar.spnNumPcs1", "plPca.titleBar.spnNumPcs2", "plPca.titleBar.spnPCAnum", "plDfa.titleBar.spnDfaDfs", "plDfa.titleBar.spnDfaScore1", "plDfa.titleBar.spnDfaScore2", "plDfa.titleBar.spnDfaPcs"]
+			spinCtrls = ["plGadfa.titleBar.spnGaScoreFrom", "plGadfa.titleBar.spnGaScoreTo", "plGadfa.optDlg.spnGaMaxFac", "plGadfa.optDlg.spnGaMaxGen", "plGadfa.optDlg.spnGaVarsFrom", "plGadfa.optDlg.spnGaVarsTo", "plGadfa.optDlg.spnGaNoInds", "plGadfa.optDlg.spnGaNoRuns", "plGadfa.optDlg.spnGaRepUntil", "plGapls.titleBar.spnGaScoreFrom", "plGapls.titleBar.spnGaScoreTo", "plGapls.optDlg.spnGaMaxFac", "plGapls.optDlg.spnGaMaxGen", "plGapls.optDlg.spnGaVarsFrom", "plGapls.optDlg.spnGaVarsTo", "plGapls.optDlg.spnGaNoInds", "plGapls.optDlg.spnGaNoRuns", "plGapls.optDlg.spnGaRepUntil", "plPls.titleBar.spnPLSmaxfac", "plPls.titleBar.spnPLSfactor1", "plPls.titleBar.spnPLSfactor2", "plPca.titleBar.spnNumPcs1", "plPca.titleBar.spnNumPcs2", "plPca.titleBar.spnPCAnum", "plDfa.titleBar.spnDfaDfs", "plDfa.titleBar.spnDfaScore1", "plDfa.titleBar.spnDfaScore2", "plDfa.titleBar.spnDfaPcs"]
 
 			for each in spinCtrls:
 				name = each.split(".")[len(each.split(".")) - 1]
@@ -698,7 +691,7 @@ class PyChemMain(wx.Frame):
 				locals()[name].text = str(getByPath(self, each).GetValue())
 
 			# string controls
-			stringCtrls = ["plExpset.indTitleBar.stcRangeFrom", "plExpset.indTitleBar.stcRangeTo", "plGadfa.titleBar.dlg.stGaXoverRate", "plGadfa.titleBar.dlg.stGaMutRate", "plGadfa.titleBar.dlg.stGaInsRate", "plGapls.titleBar.dlg.stGaXoverRate", "plGapls.titleBar.dlg.stGaMutRate", "plGapls.titleBar.dlg.stGaInsRate"]
+			stringCtrls = ["plExpset.indTitleBar.stcRangeFrom", "plExpset.indTitleBar.stcRangeTo", "plGadfa.optDlg.stGaXoverRate", "plGadfa.optDlg.stGaMutRate", "plGadfa.optDlg.stGaInsRate", "plGapls.optDlg.stGaXoverRate", "plGapls.optDlg.stGaMutRate", "plGapls.optDlg.stGaInsRate"]
 
 			for each in stringCtrls:
 				# quick fix!
@@ -715,7 +708,7 @@ class PyChemMain(wx.Frame):
 				locals()[name].set("key", "str")
 				locals()[name].text = getByPath(self, each).GetValue()
 
-			boolCtrls = ["plCluster.titleBar.dlg.rbKmeans", "plCluster.titleBar.dlg.rbKmedian", "plCluster.titleBar.dlg.rbKmedoids", "plCluster.titleBar.dlg.rbHcluster", "plCluster.titleBar.dlg.rbSingleLink", "plCluster.titleBar.dlg.rbMaxLink", "plCluster.titleBar.dlg.rbAvLink", "plCluster.titleBar.dlg.rbCentLink", "plCluster.titleBar.dlg.rbEuclidean", "plCluster.titleBar.dlg.rbCorrelation", "plCluster.titleBar.dlg.rbAbsCorr", "plCluster.titleBar.dlg.rbUncentredCorr", "plCluster.titleBar.dlg.rbAbsUncentCorr", "plCluster.titleBar.dlg.rbSpearmans", "plCluster.titleBar.dlg.rbKendalls", "plCluster.titleBar.dlg.rbHarmonicEuc", "plCluster.titleBar.dlg.rbCityBlock", "plCluster.titleBar.dlg.cbUseClass", "plCluster.titleBar.dlg.rbPlotName", "plCluster.titleBar.dlg.rbPlotColours", "plGadfa.titleBar.dlg.cbGaRepUntil", "plGadfa.titleBar.dlg.cbGaMaxGen", "plGadfa.titleBar.dlg.cbGaMut", "plGadfa.titleBar.dlg.cbGaXover", "plDfa.titleBar.cbDfaXval"]
+			boolCtrls = ["plCluster.optDlg.rbKmeans", "plCluster.optDlg.rbKmedian", "plCluster.optDlg.rbKmedoids", "plCluster.optDlg.rbHcluster", "plCluster.optDlg.rbSingleLink", "plCluster.optDlg.rbMaxLink", "plCluster.optDlg.rbAvLink", "plCluster.optDlg.rbCentLink", "plCluster.optDlg.rbEuclidean", "plCluster.optDlg.rbCorrelation", "plCluster.optDlg.rbAbsCorr", "plCluster.optDlg.rbUncentredCorr", "plCluster.optDlg.rbAbsUncentCorr", "plCluster.optDlg.rbSpearmans", "plCluster.optDlg.rbKendalls", "plCluster.optDlg.rbHarmonicEuc", "plCluster.optDlg.rbCityBlock", "plCluster.optDlg.cbUseClass", "plCluster.optDlg.rbPlotName", "plCluster.optDlg.rbPlotColours", "plGadfa.optDlg.cbGaRepUntil", "plGadfa.optDlg.cbGaMaxGen", "plGadfa.optDlg.cbGaMut", "plGadfa.optDlg.cbGaXover", "plDfa.titleBar.cbDfaXval"]
 
 			for each in boolCtrls:
 				name = each.split(".")[len(each.split(".")) - 1]
@@ -809,9 +802,9 @@ class PyChemMain(wx.Frame):
 				rdArray.append(newRow)
 
 			self.data["raw"] = np.array(rdArray)
+			self.data["processed"] = self.data["raw"]
 
 		# load workspace
-		##		  getWsElements = tree.getroot().findall("".join((".//Workspaces/",workspace)))[0]
 		getWsElements = tree.getroot().findall("".join(("*/", workspace)))[0]
 
 		for each in getWsElements:
@@ -819,13 +812,13 @@ class PyChemMain(wx.Frame):
 			if each.tag == "ppOptions":
 				getOpts = each
 				for item in getOpts:
-					self.plPreproc.selFun.lbSpectra1.SetSelection(int(item.text) - 1)
-					Selected = self.plPreproc.selFun.lbSpectra1.GetSelection()
-					SelectedText = self.plPreproc.selFun.lbSpectra1.GetStringSelection()
+					self.plPreproc.optDlg.lbSpectra1.SetSelection(int(item.text) - 1)
+					Selected = self.plPreproc.optDlg.lbSpectra1.GetSelection()
+					SelectedText = self.plPreproc.optDlg.lbSpectra1.GetStringSelection()
 					if SelectedText[0:2] == "  ":
-						self.data["ProcessList"].append(int(item.text))
-						self.plPreproc.selFun.lbSpectra2.Append(SelectedText[2 : len(SelectedText)])
-				self.RunProcessingSteps()
+						self.data["processlist"].append(int(item.text))
+						self.plPreproc.optDlg.lbSpectra2.Append(SelectedText[2 : len(SelectedText)])
+				self.plPreproc.titleBar.RunProcessingSteps()
 
 			# load ctrl values
 			if each.tag == "Controls":
@@ -907,12 +900,12 @@ class PyChemMain(wx.Frame):
 								self.plDfa.titleBar.plotDfa()
 							elif i == "gadfa":
 								try:
-									self.plGadfa.titleBar.CreateGaResultsTree(self.plGadfa.titleBar.dlg.treGaResults, gacurves=self.data["gadfacurves"], chroms=self.data["gadfachroms"], varfrom=self.plGadfa.titleBar.dlg.spnGaVarsFrom.getValue(), varto=self.plGadfa.titleBar.dlg.spnGaVarsTo.getValue(), runs=self.plGadfa.titleBar.dlg.spnGaNoRuns.getValue() - 1)
+									self.plGadfa.titleBar.CreateGaResultsTree(self.plGadfa.optDlg.treGaResults, gacurves=self.data["gadfacurves"], chroms=self.data["gadfachroms"], varfrom=self.plGadfa.optDlg.spnGaVarsFrom.getValue(), varto=self.plGadfa.optDlg.spnGaVarsTo.getValue(), runs=self.plGadfa.optDlg.spnGaNoRuns.getValue() - 1)
 								except:
 									continue
 							elif i == "gapls":
 								try:
-									self.plGapls.titleBar.CreateGaResultsTree(self.plGapls.titleBar.dlg.treGaResults, gacurves=self.data["gaplscurves"], chroms=self.data["gaplschroms"], varfrom=self.plGapls.titleBar.dlg.spnGaVarsFrom.getValue(), varto=self.plGapls.titleBar.dlg.spnGaVarsTo.getValue(), runs=self.plGapls.titleBar.dlg.spnGaNoRuns.getValue() - 1)
+									self.plGapls.titleBar.CreateGaResultsTree(self.plGapls.optDlg.treGaResults, gacurves=self.data["gaplscurves"], chroms=self.data["gaplschroms"], varfrom=self.plGapls.optDlg.spnGaVarsFrom.getValue(), varto=self.plGapls.optDlg.spnGaVarsTo.getValue(), runs=self.plGapls.optDlg.spnGaNoRuns.getValue() - 1)
 								except:
 									continue
 
@@ -928,6 +921,9 @@ class PyChemMain(wx.Frame):
 
 		# unlock ctrls
 		self.EnableCtrls()
+
+		# gather data
+		self.GetExperimentDetails()
 
 	def getGrid(self, grid):
 		r = grid.GetNumberRows()
@@ -949,7 +945,6 @@ class PyChemMain(wx.Frame):
 		return gridout, gridcolhead
 
 	def GetExperimentDetails(self):
-		##		  try:
 		self.plExpset.grdNames.SetGridCursor(2, 0)
 		self.plExpset.grdIndLabels.SetGridCursor(1, 0)
 		# get col headings
@@ -1028,18 +1023,15 @@ class PyChemMain(wx.Frame):
 				self.data["proctrunc"] = scipy.take(self.data["proctrunc"], self.data["sampleidx"], 0)
 		except:
 			pass
-		##		  except Exception, error:
-		####			pass
-		##			  errorBox(self, '%s' %str(error))
 
 		# change ga results lists
 		try:
-			self.plGapls.titleBar.CreateGaResultsTree(self.plGapls.titleBar.dlg.treGaResults, gacurves=self.data["gaplscurves"], chroms=self.data["gaplschroms"], varfrom=self.plGapls.titleBar.dlg.spnGaVarsFrom.GetValue(), varto=self.plGapls.titleBar.dlg.spnGaVarsTo.GetValue(), runs=self.plGapls.titleBar.dlg.spnGaNoRuns.GetValue() - 1)
+			self.plGapls.titleBar.CreateGaResultsTree(self.plGapls.optDlg.treGaResults, gacurves=self.data["gaplscurves"], chroms=self.data["gaplschroms"], varfrom=self.plGapls.optDlg.spnGaVarsFrom.GetValue(), varto=self.plGapls.optDlg.spnGaVarsTo.GetValue(), runs=self.plGapls.optDlg.spnGaNoRuns.GetValue() - 1)
 		except:
 			pass
 
 		try:
-			self.plGadfa.titleBar.CreateGaResultsTree(self.plGadfa.titleBar.dlg.treGaResults, gacurves=self.data["gadfacurves"], chroms=self.data["gadfachroms"], varfrom=self.plGadfa.titleBar.dlg.spnGaVarsFrom.GetValue(), varto=self.plGadfa.titleBar.dlg.spnGaVarsTo.GetValue(), runs=self.plGadfa.titleBar.dlg.spnGaNoRuns.GetValue() - 1)
+			self.plGadfa.titleBar.CreateGaResultsTree(self.plGadfa.optDlg.treGaResults, gacurves=self.data["gadfacurves"], chroms=self.data["gadfachroms"], varfrom=self.plGadfa.optDlg.spnGaVarsFrom.GetValue(), varto=self.plGadfa.optDlg.spnGaVarsTo.GetValue(), runs=self.plGadfa.optDlg.spnGaNoRuns.GetValue() - 1)
 		except:
 			pass
 
@@ -1309,18 +1301,19 @@ class wxWorkspaceDialog(wx.Dialog):
 
 	def OnBtnOKButton(self, event):
 		if self.dtype == "Load":
-			try:
-				self.workSpace = self.lbSaveWorkspace.GetItemText(self.currentItem)
-				self.clearTree()
-				self.Close()
-			except:
-				dlg = wx.MessageDialog(self, "Please select a Workspace to load", "Error!", wx.OK | wx.ICON_ERROR)
-				try:
-					dlg.ShowModal()
-				finally:
-					dlg.Destroy()
+			##			  try:
+			self.workSpace = self.lbSaveWorkspace.GetItemText(self.currentItem)
+			##			  self.clearTree()
+			self.Close()
+		##			  except:
+		##				  dlg = wx.MessageDialog(self, 'Please select a Workspace to load',
+		##					'Error!', wx.OK | wx.ICON_ERROR)
+		##				  try:
+		##					  dlg.ShowModal()
+		##				  finally:
+		##					  dlg.Destroy()
 		else:
-			self.clearTree()
+			##			  self.clearTree()
 			self.Close()
 
 	def OnLbSaveWorkspaceLeftDclick(self, event):

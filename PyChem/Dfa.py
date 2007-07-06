@@ -25,7 +25,7 @@ from wx.lib.anchors import LayoutAnchors
 
 from .mva import chemometrics
 from .mva.chemometrics import _index
-from .Pca import MyPlotCanvas, plotLine, plotStem, plotText
+from .Pca import MyPlotCanvas, plotLine, plotLoads, plotScores, plotStem, plotText
 from .utils.io import str_array
 
 [
@@ -163,6 +163,8 @@ class Dfa(wx.Panel):
 	def __init__(self, parent, id, pos, size, style, name):
 		self._init_ctrls(parent)
 
+		self.parent = parent
+
 	def Reset(self):
 		self.titleBar.spnDfaScore1.Enable(0)
 		self.titleBar.spnDfaScore2.Enable(0)
@@ -283,9 +285,27 @@ class TitleBar(bp.ButtonPanel):
 			elif self.cbxData.GetSelection() == 2:
 				xdata = self.data["proctrunc"]
 
+			# if using xval
+			# select data
+			if self.parent.parent.parent.plPca.titleBar.cbxData.GetSelection() == 0:
+				xvaldata = self.data["rawtrunc"]
+			elif self.parent.parent.parent.plPca.titleBar.cbxData.GetSelection() == 1:
+				xvaldata = self.data["proctrunc"]
+			# select pca method
+			if self.parent.parent.parent.plPca.titleBar.cbxPcaType.GetSelection() == 0:
+				self.data["niporsvd"] = "nip"
+			elif self.parent.parent.parent.plPca.titleBar.cbxPcaType.GetSelection() == 1:
+				self.data["niporsvd"] = "svd"
+
 			# check appropriate number of pcs/dfs
 			if self.spnDfaPcs.GetValue() < self.spnDfaDfs.GetValue():
 				self.spnDfaDfs.SetValue(self.spnDfaPcs.GetValue())
+
+			# check for pca preproc method
+			if self.parent.parent.parent.plPca.titleBar.cbxPreprocType.GetSelection() == 0:
+				self.data["pcatype"] = "covar"
+			elif self.parent.parent.parent.plPca.titleBar.cbxPreprocType.GetSelection() == 1:
+				self.data["pcatype"] = "corr"
 
 			# Reset controls
 			self.spnDfaScore1.Enable(1)
@@ -294,7 +314,6 @@ class TitleBar(bp.ButtonPanel):
 			self.spnDfaScore1.SetValue(1)
 			self.spnDfaScore2.SetRange(1, self.spnDfaDfs.GetValue())
 			self.spnDfaScore2.SetValue(2)
-
 			self.btnExpDfa.Enable(1)
 
 			if self.cbDfaXval.GetValue() is False:
@@ -306,15 +325,15 @@ class TitleBar(bp.ButtonPanel):
 
 			elif self.cbDfaXval.GetValue() is True:
 				if self.cbxData.GetSelection() > 0:
-					self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"] = mva.chemometrics.DFA_XVALRAW(xdata, self.data["class"], self.data["label"], self.data["validation"], self.spnDfaDfs.GetValue())
+					self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"] = mva.chemometrics.DFA_XVALRAW(xdata, self.data["class"], self.data["validation"], self.spnDfaDfs.GetValue())
 
 				else:
 					# run pc-dfa
 					if self.data["niporsvd"] in ["nip"]:
-						self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"] = mva.chemometrics.DFA_XVAL(self.data[self.data["pcadata"]], "NIPALS", self.spnDfaPcs.GetValue(), self.data["class"], self.data["label"], self.data["validation"], self.spnDfaDfs.GetValue(), ptype=self.data["pcatype"])
+						self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"] = mva.chemometrics.DFA_XVAL(xvaldata, "NIPALS", self.spnDfaPcs.GetValue(), self.data["class"], self.data["validation"], self.spnDfaDfs.GetValue(), ptype=self.data["pcatype"])
 
 					elif self.data["niporsvd"] in ["svd"]:
-						self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"] = mva.chemometrics.DFA_XVAL(self.data[self.data["pcadata"]], "SVD", self.spnDfaPcs.GetValue(), self.data["class"], self.data["label"], self.data["validation"], self.spnDfaDfs.GetValue(), ptype=self.data["pcatype"])
+						self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"] = mva.chemometrics.DFA_XVAL(xvaldata, "SVD", self.spnDfaPcs.GetValue(), self.data["class"], self.data["validation"], self.spnDfaDfs.GetValue(), ptype=self.data["pcatype"])
 
 			# plot dfa results
 			self.plotDfa()
@@ -341,92 +360,26 @@ class TitleBar(bp.ButtonPanel):
 		self.plotDfa()
 
 	def plotDfa(self):
-		if self.cbxData.GetSelection() == 0:
-			xdata = self.data["pcscores"]
-			xdata = xdata[:, 0 : self.spnDfaPcs.GetValue()]
-		elif self.cbxData.GetSelection() == 1:
-			xdata = self.data["rawtrunc"]
-		elif self.cbxData.GetSelection() == 2:
-			xdata = self.data["proctrunc"]
-
 		# plot scores
-		self.PlotDfaScores()
-
-		# plot confidence intervals
-		self.PlotCvaError()
+		plotScores(self.parent.plcDFAscores, self.data["dfscores"], self.data["class"], self.data["label"], self.data["validation"], self.spnDfaScore1.GetValue() - 1, self.spnDfaScore2.GetValue() - 1, title="DFA Scores", xLabel="Discriminant Function " + str(self.spnDfaScore1.GetValue()), yLabel="Discriminant Function " + str(self.spnDfaScore2.GetValue()), xval=self.cbDfaXval.GetValue(), symb=False)
 
 		# plot loadings
-		self.PlotDfaLoads()
-
-		# Plot eigs
-		self.DrawDfaEig = plotLine(self.parent.plcDFAeigs, self.data["dfeigs"], scipy.arange(1, self.spnDfaDfs.GetValue() + 1)[:, nA], 0, "Eigenvalues", "Discriminant Function", "Eigenvalues")
-
-	def PlotDfaScores(self):
-		self.DrawDfaScore = plotText(self.parent.plcDFAscores, self.data["dfscores"], self.data["validation"], self.data["class"], self.data["label"], self.spnDfaScore1.GetValue() - 1, self.spnDfaScore2.GetValue() - 1, "DFA Scores", "Discriminant Function", self.cbDfaXval.GetValue())
-
-	def PlotDfaLoads(self):
-		# get label
 		if self.cbxData.GetSelection() == 0:
 			label = "PC-DFA loading "
 		else:
 			label = "DFA loading "
 
 		if self.spnDfaScore1.GetValue() != self.spnDfaScore2.GetValue():
-			self.DrawDfaLoadsV = plotText(self.parent.plcDfaLoadsV, self.data["dfloads"], self.data["validation"], self.data["class"], self.data["indlabels"], self.spnDfaScore1.GetValue() - 1, self.spnDfaScore2.GetValue() - 1, "DFA Loadings", label, 0)
+			plotLoads(self.parent.plcDfaLoadsV, self.data["dfloads"], self.data["indlabels"], self.spnDfaScore1.GetValue() - 1, self.spnDfaScore2.GetValue() - 1, title="DFA Loadings", xLabel=label + str(self.spnDfaScore1.GetValue()), yLabel=label + str(self.spnDfaScore2.GetValue()), type=1)
+
 		else:
 			idx = self.spnDfaScore1.GetValue() - 1
-			self.DrawDfaLoadsV = plotStem(self.parent.plcDfaLoadsV, scipy.concatenate((scipy.arange(1, self.data["dfloads"].shape[0] + 1)[:, nA], self.data["dfloads"][:, idx][:, nA]), 1), "DFA Loadings", "Variable", label + str(idx + 1))
+			plotStem(self.parent.plcDfaLoadsV, scipy.concatenate((scipy.arange(1, self.data["dfloads"].shape[0] + 1)[:, nA], self.data["dfloads"][:, idx][:, nA]), 1), "DFA Loadings", "Variable", label + str(idx + 1))
 
-	def PlotCvaError(self):
-		canvas = self.parent.plcDfaError
-		scores = self.data["dfscores"]
-		cl = self.data["class"]
-		# get mean centres
-		# nb for a dfa/cva plot scaled to unit variance 95% confidence radius is 2.15
-		col1 = self.spnDfaScore1.GetValue() - 1
-		col2 = self.spnDfaScore2.GetValue() - 1
+		# Plot eigs
+		self.DrawDfaEig = plotLine(self.parent.plcDFAeigs, self.data["dfeigs"], scipy.arange(1, self.spnDfaDfs.GetValue() + 1)[:, nA], 0, "Eigenvalues", "Discriminant Function", "Eigenvalues", wdth=3)
 
-		nScores, nCl = scipy.zeros((1, 2)), []
-
-		scores = scipy.concatenate((scores[:, col1][:, nA], scores[:, col2][:, nA]), 1)
-
-		nCl = scipy.unique(cl)
-
-		for i in range(len(nCl)):
-			nScores = scipy.concatenate((nScores, scipy.mean(scipy.take(scores, _index(np.array(cl)[:, nA], nCl[i]), 0), 0)[nA]), 0)
-
-		nScores = nScores[1 : len(nScores)]
-
-		if (scores.shape[1] > 1) & (col1 != col2) is True:
-			# plot 2d error
-			Circles = wx.lib.plot.PolyEllipse(nScores, colour="black", width=1, dim=(2.15 * 2, 2.15 * 2), style=wx.SOLID)
-
-			Centres = wx.lib.plot.PolyMarker(nScores[:, 0:2], colour="black", size=2, marker="plus")
-
-			PlotCircles = wx.lib.plot.PlotGraphics([Circles, Centres], "Mean group centres with 95% confidence intervals", "Discriminant Function " + str(col1 + 1), "Discriminant Function " + str(col2 + 1))
-
-			canvas.Draw(PlotCircles)  # ,self.parent.plcDFAscores.GetXCurrentRange(),
-			##					  self.parent.plcDFAscores.GetYCurrentRange())#,xAxis=axisRange,yAxis=axisRange)
-
-			self.DrawCvaError = [PlotCircles, self.parent.plcDFAscores.GetXCurrentRange(), self.parent.plcDFAscores.GetYCurrentRange()]
-
-		else:
-			# plot 1d error
-			plotone = []
-			plotone.append(wx.lib.plot.PolyMarker(scipy.concatenate((np.array(nCl)[:, nA], nScores[:, 0][:, nA]), 1), colour="black", marker="square", size=1, fillcolour="black"))
-
-			for i in range(len(nCl)):
-				plotone.append(wx.lib.plot.PolyLine([[nCl[i], nScores[i][0] - 2.25], [nCl[i], nScores[i][0] + 2.25]], colour="black", width=1))
-
-				plotone.append(wx.lib.plot.PolyLine([[nCl[i] - 0.1, nScores[i][0] - 2.25], [nCl[i] + 0.1, nScores[i][0] - 2.25]], colour="black", width=1))
-
-				plotone.append(wx.lib.plot.PolyLine([[nCl[i] - 0.1, nScores[i][0] + 2.25], [nCl[i] + 0.1, nScores[i][0] + 2.25]], colour="black", width=1))
-
-			plotone = wx.lib.plot.PlotGraphics(plotone, "Mean group centres with 95% confidence intervals", "Class", "Discriminant Function " + str(col1 + 1))
-
-			xAxis = (min(nCl), max(nCl))
-			yAxis = (min(nScores[:, 0]) - 2.3, max(nScores[:, 0]) + 2.3)
-
-			canvas.Draw(plotone, xAxis, yAxis)
-
-			self.DrawCvaError = [plotone, None, None]
+		# make sure ctrls enabled
+		self.spnDfaScore1.Enable(True)
+		self.spnDfaScore2.Enable(True)
+		self.btnExpDfa.Enable(True)

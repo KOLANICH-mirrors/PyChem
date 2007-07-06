@@ -277,6 +277,16 @@ class PolyEllipse(PolyPoints):
 		rect[:, 0:2] = self.scaled - (rect[:, 2:4] / 2)
 		dc.DrawEllipseList(rect)
 
+		minx = _Numeric.min(rect[:, 0] - rect[:, 2])
+		maxx = _Numeric.max(rect[:, 0] + rect[:, 2])
+		miny = _Numeric.min(rect[:, 1] - rect[:, 3])
+		maxy = _Numeric.max(rect[:, 3] + rect[:, 3])
+
+		print(minx, maxx, miny, maxy)
+
+
+##		  dc.DrawPointList(min)
+
 
 class PolyMarker(PolyPoints):
 	"""Class to define marker type and style
@@ -392,6 +402,9 @@ class PolyMarker(PolyPoints):
 		"""Added by rmj 14.05.07"""
 		dc.SetTextForeground(self.attributes["text_colour"])
 		dc.DrawTextList(self.attributes["labels"], coords)
+
+	def _crosshair(self, dc, coords):
+		dc.CrossHair(coords[0], coords[1])
 
 
 class PlotGraphics:
