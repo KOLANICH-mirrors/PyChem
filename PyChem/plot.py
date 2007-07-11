@@ -245,7 +245,7 @@ class PolyLine(PolyPoints):
 class PolyEllipse(PolyPoints):
 	"""Added by rmj 14.05.07 - class for plotting ellipse"""
 
-	_attributes = {"colour": "black", "width": 1, "dim": (1, 1), "style": wx.SOLID}
+	_attributes = {"colour": "black", "width": 1, "dim": (1, 1), "style": wx.SOLID, "legend": ""}
 
 	def __init__(self, points, **attr):
 		"""Creates PolyEllipse object
@@ -255,8 +255,7 @@ class PolyEllipse(PolyPoints):
 				'colour'= 'black',			- wx.Pen Colour any wx.NamedColour
 				'width'= 1,					- Pen width
 				'dim'=(1,1),				- width & height of ellipse
-				'style'= wx.SOLID,			 - wx.Pen style
-
+				'style'= wx.SOLID,			- wx.Pen style
 		"""
 		PolyPoints.__init__(self, points, attr)
 
@@ -277,15 +276,11 @@ class PolyEllipse(PolyPoints):
 		rect[:, 0:2] = self.scaled - (rect[:, 2:4] / 2)
 		dc.DrawEllipseList(rect)
 
-		minx = _Numeric.min(rect[:, 0] - rect[:, 2])
-		maxx = _Numeric.max(rect[:, 0] + rect[:, 2])
-		miny = _Numeric.min(rect[:, 1] - rect[:, 3])
-		maxy = _Numeric.max(rect[:, 3] + rect[:, 3])
-
-		print(minx, maxx, miny, maxy)
-
-
-##		  dc.DrawPointList(min)
+	def getSymExtent(self, printerScale):
+		"""Width and Height of Marker"""
+		h = self.attributes["width"] * printerScale
+		w = 5 * h
+		return (w, h)
 
 
 class PolyMarker(PolyPoints):
@@ -1401,23 +1396,27 @@ class PlotCanvas(wx.Panel):
 		legendLHS = 0.091 * legendBoxWH[0]  # border space between legend sym and graph box
 		lineHeight = max(legendSymExt[1], legendTextExt[1]) * 1.1  # 1.1 used as space between lines
 		dc.SetFont(self._getFont(self._fontSizeLegend))
+		cntLineHeight = 0
 		for i in range(len(graphics)):
 			o = graphics[i]
-			s = i * lineHeight
-			if isinstance(o, PolyMarker):
-				# draw marker with legend
-				pnt = (trhc[0] + legendLHS + legendSymExt[0] / 2.0, trhc[1] + s + lineHeight / 2.0)
-				o.draw(dc, self.printerScale, coord=_Numeric.array([pnt]))
-			elif isinstance(o, PolyLine):
-				# draw line with legend
-				pnt1 = (trhc[0] + legendLHS, trhc[1] + s + lineHeight / 2.0)
-				pnt2 = (trhc[0] + legendLHS + legendSymExt[0], trhc[1] + s + lineHeight / 2.0)
-				o.draw(dc, self.printerScale, coord=_Numeric.array([pnt1, pnt2]))
-			else:
-				raise TypeError("object is neither PolyMarker or PolyLine instance")
-			# draw legend txt
-			pnt = (trhc[0] + legendLHS + legendSymExt[0], trhc[1] + s + lineHeight / 2.0 - legendTextExt[1] / 2)
-			dc.DrawText(o.getLegend(), pnt[0], pnt[1])
+			# added by rmj 09.07.07 - any legend entries without label not plotted
+			if graphics.getLegendNames()[i] not in [""]:
+				s = cntLineHeight * lineHeight
+				if isinstance(o, PolyMarker):
+					# draw marker with legend
+					pnt = (trhc[0] + legendLHS + legendSymExt[0] / 2.0, trhc[1] + s + lineHeight / 2.0)
+					o.draw(dc, self.printerScale, coord=_Numeric.array([pnt]))
+				elif isinstance(o, PolyLine):
+					# draw line with legend
+					pnt1 = (trhc[0] + legendLHS, trhc[1] + s + lineHeight / 2.0)
+					pnt2 = (trhc[0] + legendLHS + legendSymExt[0], trhc[1] + s + lineHeight / 2.0)
+					o.draw(dc, self.printerScale, coord=_Numeric.array([pnt1, pnt2]))
+				else:
+					raise TypeError("object is neither PolyMarker or PolyLine instance")
+				# draw legend txt
+				pnt = (trhc[0] + legendLHS + legendSymExt[0], trhc[1] + s + lineHeight / 2.0 - legendTextExt[1] / 2)
+				dc.DrawText(o.getLegend(), pnt[0], pnt[1])
+				cntLineHeight += 1
 		dc.SetFont(self._getFont(self._fontSizeAxis))  # reset
 
 	def _titleLablesWH(self, dc, graphics):

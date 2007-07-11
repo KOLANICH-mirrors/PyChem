@@ -184,7 +184,7 @@ class Ga(wx.Panel):
 		self.titleBar.cbxFeature2.Enable(False)
 
 		# clear plots
-		objects = {"plcGaPlot": ["Predictions", "Latent Variable 1", "Latent Variable 1"], "plcGaFeatPlot": ["Independent Variable Biplot", "Variable", "Variable"], "plcGaFreqPlot": ["Frequency of Variable Selection", "Independent Variable", "Frequency"], "plcGaOptPlot": ["Rate of GA Optimisation", "Generation", "Fitness Score"]}
+		objects = {"plcGaPlot": ["Predictions", "Latent Variable 1", "Latent Variable 1"], "plcGaFeatPlot": ["Measured Variable Biplot", "Variable", "Variable"], "plcGaFreqPlot": ["Frequency of Variable Selection", "Independent Variable", "Frequency"], "plcGaOptPlot": ["Rate of GA Optimisation", "Generation", "Fitness Score"]}
 
 		curve = wx.lib.plot.PolyLine([[0, 0], [1, 1]], colour="white", width=1, style=wx.TRANSPARENT)
 
@@ -992,8 +992,6 @@ class selParam(fpb.FoldPanelBar):
 
 			self.prnt.splitPrnt.plcGaGrpDistPlot.Draw(gaPlotVarErr, xAxis=Xax, yAxis=Yax)
 
-			##				  self.gaPlotVarErr = [gaPlotVarErr,Xax,Yax]
-
 			# Enable ctrls
 			self.prnt.splitPrnt.titleBar.spnGaScoreFrom.Enable(1)
 			self.prnt.splitPrnt.titleBar.spnGaScoreTo.Enable(1)
@@ -1016,6 +1014,7 @@ class selParam(fpb.FoldPanelBar):
 
 		pos1 = int(self.prnt.splitPrnt.titleBar.cbxFeature1.GetSelection())
 		pos2 = int(self.prnt.splitPrnt.titleBar.cbxFeature2.GetSelection())
+
 		xdata = self.prnt.splitPrnt.titleBar.data["raw"]
 
 		if self.prnt.splitPrnt.titleBar.cbxData.GetSelection() == 1:
@@ -1031,7 +1030,9 @@ class selParam(fpb.FoldPanelBar):
 			coords = scipy.reshape(scipy.take(xdata, [int(chrom[pos1]), int(chrom[pos2])], 1), (len(xdata), 2))
 			L1 = str(self.prnt.splitPrnt.titleBar.data["indlabels"][int(chrom[pos1])])
 			L2 = str(self.prnt.splitPrnt.titleBar.data["indlabels"][int(chrom[pos2])])
-			plotScores(canvas, coords, self.prnt.splitPrnt.titleBar.data["class"], self.prnt.splitPrnt.titleBar.data["label"], self.prnt.splitPrnt.titleBar.data["validation"], 0, 1, title=canvas.last_draw[0].title, xLabel=L1, yLabel=L2, xval=False, pconf=False)
+			plotScores(canvas, coords, self.prnt.splitPrnt.titleBar.data["class"], self.prnt.splitPrnt.titleBar.data["label"], self.prnt.splitPrnt.titleBar.data["validation"], 0, 1, title=canvas.last_draw[0].title, xLabel=L1, yLabel=L2, xval=True, pconf=False)
+
+		self.prnt.splitPrnt.titleBar.data["gavarcoords"] = coords
 
 	def plotGaLoads(self, chrom, loads, canvas, xL="Variable"):
 		# facors

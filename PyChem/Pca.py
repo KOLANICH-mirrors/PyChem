@@ -145,14 +145,19 @@ def plotSymbols(plotCanvas, coords, mask, cLass, text, col1, col2, tit, axis, us
 			countColour = 0
 
 		list = coords[cLass == desCl[i], :]
+
 		list = scipy.take(list, (col1, col2), 1)
 
 		if usemask is False:
-			plotSym.append(wx.lib.plot.PolyMarker(list, marker=symbols[countSym], fillcolour=colours[countColour], colour=colours[countColour], size=2))
+			plotSym.append(wx.lib.plot.PolyMarker(list, marker=symbols[countSym], fillcolour=colours[countColour], colour=colours[countColour], size=2, legend=text[cLass.index(desCl[i])]))
+
 		else:
 			listM = mask[cLass == desCl[i]]
 			for m in range(3):
-				plotSym.append(wx.lib.plot.PolyMarker(list[listM == m], marker=symbols[countSym], fillcolour=colours[countColour], colour=edgeColours[m], size=2))
+				if m == 0:  # include legend entry
+					plotSym.append(wx.lib.plot.PolyMarker(list[listM == m], marker=symbols[countSym], fillcolour=colours[countColour], colour=edgeColours[m], size=2, legend=text[cLass.index(desCl[i])]))
+				else:  # no legend
+					plotSym.append(wx.lib.plot.PolyMarker(list[listM == m], marker=symbols[countSym], fillcolour=colours[countColour], colour=edgeColours[m], size=2))
 
 		countSym += 1
 		countColour += 1
@@ -165,16 +170,8 @@ def plotSymbols(plotCanvas, coords, mask, cLass, text, col1, col2, tit, axis, us
 	return plotSym
 
 
-def plotText(plotCanvas, coords, mask, cLass, text, col1, col2, tit, axis, usemask=True, xL=None, yL=None):
-	# sort out axis labels
-	if (xL is not None) and (yL is not None) is True:
-		xL = " ".join((axis, xL))
-		yL = " ".join((axis, yL))
-	else:
-		xL = " ".join((axis, str(col1 + 1)))
-		yL = " ".join((axis, str(col2 + 1)))
-
-	# make label text
+def plotText(plotCanvas, coords, mask, cLass, text, col1, col2, tit, axis, usemask=True, xL="", yL=""):
+	# make sure label string
 	nt = []
 	for i in range(len(text)):
 		nt.append(str(text[i]))
@@ -194,15 +191,26 @@ def plotText(plotCanvas, coords, mask, cLass, text, col1, col2, tit, axis, usema
 			else:
 				idx = list(range(len(coords)))
 			plotText.append(wx.lib.plot.PolyMarker(scipy.take(scipy.take(coords, [col1, col2], 1), idx, 0), marker="text", labels=scipy.take(text, idx, 0), text_colour=colours[getColour]))
-	else:
-		# plot 1d
+	else:  # plot 1d
 		points = scipy.take(coords, [col1], 1)
 		nCl = scipy.unique(cLass)
 		eCount = 0
 		for i in range(len(nCl)):
 			idx = _index(cLass, nCl[i])
+
 			sCount, eCount = copy.deepcopy(eCount) + 1, eCount + len(idx)
-			plotText.append(wx.lib.plot.PolyMarker(scipy.concatenate((scipy.arange(sCount, eCount + 1)[:, nA], points[cLass == nCl[i], 0][:, nA]), 1), marker="text", labels=scipy.take(text, idx).tolist()))
+
+			pointSub = scipy.concatenate((scipy.arange(sCount, eCount + 1)[:, nA], points[cLass == nCl[i], 0][:, nA]), 1)
+
+			msk = np.array(mask)[cLass == nCl[i]].tolist()
+
+			lbls = scipy.take(text, idx)
+
+			if usemask is False:
+				plotText.append(wx.lib.plot.PolyMarker(pointSub, marker="text", labels=lbls.tolist()))
+			else:
+				for each in range(3):
+					plotText.append(wx.lib.plot.PolyMarker(scipy.take(pointSub, _index(msk, each), 0), marker="text", labels=scipy.take(lbls, _index(msk, each)).tolist(), text_colour=colours[each]))
 
 	if (coords.shape[1] > 1) & (col1 != col2) is True:
 		draw_plotText = wx.lib.plot.PlotGraphics(plotText, tit, xLabel=xL, yLabel=yL)
@@ -218,6 +226,10 @@ def plotText(plotCanvas, coords, mask, cLass, text, col1, col2, tit, axis, usema
 def plotLoads(canvas, loads, xaxis, col1, col2, title="", xLabel="", yLabel="", type=0):
 	# for model loadings plots
 	plot = []
+
+	# set legend to false as a default
+	canvas.enableLegend = False
+
 	if col1 != col2:
 		# standard deviation
 		select = scipy.concatenate((loads[:, col1][:, nA], loads[:, col2][:, nA]), 1)
@@ -276,25 +288,30 @@ def plotLoads(canvas, loads, xaxis, col1, col2, title="", xLabel="", yLabel="", 
 
 				# identify regions
 				newxvar = scipy.take(xaxis, outIdx)
-				ranges = [0]
-
+				regions = [outIdx[0]]
 				for i in range(len(outIdx) - 1):
-					if outIdx[i + 1] - 1 != outIdx[i]:  # & (i < len(outIdx)-1) is True:
-						ranges.append(i + 1)
+					if outIdx[i + 1] - 1 != outIdx[i]:
+						regions.append(outIdx[i])
+						regions.append(outIdx[i + 1])
+				if scipy.mod(len(regions), 2) == 1:
+					regions.append(outIdx[i + 1])
 
 				# plot regions by symbol/colour
-				cl = []
-				for i in range(1, len(ranges)):
+				cl, labels, i = [], [], 0
+				while i < len(regions):
 					cl.extend(
 						(
 							scipy.ones(
-								ranges[i] - ranges[i - 1] - 1,
+								regions[i + 1] - regions[i] + 1,
 							)
 							* i
 						).tolist()
 					)
+					for j in range(regions[i + 1] - regions[i] + 1):
+						labels.append(str(xaxis[regions[i]]) + " - " + str(xaxis[regions[i + 1]]))
+					i += 2
 
-				symPlot = plotSymbols(None, getOutliers, None, cl, None, 0, 1, "", "", usemask=False)
+				symPlot = plotSymbols(None, getOutliers, None, cl, labels, 0, 1, "", "", usemask=False)
 
 				for each in symPlot:
 					plot.append(each)
@@ -310,48 +327,90 @@ def plotLoads(canvas, loads, xaxis, col1, col2, title="", xLabel="", yLabel="", 
 		# draw it
 		canvas.Draw(wx.lib.plot.PlotGraphics(plot, title, xLabel, yLabel))
 
+		# sort out legends
+		if type == 3:
+			canvas.enableLegend = True
+
 
 def plotScores(canvas, scores, cl, labels, validation, col1, col2, title="", xLabel="", yLabel="", xval=False, text=True, pconf=True, symb=False):
 	# get mean centres
 	# nb for a dfa/cva plot scaled to unit variance 95% confidence radius is 2.15
-	nScores = scipy.zeros((1, 2))
-
-	scores = scipy.concatenate((scores[:, col1][:, nA], scores[:, col2][:, nA]), 1)
+	sHape = scores.shape
 	nCl = scipy.unique(np.array(cl))
+	plot = []
 
-	for i in range(len(nCl)):
-		nScores = scipy.concatenate((nScores, scipy.mean(scipy.take(scores, _index(cl, nCl[i]), 0), 0)[nA, :]), 0)
-	nScores = nScores[1 : len(nScores)]
+	# set legend to false as a default
+	canvas.enableLegend = False
 
-	if (scores.shape[1] > 1) & (col1 != col2) is True:
-		plot = []
+	if (sHape[1] > 1) & (col1 != col2) is True:
+		mScores = scipy.zeros((1, 2))
+
+		scores = scipy.concatenate((scores[:, col1][:, nA], scores[:, col2][:, nA]), 1)
+
+		for i in range(len(nCl)):
+			mScores = scipy.concatenate((mScores, scipy.mean(scipy.take(scores, _index(cl, nCl[i]), 0), 0)[nA, :]), 0)
+		mScores = mScores[1 : len(mScores)]
+
 		if symb is True:
 			# plot symbols
-			symPlot = plotSymbols(canvas, scores, validation, cl, labels, 0, 1, "", "", xval)
+			symPlot = plotSymbols(None, scores, validation, cl, labels, 0, 1, "", "", xval)
 			for each in symPlot:
 				plot.append(each)
 
 		if text is True:
 			# plot labels
-			textPlot = plotText(canvas, scores, validation, cl, labels, 0, 1, "", "", xval)
+			textPlot = plotText(None, scores, validation, cl, labels, 0, 1, "", "", xval)
 			for each in textPlot:
 				plot.append(each)
 
 		if pconf is True:
 			# 95% confidence interval
-			plot.append(wx.lib.plot.PolyEllipse(nScores, colour="black", width=1, dim=(2.15 * 2, 2.15 * 2), style=wx.SOLID))
+			plot.append(wx.lib.plot.PolyEllipse(mScores, colour="black", width=1, dim=(2.15 * 2, 2.15 * 2), style=wx.SOLID))
 			# 95% confidence about the mean
-			plot.append(wx.lib.plot.PolyEllipse(nScores, colour="blue", width=1, dim=((1.95 / scipy.sqrt(len(nCl)) * 2), (1.95 / scipy.sqrt(len(nCl)) * 2)), style=wx.SOLID))
+			plot.append(wx.lib.plot.PolyEllipse(mScores, colour="blue", width=1, dim=((1.95 / scipy.sqrt(len(nCl)) * 2), (1.95 / scipy.sqrt(len(nCl)) * 2)), style=wx.SOLID))
 			# class centroids
-			plot.append(wx.lib.plot.PolyMarker(nScores[:, 0:2], colour="black", size=2, marker="plus"))
+			plot.append(wx.lib.plot.PolyMarker(mScores[:, 0:2], colour="black", size=2, marker="plus"))
 			# force boundary
-			plot.append(wx.lib.plot.PolyMarker([[min(nScores[:, 0] - 2.15), min(nScores[:, 1] - 2.15)], [max(nScores[:, 0] + 2.15), max(nScores[:, 1] + 2.15)]], colour="white", size=1, marker="circle"))
+			plot.append(wx.lib.plot.PolyMarker([[min(mScores[:, 0] - 2.15), min(mScores[:, 1] - 2.15)], [max(mScores[:, 0] + 2.15), max(mScores[:, 1] + 2.15)]], colour="white", size=1, marker="circle"))
 
 		canvas.Draw(wx.lib.plot.PlotGraphics(plot, title, xLabel, yLabel))
 
 	else:
-		# plot 1d error
-		plotText(canvas, scores, validation, cl, labels, 0, 0, "", "", usemask=xval)
+		if text is True:
+			# plot labels
+			textPlot = plotText(None, scores, validation, cl, labels, col1, col1, title, None, xL="Arbitrary", yL=yLabel, usemask=xval)
+			for each in textPlot:
+				plot.append(each)
+
+		if symb is True:
+			# create array of index + score
+			nSc = scipy.zeros((1, 2))
+			nCs, nTx = [], []
+			cTa, cTb = 0, 0
+			for i in range(len(nCl)):
+				cTb += len(_index(cl, nCl[i]))
+				nSc = scipy.concatenate((nSc, scipy.concatenate((scipy.arange(cTa, cTb)[:, nA], scipy.take(scores, _index(cl, nCl[i]), 0)[:, col1][:, nA]), 1)), 0)
+				nCs.extend(
+					scipy.ones(
+						len(_index(cl, nCl[i])),
+					)
+					* nCl[i].tolist()
+				)
+				nTx.extend(scipy.take(labels, _index(cl, nCl[i])))
+				cTa = cTb
+			nSc = nSc[1 : len(nSc)]
+			# plot symbols
+			symPlot = plotSymbols(None, nSc, validation, nCs, nTx, 0, 1, "", "", xval)
+			for each in symPlot:
+				plot.append(each)
+
+		canvas.Draw(wx.lib.plot.PlotGraphics(plot, title, "Arbitrary", yLabel))
+
+	# sort out legends
+	if symb and text is True:
+		canvas.enableLegend = False
+	if (symb is True) & (text is False) is True:
+		canvas.enableLegend = True
 
 
 class MyPlotCanvas(wx.lib.plot.PlotCanvas):
@@ -1081,14 +1140,14 @@ class plotProperties(wx.Dialog):
 			plotScores(self.canvas, self.canvas.prnt.titleBar.data["dfscores"], self.canvas.prnt.titleBar.data["class"], self.canvas.prnt.titleBar.data["label"], self.canvas.prnt.titleBar.data["validation"], self.canvas.prnt.titleBar.spnDfaScore1.GetValue() - 1, self.canvas.prnt.titleBar.spnDfaScore2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=self.canvas.prnt.titleBar.cbDfaXval.GetValue(), text=self.tbPoints.GetValue(), pconf=self.tbConf.GetValue(), symb=self.tbSymbols.GetValue())
 
 		elif self.canvas.GetName() in ["plcPCAscore"]:
-			plotScores(self.canvas, self.graph.objects[0].points, self.canvas.prnt.titleBar.data["class"], self.canvas.prnt.titleBar.data["label"], self.canvas.prnt.titleBar.data["validation"], 0, 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=False, text=self.tbPoints.GetValue(), pconf=False, symb=self.tbSymbols.GetValue())
+			plotScores(self.canvas, self.canvas.prnt.titleBar.data["pcscores"], self.canvas.prnt.titleBar.data["class"], self.canvas.prnt.titleBar.data["label"], self.canvas.prnt.titleBar.data["validation"], self.canvas.prnt.titleBar.spnNumPcs1.GetValue() - 1, self.canvas.prnt.titleBar.spnNumPcs2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=False, text=self.tbPoints.GetValue(), pconf=False, symb=self.tbSymbols.GetValue())
 
 		elif self.canvas.GetName() in ["plcGaFeatPlot"]:
-			plotScores(self.canvas, self.graph.objects[0].points, self.canvas.prnt.prnt.splitPrnt.titleBar.data["class"], self.canvas.prnt.prnt.splitPrnt.titleBar.data["label"], self.canvas.prnt.prnt.splitPrnt.titleBar.data["validation"], 0, 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=True, text=self.tbPoints.GetValue(), pconf=False, symb=self.tbSymbols.GetValue())
+			plotScores(self.canvas, self.canvas.prnt.prnt.splitPrnt.titleBar.data["gavarcoords"], self.canvas.prnt.prnt.splitPrnt.titleBar.data["class"], self.canvas.prnt.prnt.splitPrnt.titleBar.data["label"], self.canvas.prnt.prnt.splitPrnt.titleBar.data["validation"], 0, 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=True, text=self.tbPoints.GetValue(), pconf=False, symb=self.tbSymbols.GetValue())
 
 		elif self.canvas.GetName() in ["plcGaPlot"]:
 			if self.canvas.prnt.prnt.splitPrnt.type in ["DFA"]:
-				plotScores(self.canvas, self.canvas.prnt.prnt.splitPrnt.titleBar.data["gadfadfscores"], self.canvas.prnt.prnt.splitPrnt.titleBar.data["class"], self.canvas.prnt.prnt.splitPrnt.titleBar.data["label"], self.canvas.prnt.prnt.splitPrnt.titleBar.data["validation"], 0, 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=True, text=self.tbPoints.GetValue(), pconf=self.tbConf.GetValue(), symb=self.tbSymbols.GetValue())
+				plotScores(self.canvas, self.canvas.prnt.prnt.splitPrnt.titleBar.data["gadfadfscores"], self.canvas.prnt.prnt.splitPrnt.titleBar.data["class"], self.canvas.prnt.prnt.splitPrnt.titleBar.data["label"], self.canvas.prnt.prnt.splitPrnt.titleBar.data["validation"], self.canvas.prnt.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue() - 1, self.canvas.prnt.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=True, text=self.tbPoints.GetValue(), pconf=self.tbConf.GetValue(), symb=self.tbSymbols.GetValue())
 
 		elif self.canvas.GetName() in ["plcPcaLoadsV"]:
 			plotLoads(self.canvas, scipy.transpose(self.canvas.prnt.titleBar.data["pcloads"]), self.canvas.prnt.titleBar.data["indlabels"], self.canvas.prnt.titleBar.spnNumPcs1.GetValue() - 1, self.canvas.prnt.titleBar.spnNumPcs2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType)
@@ -1104,14 +1163,14 @@ class plotProperties(wx.Dialog):
 				labels = []
 				for each in self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gacurrentchrom"]:
 					labels.append(self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["indlabels"][int(each)])
-				plotLoads(self.canvas, self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gadfadfaloads"], labels, self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue() - 1, self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType)
+				plotLoads(self.canvas, self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gadfadfaloads"], labels, 0, 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType)
 
 		elif self.canvas.GetName() in ["plcGaSpecLoad"]:
 			if self.canvas.prnt.prnt.splitPrnt.type in ["PLS"]:
 				labels = []
 				for each in self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gacurrentchrom"]:
 					labels.append(self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["indlabels"][int(each)])
-				plotLoads(self.canvas, self.canvas.prnt.prnt.splitPrnt.titleBar.data["gaplsplsloads"], labels, self.canvas.prnt.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue() - 1, self.canvas.prnt.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType)
+				plotLoads(self.canvas, self.canvas.prnt.prnt.splitPrnt.titleBar.data["gaplsplsloads"], labels, 0, 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType)
 
 	##	  def OnBtnFont(self, event):
 	##		  data = wx.FontData()

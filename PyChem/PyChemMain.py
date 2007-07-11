@@ -283,9 +283,6 @@ class PyChemMain(wx.Frame):
 	def OnMainFrameSize(self, event):
 		event.Skip()
 
-	##		  self.plExpset.SizeGrdIndLabels()
-	##		  self.plExpset.SizeGrdNames()
-
 	def OnMnuHelpContentsMenu(self, event):
 		from wx.tools import helpviewer
 
@@ -308,79 +305,91 @@ class PyChemMain(wx.Frame):
 		loadFile = wx.FileSelector("Load PyChem Experiment", "", "", "", "XML files (*.xml)|*.xml")
 		dlg = wxWorkspaceDialog(self, loadFile)
 		try:
-			dlg.ShowModal()
 			tree = dlg.getTree()
-			dlg.clearTree()
-			workSpace = dlg.getWorkspace()
-			self.Reset()
-			self.xmlLoad(tree, workSpace)
-			self.data["exppath"] = loadFile
-		##			  self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEEXP,1)
-		##			  self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEWS,1)
-		##			  self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILELOADWS,1)
+			if tree is not None:
+				dlg.ShowModal()
+				workSpace = dlg.getWorkspace()
+				self.Reset()
+				if workSpace != 0:
+					self.xmlLoad(tree, workSpace)
+					self.data["exppath"] = loadFile
+					self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEEXP, True)
+					self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEWS, True)
+					self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILELOADWS, True)
 		finally:
 			dlg.Destroy()
-
-	##		  except Exception, error:
-	##			  errorBox(self,'%s' %str(error))
 
 	def OnMnuFileLoadwsMenu(self, event):
 		dlg = wxWorkspaceDialog(self, self.data["exppath"])
-		dlg.ShowModal()
-		workSpace = dlg.getWorkspace()
-		if workSpace is not None:
-			tree = dlg.getTree()
-			self.Reset(1)
-			self.xmlLoad(tree, workSpace, "ws")
+		if self.data["exppath"] is not None:
+			try:
+				dlg.ShowModal()
+				workSpace = dlg.getWorkspace()
+				tree = dlg.getTree()
+				self.Reset(1)
+				self.xmlLoad(tree, workSpace, "ws")
+			finally:
+				dlg.Destroy()
 		else:
-			dlg.Close()
+			dlg.Destroy()
 
 	def OnMnuFileSaveexpMenu(self, event):
 		dlg = wx.FileDialog(self, "Choose a file", ".", "", "XML files (*.xml)|*.xml", wx.FD_SAVE)
-		try:
-			if dlg.ShowModal() == wx.ID_OK:
-				saveFile = dlg.GetPath()
-				self.xmlSave(saveFile, "Default", "new")
-				# activate workspace save menu option
-				self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEEXP, 1)
-				self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEWS, 1)
-				self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILELOADWS, 1)
-				# show workspace dialog so that default can be edited
-				dlgws = wxWorkspaceDialog(self, saveFile, dtype="Save")
-				try:
-					dlgws.ShowModal()
-				finally:
-					dlgws.Destroy()
-		finally:
-			dlg.Destroy()
-
-	def OnMnuFileSavewsMenu(self, event):
-		# text entry dialog
-		dlg = wx.TextEntryDialog(self, "Type in a name under which to save the current workspace", "Save Workspace as...", "Default")
-		try:
-			if dlg.ShowModal() == wx.ID_OK:
-				wsName = dlg.GetValue()
-		finally:
-			dlg.Destroy()
-
-		# workspace dialog for editing
-		if wsName is not "":
-			# save workspace to xml file
-			self.xmlSave(self.data["exppath"], wsName.replace(" ", "_"), type=self.data["exppath"])
-
-			# show workspace dialog
-			dlg = wxWorkspaceDialog(self, self.data["exppath"], dtype="Save")
+		if self.data["raw"] is not None:
 			try:
-				dlg.ShowModal()
-				dlg.appendWorkspace(wsName)
+				if dlg.ShowModal() == wx.ID_OK:
+					saveFile = dlg.GetPath()
+					# workspace name entry dialog
+					texTdlg = wx.TextEntryDialog(self, "Type in a name under which to save the current workspace", "Save Workspace as...", "Default")
+					try:
+						if texTdlg.ShowModal() == wx.ID_OK:
+							wsName = texTdlg.GetValue()
+					finally:
+						texTdlg.Destroy()
+					self.xmlSave(saveFile, wsName, "new")
+					# activate workspace save menu option
+					self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEEXP, True)
+					self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEWS, True)
+					self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILELOADWS, True)
+					# show workspace dialog so that default can be edited
+					dlgws = wxWorkspaceDialog(self, saveFile, dtype="Save")
+					try:
+						dlgws.ShowModal()
+					finally:
+						dlgws.Destroy()
 			finally:
 				dlg.Destroy()
 		else:
-			dlg = wx.MessageDialog(self, "No workspace name was provided", "Error!", wx.OK | wx.ICON_ERROR)
+			dlg.Destroy()
+
+	def OnMnuFileSavewsMenu(self, event):
+		if self.data["exppath"] is not None:
+			# text entry dialog
+			dlg = wx.TextEntryDialog(self, "Type in a name under which to save the current workspace", "Save Workspace as...", "Default")
 			try:
-				dlg.ShowModal()
+				if dlg.ShowModal() == wx.ID_OK:
+					wsName = dlg.GetValue()
 			finally:
 				dlg.Destroy()
+
+			# workspace dialog for editing
+			if wsName is not "":
+				# save workspace to xml file
+				self.xmlSave(self.data["exppath"], wsName.replace(" ", "_"), type=self.data["exppath"])
+
+				# show workspace dialog
+				dlg = wxWorkspaceDialog(self, self.data["exppath"], dtype="Save")
+				try:
+					dlg.ShowModal()
+					dlg.appendWorkspace(wsName)
+				finally:
+					dlg.Destroy()
+			else:
+				dlg = wx.MessageDialog(self, "No workspace name was provided", "Error!", wx.OK | wx.ICON_ERROR)
+				try:
+					dlg.ShowModal()
+				finally:
+					dlg.Destroy()
 
 	def OnMnuFileFileimportMenu(self, event):
 		dlg = wxImportDialog(self)
@@ -428,9 +437,9 @@ class PyChemMain(wx.Frame):
 					data = self.data["raw"][0:rows, 0:cols]
 
 				# allow for experiment save on file menu
-				self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEEXP, 1)
-				self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEWS, 0)
-				self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILELOADWS, 0)
+				self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEEXP, True)
+				self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEWS, False)
+				self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILELOADWS, False)
 
 				dlgConfirm = wxImportConfirmDialog(self, data, rows, cols)
 				try:
@@ -600,7 +609,7 @@ class PyChemMain(wx.Frame):
 		self.plGadfa.Reset()
 		self.plGapls.Reset()
 
-		# associate algorithm classes with data
+		# associate algorithm objects with data
 		self.plExpset.depTitleBar.getData(self.data)
 		self.plExpset.indTitleBar.getData(self.data)
 		self.plPreproc.titleBar.getData(self.data)
@@ -611,13 +620,16 @@ class PyChemMain(wx.Frame):
 		self.plGadfa.titleBar.getData(self.data)
 		self.plGapls.titleBar.getData(self.data)
 
-		self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEEXP, 0)
-		self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEWS, 0)
-		self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILELOADWS, 0)
+		# disable options on file menu
+		self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEEXP, False)
+		self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEWS, False)
+		self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILELOADWS, False)
 
 	def xmlSave(self, path, workspace, type=None):
 		# type is either "new" (in which case workspace = "Default")
 		# or path to saved xml file
+
+		wx.BeginBusyCursor()
 
 		proceed = 1
 		if type is "new":
@@ -708,7 +720,7 @@ class PyChemMain(wx.Frame):
 				locals()[name].set("key", "str")
 				locals()[name].text = getByPath(self, each).GetValue()
 
-			boolCtrls = ["plCluster.optDlg.rbKmeans", "plCluster.optDlg.rbKmedian", "plCluster.optDlg.rbKmedoids", "plCluster.optDlg.rbHcluster", "plCluster.optDlg.rbSingleLink", "plCluster.optDlg.rbMaxLink", "plCluster.optDlg.rbAvLink", "plCluster.optDlg.rbCentLink", "plCluster.optDlg.rbEuclidean", "plCluster.optDlg.rbCorrelation", "plCluster.optDlg.rbAbsCorr", "plCluster.optDlg.rbUncentredCorr", "plCluster.optDlg.rbAbsUncentCorr", "plCluster.optDlg.rbSpearmans", "plCluster.optDlg.rbKendalls", "plCluster.optDlg.rbHarmonicEuc", "plCluster.optDlg.rbCityBlock", "plCluster.optDlg.cbUseClass", "plCluster.optDlg.rbPlotName", "plCluster.optDlg.rbPlotColours", "plGadfa.optDlg.cbGaRepUntil", "plGadfa.optDlg.cbGaMaxGen", "plGadfa.optDlg.cbGaMut", "plGadfa.optDlg.cbGaXover", "plDfa.titleBar.cbDfaXval"]
+			boolCtrls = ["plCluster.optDlg.rbKmeans", "plCluster.optDlg.rbKmedian", "plCluster.optDlg.rbKmedoids", "plCluster.optDlg.rbHcluster", "plCluster.optDlg.rbSingleLink", "plCluster.optDlg.rbMaxLink", "plCluster.optDlg.rbAvLink", "plCluster.optDlg.rbCentLink", "plCluster.optDlg.rbEuclidean", "plCluster.optDlg.rbCorrelation", "plCluster.optDlg.rbAbsCorr", "plCluster.optDlg.rbUncentredCorr", "plCluster.optDlg.rbAbsUncentCorr", "plCluster.optDlg.rbSpearmans", "plCluster.optDlg.rbKendalls", "plCluster.optDlg.rbCityBlock", "plCluster.optDlg.rbPlotName", "plCluster.optDlg.rbPlotColours", "plGadfa.optDlg.cbGaRepUntil", "plGadfa.optDlg.cbGaMaxGen", "plGadfa.optDlg.cbGaMut", "plGadfa.optDlg.cbGaXover", "plDfa.titleBar.cbDfaXval"]
 
 			for each in boolCtrls:
 				name = each.split(".")[len(each.split(".")) - 1]
@@ -783,6 +795,13 @@ class PyChemMain(wx.Frame):
 			# wrap it in an ElementTree instance, and save as XML
 			tree = ET.ElementTree(root)
 			tree.write(path)
+
+			# enable menu options
+			self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEWS, True)
+			self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILELOADWS, True)
+
+		# end busy cursor
+		wx.BeginBusyCursor()
 
 	def xmlLoad(self, tree, workspace, type="new"):
 		# load pychem experiments from saved xml files
@@ -1035,6 +1054,11 @@ class PyChemMain(wx.Frame):
 		except:
 			pass
 
+		try:  # set number of centroids for cluster analysis based on class structure
+			self.plCluster.optDlg.spnNumClass.SetValue(max(self.data["class"]))
+		except:
+			pass
+
 	def EnableCtrls(self):
 		self.plExpset.grdNames.Enable(1)
 		self.plExpset.depTitleBar.btnImportMetaData.Enable(1)
@@ -1235,7 +1259,7 @@ class wxWorkspaceDialog(wx.Dialog):
 		self.lbSaveWorkspace.Bind(wx.EVT_LIST_END_LABEL_EDIT, self.OnLbSaveWorkspaceListEndLabelEdit, id=wxID_WXWORKSPACEDIALOGLBSAVEWORKSPACE)
 		self.lbSaveWorkspace.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnLbSaveWorkspaceListItemSelected, id=wxID_WXWORKSPACEDIALOGLBSAVEWORKSPACE)
 
-	def __init__(self, parent, filename, dtype="Load"):
+	def __init__(self, parent, filename="", dtype="Load"):
 		# type to be either "load" or "save"
 		self._init_savews_ctrls(parent)
 
@@ -1243,54 +1267,51 @@ class wxWorkspaceDialog(wx.Dialog):
 		self.SetTitle(dtype + " Workspace")
 		self.dtype = dtype
 		self.filename = filename
+		self.tree = None
+		self.workSpace = 0
 
 		# need to populate listbox
 		try:
 			# check that it's a pychem file
-			tree = ET.ElementTree(file=self.filename)
-			self.tree = tree
-			workspaces = tree.getroot().findall("Workspaces")[0]
-			self.lbSaveWorkspace.SetColumnWidth(0, 260)
-			for each in workspaces:
-				index = self.lbSaveWorkspace.InsertItem(sys.maxsize, each.tag)
-				self.lbSaveWorkspace.SetItem(index, 0, each.tag.replace("_", " "))
-
-			# behaviour for save dialog
-			if dtype == "Save":
-				self.btnCancel.Enable(0)
-		except:
 			if self.filename not in [""]:
-				dlg = wx.MessageDialog(self, "Unable to load data - this is not a PyChem Experiment file", "Error!", wx.OK | wx.ICON_ERROR)
-				try:
-					dlg.ShowModal()
-				finally:
-					dlg.Destroy()
-			else:
-				pass
-			self.Destroy()
+				self.tree = ET.ElementTree(file=self.filename)
+				workspaces = self.tree.getroot().findall("Workspaces")[0]
+				self.lbSaveWorkspace.SetColumnWidth(0, 260)
+				for each in workspaces:
+					index = self.lbSaveWorkspace.InsertItem(sys.maxsize, each.tag)
+					self.lbSaveWorkspace.SetItem(index, 0, each.tag.replace("_", " "))
+
+				# behaviour for save dialog
+				if dtype == "Save":
+					self.btnCancel.Enable(0)
+		except:
+			dlg = wx.MessageDialog(self, "Unable to load data - this is not a PyChem Experiment file", "Error!", wx.OK | wx.ICON_ERROR)
+			try:
+				dlg.ShowModal()
+			finally:
+				dlg.Destroy()
 
 	def OnBtnDeleteButton(self, event):
 		if self.lbSaveWorkspace.GetItemCount() > 1:
 			# need to delete the workspace in the xml file
-			WSnode = tree.getroot().findall("Workspaces")[0]
+			WSnode = self.tree.getroot().findall("Workspaces")[0]
 			workspaces = WSnode
 			for each in workspaces:
 				if each.tag == self.lbSaveWorkspace.GetItemText(self.currentItem).replace(" ", "_"):
 					WSnode.remove(each)
-			tree.write(self.filename)
+			self.tree.write(self.filename)
 
 			# delete listbox entry
 			self.lbSaveWorkspace.DeleteItem(self.currentItem)
 
 	def OnBtnCancelButton(self, event):
-		self.clearTree()
 		self.Close()
 
 	def OnBtnEditButton(self, event):
 		event.Skip()
 
 	def getWorkspace(self):
-		if self.workSpace != 0:
+		if (self.filename not in [""]) & (self.workSpace != 0) is True:
 			return self.workSpace.replace(" ", "_")
 		else:
 			return 0
@@ -1301,19 +1322,16 @@ class wxWorkspaceDialog(wx.Dialog):
 
 	def OnBtnOKButton(self, event):
 		if self.dtype == "Load":
-			##			  try:
-			self.workSpace = self.lbSaveWorkspace.GetItemText(self.currentItem)
-			##			  self.clearTree()
-			self.Close()
-		##			  except:
-		##				  dlg = wx.MessageDialog(self, 'Please select a Workspace to load',
-		##					'Error!', wx.OK | wx.ICON_ERROR)
-		##				  try:
-		##					  dlg.ShowModal()
-		##				  finally:
-		##					  dlg.Destroy()
+			try:
+				self.workSpace = self.lbSaveWorkspace.GetItemText(self.currentItem)
+				self.Close()
+			except:
+				dlg = wx.MessageDialog(self, "Please select a Workspace to load", "Error!", wx.OK | wx.ICON_ERROR)
+				try:
+					dlg.ShowModal()
+				finally:
+					dlg.Destroy()
 		else:
-			##			  self.clearTree()
 			self.Close()
 
 	def OnLbSaveWorkspaceLeftDclick(self, event):
@@ -1332,6 +1350,3 @@ class wxWorkspaceDialog(wx.Dialog):
 
 	def getTree(self):
 		return self.tree
-
-	def clearTree(self):
-		del self.tree

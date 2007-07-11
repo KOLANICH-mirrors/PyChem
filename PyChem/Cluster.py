@@ -104,11 +104,11 @@ class Cluster(wx.Panel):
 
 		self.p1 = wx.Panel(self.Splitter)
 		self.p1.SetAutoLayout(True)
-		self.p1.Show(False)
+		self.p1.Show(True)
 
-		self.p2 = wx.Panel(self.Splitter)
-		self.p2.SetAutoLayout(True)
-		self.p2.Show(True)
+		##		  self.p2 = wx.Panel(self.Splitter)
+		##		  self.p2.SetAutoLayout(True)
+		##		  self.p2.Show(True)
 
 		self.optDlg = selFun(self.Splitter)
 
@@ -122,13 +122,14 @@ class Cluster(wx.Panel):
 		self.plcCluster.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Small Fonts"))
 		self.plcCluster.SetConstraints(LayoutAnchors(self.plcCluster, True, True, True, True))
 
-		self.txtCluster = wx.TextCtrl(id=-1, name="txtCluster", parent=self.p2, pos=wx.Point(0, 0), size=wx.Size(200, 200), style=wx.TE_DONTWRAP | wx.HSCROLL | wx.TE_READONLY | wx.SUNKEN_BORDER | wx.TE_MULTILINE | wx.VSCROLL, value="")
+		self.txtCluster = wx.TextCtrl(id=-1, name="txtCluster", parent=self.p1, pos=wx.Point(0, 0), size=wx.Size(200, 200), style=wx.TE_DONTWRAP | wx.HSCROLL | wx.TE_READONLY | wx.SUNKEN_BORDER | wx.TE_MULTILINE | wx.VSCROLL, value="")
 		self.txtCluster.SetToolTip("")
 		self.txtCluster.SetConstraints(LayoutAnchors(self.txtCluster, True, True, True, True))
+		self.txtCluster.Show(False)
 
 		self.titleBar = TitleBar(self, id=-1, text="Cluster Analysis", style=bp.BP_USE_GRADIENT, alignment=bp.BP_ALIGN_LEFT)
 
-		self.Splitter.SplitVertically(self.optDlg, self.p2, 1)
+		self.Splitter.SplitVertically(self.optDlg, self.p1, 1)
 		self.Splitter.SetMinimumPaneSize(1)
 
 		self._init_cluster_sizers()
@@ -227,369 +228,375 @@ class TitleBar(bp.ButtonPanel):
 
 	def RunClustering(self):
 		# hierarchical cluster analysis
-		try:
-			# get x-data
-			if self.cbxData.GetSelection() == 0:
-				xdata = self.data["rawtrunc"]
-			elif self.cbxData.GetSelection() == 1:
-				xdata = self.data["proctrunc"]
-			elif self.cbxData.GetSelection() == 2:
-				xdata = self.data["pcscores"]
-			elif self.cbxData.GetSelection() == 3:
-				xdata = self.data["dfscores"]
+		##		  try:
+		# get x-data
+		if self.cbxData.GetSelection() == 0:
+			xdata = self.data["rawtrunc"]
+		elif self.cbxData.GetSelection() == 1:
+			xdata = self.data["proctrunc"]
+		elif self.cbxData.GetSelection() == 2:
+			xdata = self.data["pcscores"]
+		elif self.cbxData.GetSelection() == 3:
+			xdata = self.data["dfscores"]
 
-			# get distance measure
-			if self.parent.optDlg.rbEuclidean.GetValue() is True:
-				seldist = "e"
-			elif self.parent.optDlg.rbCorrelation.GetValue() is True:
-				seldist = "c"
-			elif self.parent.optDlg.rbAbsCorr.GetValue() is True:
-				seldist = "a"
-			elif self.parent.optDlg.rbUncentredCorr.GetValue() is True:
-				seldist = "u"
-			elif self.parent.optDlg.rbAbsUncentCorr.GetValue() is True:
-				seldist = "x"
-			elif self.parent.optDlg.rbSpearmans.GetValue() is True:
-				seldist = "s"
-			elif self.parent.optDlg.rbKendalls.GetValue() is True:
-				seldist = "k"
-			elif self.parent.optDlg.rbHarmonicEuc.GetValue() is True:
-				seldist = "h"
-			elif self.parent.optDlg.rbCityBlock.GetValue() is True:
-				seldist = "b"
+		# get distance measure
+		if self.parent.optDlg.rbEuclidean.GetValue() is True:
+			seldist = "e"
+		elif self.parent.optDlg.rbCorrelation.GetValue() is True:
+			seldist = "c"
+		elif self.parent.optDlg.rbAbsCorr.GetValue() is True:
+			seldist = "a"
+		elif self.parent.optDlg.rbUncentredCorr.GetValue() is True:
+			seldist = "u"
+		elif self.parent.optDlg.rbAbsUncentCorr.GetValue() is True:
+			seldist = "x"
+		elif self.parent.optDlg.rbSpearmans.GetValue() is True:
+			seldist = "s"
+		elif self.parent.optDlg.rbKendalls.GetValue() is True:
+			seldist = "k"
+		elif self.parent.optDlg.rbCityBlock.GetValue() is True:
+			seldist = "b"
 
-			# run clustering
-			if self.parent.optDlg.rbKmeans.GetValue() is True:
-				if self.parent.optDlg.cbUseClass.GetValue() is True:
-					cl = np.array(self.data["class"], "i") - 1
-					self.clusterid, error, nfound = kcluster(xdata, nclusters=int(max(self.data["class"])), transpose=0, npass=self.parent.optDlg.spnNoPass.GetValue(), method="a", dist=seldist, initialid=cl.tolist())
-
-				else:
-					self.clusterid, error, nfound = kcluster(xdata, nclusters=int(max(self.data["class"])), transpose=0, npass=self.parent.optDlg.spnNoPass.GetValue(), method="a", dist=seldist)
-
-				self.parent.plcCluster.Show(False)
-				self.parent.txtCluster.Show(True)
-				self.parent.Splitter.SplitVertically(self.parent.optDlg, self.parent.p2, 250)
-				self.parent.Splitter.Refresh()
-
-				sizeMask = xdata.shape
-
-				centroids, mask = cluster.clustercentroids(xdata, mask=ones(sizeMask), clusterid=self.clusterid, method="a", transpose=0)
-
-				self.ReportPartitioning(self.parent.txtCluster, self.clusterid, error, nfound, "k-means Summary", centroids)
-
-			elif self.parent.optDlg.rbKmedian.GetValue() is True:
-				if self.parent.optDlg.cbUseClass.GetValue() is True:
-					cl = np.array(self.data["class"], "i") - 1
-					self.clusterid, error, nfound = kcluster(xdata, nclusters=int(max(self.data["class"])), transpose=0, npass=self.parent.optDlg.spnNoPass.GetValue(), method="m", dist=seldist, initialid=cl.tolist())
-
-				else:
-					self.clusterid, error, nfound = kcluster(xdata, nclusters=int(max(self.data["class"])), transpose=0, npass=self.parent.optDlg.spnNoPass.GetValue(), method="m", dist=seldist)
-
-				self.parent.p1.Show(False)
-				self.parent.p2.Show(True)
-				self.parent.Splitter.SplitVertically(self.parent.optDlg, self.parent.p2, 250)
-				self.parent.Splitter.Refresh()
-
-				sizeMask = xdata.shape
-
-				centroids, mask = cluster.clustercentroids(xdata, mask=ones(sizeMask), clusterid=self.clusterid, method="m", transpose=0)
-
-				self.ReportPartitioning(self.parent.txtCluster, self.clusterid, error, nfound, "k-medians Summary", centroids)
-
-			elif self.parent.optDlg.rbKmedoids.GetValue() == 1:
-				distance = self.ConvDist(xdata, seldist)
-				if self.parent.optDlg.cbUseClass.GetValue() is True:
-					cl = np.array(self.data["class"], "i") - 1
-					self.clusterid, error, nfound = cluster.kmedoids(distance, nclusters=int(max(self.data["class"])), npass=self.parent.optDlg.spnNoPass.GetValue(), initialid=cl.tolist())
-
-				else:
-					self.clusterid, error, nfound = cluster.kmedoids(distance, nclusters=int(max(self.data["class"])), npass=self.parent.optDlg.spnNoPass.GetValue())
-
-				# rename cluster ids
-				for i in range(len(self.clusterid)):
-					self.clusterid[i] = self.data["class"][self.clusterid[i]] - 1
-
-				self.parent.p1.Show(False)
-				self.parent.p2.Show(True)
-				self.parent.Splitter.SplitVertically(self.parent.optDlg, self.parent.p2, 250)
-				self.parent.Splitter.Refresh()
-
-				self.ReportPartitioning(self.parent.txtCluster, self.clusterid, error, nfound, "k-medoids Summary")
-
-			elif self.parent.optDlg.rbHcluster.GetValue() is True:
-				# get clustering method
-				if self.parent.optDlg.rbSingleLink.GetValue() is True:
-					Hmeth = "s"
-				elif self.parent.optDlg.rbMaxLink.GetValue() is True:
-					Hmeth = "m"
-				elif self.parent.optDlg.rbAvLink.GetValue() is True:
-					Hmeth = "a"
-				elif self.parent.optDlg.rbCentLink.GetValue() is True:
-					Hmeth = "c"
-
-				# run hca
-				tree = treecluster(data=xdata, method=Hmeth, dist=seldist)
-
-				# scale tree
-				tree.scale()
-
-				# determine tree structure
-				self.data["tree"], self.data["order"] = self.treestructure(tree, scipy.arange(len(tree) + 1), transpose=0)
-
-				# draw tree
-				self.DrawTree(self.parent.plcCluster, self.data["tree"], self.data["order"], self.data["label"])
-
-				self.parent.p2.Show(False)
-				self.parent.p1.Show(True)
-				self.parent.Splitter.SplitVertically(self.parent.optDlg, self.parent.p1, 250)
-				self.parent.Splitter.Refresh()
-
-		##			  #enable export
-		##			  if self.parent.optDlg.rbHcluster.GetValue() is True:
-		##				  self.btnExportCluster.Enable(1)
-		##			  else:
-		##				  self.btnExportCluster.Enable(0)
-		except Exception as error:
-			errorBox(self, "%s" % str(error))
-
-	def treestructure(self, tree, order, transpose):
-		# determine hierarchical tree structure
-		clusters, nodedist = [], []
-		nodes = tree[:]
-		for i in range(len(tree)):
-			clusters.append([nodes[i].left, nodes[i].right])
-			nodedist.append([nodes[i].distance])
-		nnodes = len(tree) - 1
-		nodeid = scipy.zeros((nnodes, 4), "d")
-		nodecounts = scipy.zeros(nnodes)
-		nodeorder = scipy.zeros(nnodes, "d")
-		nodedist = np.array(nodedist)
-		for nodeindex in range(nnodes):
-			min1 = clusters[nodeindex][0]
-			min2 = clusters[nodeindex][1]
-			nodeid[nodeindex, 0] = nodeindex
-			if min1 < 0:
-				index1 = -min1 - 1
-				order1 = nodeorder[index1]
-				counts1 = nodecounts[index1]
-				nodeid[nodeindex, 1] = min1
+		# run clustering
+		if self.parent.optDlg.rbKmeans.GetValue() is True:
+			if self.parent.optDlg.spnNoPass.GetValue() == 1:
+				stid = (np.array(self.data["class"], "i") - 1).tolist()
+				self.clusterid, error, nfound = kcluster(xdata, nclusters=len(scipy.unique(self.data["class"])), transpose=0, npass=1, method="a", dist=seldist, initialid=stid)
 			else:
-				order1 = order[min1]
-				counts1 = 1
-				nodeid[nodeindex, 1] = min1
-			if min2 < 0:
-				index2 = -min2 - 1
-				order2 = nodeorder[index2]
-				counts2 = nodecounts[index2]
-				nodeid[nodeindex, 2] = min2
-			else:
-				order2 = order[min2]
-				counts2 = 1
-				nodeid[nodeindex, 2] = min2
-			nodeid[nodeindex, 3] = nodedist[nodeindex]
-			nodecounts[nodeindex] = counts1 + counts2
-			nodeorder[nodeindex] = (counts1 * order1 + counts2 * order2) / (counts1 + counts2)
-		# Now set up order based on the tree structure
-		index = self.treesort(order, nodeorder, nodecounts, clusters)
+				self.clusterid, error, nfound = kcluster(xdata, nclusters=len(scipy.unique(self.data["class"])), transpose=0, npass=self.parent.optDlg.spnNoPass.GetValue(), method="a", dist=seldist)
 
-		return nodeid, index
+			self.parent.plcCluster.Show(False)
+			self.parent.txtCluster.Show(True)
 
-	def treesort(self, order, nodeorder, nodecounts, NodeElement):
-		nNodes = len(NodeElement)
-		nElements = nNodes + 1
-		neworder = zeros(nElements, "d")
-		clusterids = list(range(nElements))
-		for i in range(nNodes):
-			i1 = NodeElement[i][0]
-			i2 = NodeElement[i][1]
-			if i1 < 0:
-				order1 = nodeorder[-i1 - 1]
-				count1 = nodecounts[-i1 - 1]
-			else:
-				order1 = order[i1]
-				count1 = 1
-			if i2 < 0:
-				order2 = nodeorder[-i2 - 1]
-				count2 = nodecounts[-i2 - 1]
-			else:
-				order2 = order[i2]
-				count2 = 1
-			# If order1 and order2 are equal, their order is determined by the order in which they were clustered
-			if i1 < i2:
-				if order1 < order2:
-					increase = count1
-				else:
-					increase = count2
-				for j in range(nElements):
-					clusterid = clusterids[j]
-					if clusterid == i1 and order1 >= order2:
-						neworder[j] += increase
-					if clusterid == i2 and order1 < order2:
-						neworder[j] += increase
-					if clusterid == i1 or clusterid == i2:
-						clusterids[j] = -i - 1
-			else:
-				if order1 <= order2:
-					increase = count1
-				else:
-					increase = count2
-				for j in range(nElements):
-					clusterid = clusterids[j]
-					if clusterid == i1 and order1 > order2:
-						neworder[j] += increase
-					if clusterid == i2 and order1 <= order2:
-						neworder[j] += increase
-					if clusterid == i1 or clusterid == i2:
-						clusterids[j] = -i - 1
-		return argsort(neworder)
+			centroids, mask = cluster.clustercentroids(xdata, clusterid=self.clusterid, method="a", transpose=0)
 
-	def DrawTree(self, canvas, tree, order, name):
-		colourList = ["BLUE", "BROWN", "CYAN", "GREY", "GREEN", "MAGENTA", "ORANGE", "PURPLE", "VIOLET"]
+			self.ReportPartitioning(self.parent.txtCluster, self.clusterid, error, nfound, "K-means Summary", centroids)
+
+		elif self.parent.optDlg.rbKmedian.GetValue() is True:
+			if self.parent.optDlg.spnNoPass.GetValue() == 1:
+				stid = (np.array(self.data["class"], "i") - 1).tolist()
+				self.clusterid, error, nfound = kcluster(xdata, nclusters=len(scipy.unique(self.data["class"])), npass=1, method="m", dist=seldist, initialid=stid)
+			else:
+				self.clusterid, error, nfound = kcluster(xdata, nclusters=len(scipy.unique(self.data["class"])), npass=self.parent.optDlg.spnNoPass.GetValue(), method="m", dist=seldist)
+
+			self.parent.plcCluster.Show(False)
+			self.parent.txtCluster.Show(True)
+
+			centroids, mask = cluster.clustercentroids(xdata, mask=ones(xdata.shape), clusterid=self.clusterid, method="m", transpose=0)
+
+			self.ReportPartitioning(self.parent.txtCluster, self.clusterid, error, nfound, "K-medians Summary", centroids)
+
+		elif self.parent.optDlg.rbKmedoids.GetValue() is True:
+			# generate distance matrix
+			distance = cluster.distancematrix(xdata, transpose=0, dist=seldist)
+
+			if self.parent.optDlg.spnNoPass.GetValue() == 1:
+				stid = (np.array(self.data["class"], "i") - 1).tolist()
+				self.clusterid, error, nfound = cluster.kmedoids(distance, nclusters=len(scipy.unique(self.data["class"])), npass=1, initialid=stid)
+			else:
+				self.clusterid, error, nfound = cluster.kmedoids(distance, nclusters=len(scipy.unique(self.data["class"])), npass=self.parent.optDlg.spnNoPass.GetValue())
+
+			# rename cluster ids
+			for i in range(len(self.clusterid)):
+				self.clusterid[i] = self.data["class"][self.clusterid[i]] - 1
+
+			self.parent.plcCluster.Show(False)
+			self.parent.txtCluster.Show(True)
+
+			self.ReportPartitioning(self.parent.txtCluster, self.clusterid, error, nfound, "K-medoids Summary")
+
+		elif self.parent.optDlg.rbHcluster.GetValue() is True:
+			# get clustering method
+			if self.parent.optDlg.rbSingleLink.GetValue() is True:
+				Hmeth = "s"
+			elif self.parent.optDlg.rbMaxLink.GetValue() is True:
+				Hmeth = "m"
+			elif self.parent.optDlg.rbAvLink.GetValue() is True:
+				Hmeth = "a"
+			elif self.parent.optDlg.rbCentLink.GetValue() is True:
+				Hmeth = "c"
+
+			# run hca
+			tree = treecluster(data=xdata, method=Hmeth, dist=seldist)
+
+			# scale tree
+			tree.scale()
+
+			# divide into clusters
+			##				  tree.cut(len(scipy.unique(self.data['class'])))
+
+			##				  #determine tree structure
+			##				  self.data['tree'], self.data['order'] = self.treestructure(tree,
+			##						scipy.arange(len(tree)+1))
+
+			# draw tree
+			self.drawTree(self.parent.plcCluster, self.data["tree"], self.data["label"])
+
+			self.parent.plcCluster.Show(True)
+			self.parent.txtCluster.Show(False)
+
+	##			  #enable export
+	##			  if self.parent.optDlg.rbHcluster.GetValue() is True:
+	##				  self.btnExportCluster.Enable(1)
+	##			  else:
+	##				  self.btnExportCluster.Enable(0)
+	##		  except Exception, error:
+	##			  errorBox(self, '%s' %str(error))
+
+	##	  def treestructure(self, tree, order):
+	##		  #determine hierarchical tree structure
+	##		  clusters,nodedist = [],[]
+	##		  nodes = tree[:]
+	##
+	##		  for i in range(len(tree)):
+	##			  clusters.append([nodes[i].left,nodes[i].right])
+	##			  nodedist.append([nodes[i].distance])
+	##
+	##		  nnodes = len(tree)
+	##
+	##		  nodeid = scipy.zeros((nnodes,4),'d')
+	##		  nodecounts = scipy.zeros(nnodes)
+	##		  nodeorder = scipy.zeros(nnodes,'d')
+	##		  nodedist = np.array(nodedist)
+	##		  for nodeindex in range(nnodes):
+	##			  min1 = clusters[nodeindex][0]
+	##			  min2 = clusters[nodeindex][1]
+	##			  nodeid[nodeindex,0] = nodeindex
+	##			  if min1 < 0:
+	##				  index1 = -min1-1
+	##				  order1 = nodeorder[index1]
+	##				  counts1 = nodecounts[index1]
+	##				  nodeid[nodeindex,1] = min1
+	##			  else:
+	##				  order1 = order[min1]
+	##				  counts1 = 1
+	##				  nodeid[nodeindex,1] = min1
+	##			  if min2 < 0:
+	##				  index2 = -min2-1
+	##				  order2 = nodeorder[index2]
+	##				  counts2 = nodecounts[index2]
+	##				  nodeid[nodeindex,2] = min2
+	##			  else:
+	##				  order2 = order[min2];
+	##				  counts2 = 1;
+	##				  nodeid[nodeindex,2] = min2
+	##			  nodeid[nodeindex,3] = nodedist[nodeindex]
+	##			  nodecounts[nodeindex] = counts1 + counts2
+	##			  nodeorder[nodeindex] = (counts1*order1+counts2*order2) / (counts1+counts2)
+	##
+	##		  # Now set up order based on the tree structure
+	##		  index = self.treesort(scipy.arange(len(nodeorder)), nodeorder,
+	##				nodecounts, clusters)
+	##
+	##		  return nodeid, index
+
+	##	  def treesort(self, order, nodeorder, nodecounts, NodeElement):
+	##		  nNodes = len(NodeElement)
+	##		  nElements = nNodes + 1
+	##		  neworder = zeros(nElements,'d')
+	##		  clusterids = range(nElements)
+	##		  for i in range(1,nNodes+1):
+	##			  i1 = NodeElement[i][0]
+	##			  i2 = NodeElement[i][1]
+	##			  if i1 < 0:
+	##				  order1 = nodeorder[-i1-1]
+	##				  count1 = nodecounts[-i1-1]
+	##			  else:
+	##				  order1 = order[i1]
+	##				  count1 = 1
+	##			  if i2 < 0:
+	##				  order2 = nodeorder[-i2-1]
+	##				  count2 = nodecounts[-i2-1]
+	##			  else:
+	##				  order2 = order[i2]
+	##				  count2 = 1
+	##			  # If order1 and order2 are equal, their order is determined by the order in which they were clustered
+	##			  if i1 < i2:
+	##				  if order1 < order2:
+	##					  increase = count1
+	##				  else:
+	##					  increase = count2
+	##				  for j in range(nElements):
+	##					  clusterid = clusterids[j]
+	##					  if clusterid==i1 and order1>=order2: neworder[j] += increase
+	##					  if clusterid==i2 and order1<order2: neworder[j] += increase
+	##					  if clusterid==i1 or clusterid==i2: clusterids[j] = -i-1
+	##			  else:
+	##				  if order1<=order2:
+	##					  increase = count1
+	##				  else:
+	##					  increase = count2
+	##				  for j in range(nElements):
+	##					  clusterid = clusterids[j]
+	##					  if clusterid==i1 and order1>order2: neworder[j] += increase
+	##					  if clusterid==i2 and order1<=order2: neworder[j] += increase
+	##					  if clusterid==i1 or clusterid==i2: clusterids[j] = -i-1
+	##		  return argsort(neworder)
+
+	def drawTree(self, canvas, tree, name):
+		##		  colourList = ['BLUE', 'BROWN', 'CYAN','GREY', 'GREEN', 'MAGENTA',
+		##					  'ORANGE', 'PURPLE', 'VIOLET']
 
 		# set font size
-		font_size = 7
+		font_size = 8
 
 		canvas.fontSizeAxis = font_size
 		canvas.enableLegend = 0
-		# do level 1
-		List, Cols, ccount = [], [], 0
-		for i in range(len(tree)):
-			if self.data["class"][i] not in List:
-				List.append(self.data["class"][i])
-				Cols.append(colourList[ccount])
-				ccount += 1
-				if ccount == len(colourList):
-					ccount = 0
-		minx = 0
-		if self.parent.optDlg.rbPlotColours.GetValue() is True:
-			canvas.enableLegend = 1
-			Line, List, Nlist, Store = [], [], [], {}
-			count = 0
-			for i in range(len(order)):
-				idn = int(self.data["class"][order[i]])
-				# plot names
-				if idn in List:
-					Store[str(idn)] = scipy.concatenate((Store[str(idn)], [[0, count]]), 0)
-				else:
-					Store[str(idn)] = [[0, count]]
-					List.append(self.data["class"][order[i]])
-					Nlist.append(self.data["label"][order[i]])
-				count += 2
 
-			canvas.SetLegendItems(len(Store))
-			for i in range(1, len(Store) + 1):
-				Line.append(wx.lib.plot.PolyMarker(Store[str(i)], marker="square", size=font_size, colour=Cols[i - 1], legend=Nlist[i - 1]))
-
-		elif self.parent.optDlg.rbPlotName.GetValue() is True:
-			Line = []
-			count = 0
-			for i in range(len(order)):
-				Line.append(wx.lib.plot.PolyMarker(np.array([[0, count]]), marker="text", labels=name[int(order[i])]))
-				count += 2
-
-		# plot distances
-		Line.append(wx.lib.plot.PolyMarker(np.array([[0, -0.5]]), marker="text", labels="0"))
-		Line.append(wx.lib.plot.PolyMarker(np.array([[max(tree[:, 3]), -0.5]]), marker="text", labels="% .2f" % max(tree[:, 3])))
-
-		idx = scipy.reshape(scipy.arange(len(tree) + 1), (len(tree) + 1,))
-		Nodes = {}
-		for i in range(len(tree)):
-			# just samples
-			if tree[i, 1] >= 0:
-				if tree[i, 2] >= 0:
-					# sample 1
-					x1 = 0
-					x2 = tree[i, 3]
-					pos = order == int(tree[i, 1])
-					pos = pos.tolist()
-					for iix in range(len(pos)):
-						if pos[iix] == 1:
-							y1 = iix * 2
-					Line.append(wx.lib.plot.PolyLine(np.array([[x1, y1], [x2, y1]]), colour="black", width=1.5, style=wx.SOLID))
-					# sample 2
-					pos = order == int(tree[i, 2])
-					pos = pos.tolist()
-					for iix in range(len(pos)):
-						if pos[iix] == 1:
-							y2 = iix * 2
-					Line.append(wx.lib.plot.PolyLine(np.array([[x1, y2], [x2, y2]]), colour="black", width=1.5, style=wx.SOLID))
-					# connect
-					Line.append(wx.lib.plot.PolyLine(np.array([[x2, y1], [x2, y2]]), colour="black", width=1.5, style=wx.SOLID))
-					# save node coord
-					Nodes[str((tree[i, 0] + 1) * -1)] = (x2, (y1 + y2) / 2)
-
-		for i in range(len(tree)):
-			# nodes & samples
-			if tree[i, 1] >= 0:
-				if tree[i, 2] < 0:
-					if str(tree[i, 2]) in Nodes:
-						# sample first
-						x1 = 0
-						x2 = tree[i, 3]
-						pos = order == int(tree[i, 1])
-						pos = pos.tolist()
-						for iix in range(len(pos)):
-							if pos[iix] == 1:
-								y1 = iix * 2
-						Line.append(wx.lib.plot.PolyLine(np.array([[x1, y1], [x2, y1]]), colour="black", width=1.5, style=wx.SOLID))
-						# node next
-						if str(tree[i, 2]) in Nodes:
-							x1 = Nodes[str(tree[i, 2])][0]
-							x2 = tree[i, 3]
-							y2 = Nodes[str(tree[i, 2])][1]
-							Line.append(wx.lib.plot.PolyLine(np.array([[x1, y2], [x2, y2]]), colour="black", width=1.5, style=wx.SOLID))
-						# connect
-						Line.append(wx.lib.plot.PolyLine(np.array([[x2, y1], [x2, y2]]), colour="black", width=1.5, style=wx.SOLID))
-						# save node coord
-						Nodes[str((tree[i, 0] + 1) * -1)] = (x2, (y1 + y2) / 2)
-
-			if tree[i, 1] < 0:
-				if tree[i, 2] >= 0:
-					if str(tree[i, 1]) in Nodes:
-						# sample first
-						x1 = 0
-						x2 = tree[i, 3]
-						pos = order == int(tree[i, 2])
-						pos = pos.tolist()
-						for iix in range(len(pos)):
-							if pos[iix] == 1:
-								y1 = iix * 2
-						Line.append(wx.lib.plot.PolyLine(np.array([[x1, y1], [x2, y1]]), colour="black", width=1.5, style=wx.SOLID))
-						# node next
-						if str(tree[i, 1]) in Nodes:
-							x1 = Nodes[str(tree[i, 1])][0]
-							x2 = tree[i, 3]
-							y2 = Nodes[str(tree[i, 1])][1]
-							Line.append(wx.lib.plot.PolyLine(np.array([[x1, y2], [x2, y2]]), colour="black", width=1.5, style=wx.SOLID))
-						# connect
-						Line.append(wx.lib.plot.PolyLine(np.array([[x2, y1], [x2, y2]]), colour="black", width=1.5, style=wx.SOLID))
-						# save node coord
-						Nodes[str((tree[i, 0] + 1) * -1)] = (x2, (y1 + y2) / 2)
-
-			if tree[i, 1] < 0:
-				if tree[i, 2] < 0:
-					# nodes and nodes
-					# n1
-					x1 = Nodes[str(tree[i, 1])][0]
-					x2 = tree[i, 3]
-					y1 = Nodes[str(tree[i, 1])][1]
-					Line.append(wx.lib.plot.PolyLine(np.array([[x1, y1], [x2, y1]]), colour="black", width=1.5, style=wx.SOLID))
-					# n2
-					x1 = Nodes[str(tree[i, 2])][0]
-					x2 = tree[i, 3]
-					y2 = Nodes[str(tree[i, 2])][1]
-					Line.append(wx.lib.plot.PolyLine(np.array([[x1, y2], [x2, y2]]), colour="black", width=1.5, style=wx.SOLID))
-					# connect
-					Line.append(wx.lib.plot.PolyLine(np.array([[x2, y1], [x2, y2]]), colour="black", width=1.5, style=wx.SOLID))
-					# save node coord
-					Nodes[str((tree[i, 0] + 1) * -1)] = (x2, (y1 + y2) / 2)
-
-		canvas.Draw(wx.lib.plot.PlotGraphics(Line))
+	##		  #do level 1
+	##		  List,Cols,ccount = [],[],0
+	##		  for i in range(len(tree)):
+	##			  if self.data['class'][i] not in List:
+	##				  List.append(self.data['class'][i])
+	##				  Cols.append(colourList[ccount])
+	##				  ccount += 1
+	##				  if ccount == len(colourList):
+	##					  ccount = 0
+	##		  minx = 0
+	##		  if self.parent.optDlg.rbPlotColours.GetValue() is True:
+	##			  canvas.enableLegend = (1)
+	##			  Line,List,Nlist,Store = [],[],[],{}
+	##			  count = 0
+	##			  for i in range(len(order)):
+	##				  idn = int(self.data['class'][order[i]])
+	##				  #plot names
+	##				  if idn in List:
+	##					  Store[str(idn)] = scipy.concatenate((Store[str(idn)],[[0,count]]),0)
+	##				  else:
+	##					  Store[str(idn)] = [[0,count]]
+	##					  List.append(self.data['class'][order[i]])
+	##					  Nlist.append(self.data['label'][order[i]])
+	##				  count += 2
+	##
+	##			  canvas.SetLegendItems(len(Store))
+	##			  for i in range(1,len(Store)+1):
+	##				  Line.append(wx.lib.plot.PolyMarker(Store[str(i)],marker='square',size=font_size,
+	##											  colour=Cols[i-1],legend=Nlist[i-1]))
+	##
+	##		  elif self.parent.optDlg.rbPlotName.GetValue() is True:
+	##			  Line = []
+	##			  count = 0
+	##			  for i in range(len(order)):
+	##				  Line.append(wx.lib.plot.PolyMarker(np.array([[0,count]]),marker='text',
+	##											  labels=name[int(order[i])]))
+	##				  count += 2
+	##
+	##		  #plot distances
+	##		  Line.append(wx.lib.plot.PolyMarker(np.array([[0,-0.5]]),marker='text',
+	##									  labels='0'))
+	##		  Line.append(wx.lib.plot.PolyMarker(np.array([[max(tree[:,3]),-0.5]]),
+	##									  marker='text',labels='% .2f' %max(tree[:,3])))
+	##
+	##		  idx = scipy.reshape(scipy.arange(len(tree)+1),(len(tree)+1,))
+	##		  Nodes = {}
+	##		  for i in range(len(tree)):
+	##			  #just samples
+	##			  if tree[i,1] >= 0:
+	##				  if tree[i,2] >= 0:
+	##					  #sample 1
+	##					  x1=0
+	##					  x2=tree[i,3]
+	##					  pos = order==int(tree[i,1])
+	##					  pos = pos.tolist()
+	##					  for iix in range(len(pos)):
+	##						  if pos[iix] == 1:
+	##							  y1 = iix*2
+	##					  Line.append(wx.lib.plot.PolyLine(np.array([[x1,y1],[x2,y1]]),colour='black',
+	##												  width=1.5, style=wx.SOLID))
+	##					  #sample 2
+	##					  pos = order==int(tree[i,2])
+	##					  pos = pos.tolist()
+	##					  for iix in range(len(pos)):
+	##						  if pos[iix] == 1:
+	##							  y2 = iix*2
+	##					  Line.append(wx.lib.plot.PolyLine(np.array([[x1,y2],[x2,y2]]),colour='black',
+	##												  width=1.5, style=wx.SOLID))
+	##					  #connect
+	##					  Line.append(wx.lib.plot.PolyLine(np.array([[x2,y1],[x2,y2]]),colour='black',
+	##												  width=1.5, style=wx.SOLID))
+	##					  #save node coord
+	##					  Nodes[str((tree[i,0]+1)*-1)] = (x2,(y1+y2)/2)
+	##
+	##		  for i in range(len(tree)):
+	##			  #nodes & samples
+	##			  if tree[i,1] >= 0:
+	##				  if tree[i,2] < 0:
+	##					  if str(tree[i,2]) in Nodes:
+	##						  #sample first
+	##						  x1 = 0
+	##						  x2 = tree[i,3]
+	##						  pos = order==int(tree[i,1])
+	##						  pos = pos.tolist()
+	##						  for iix in range(len(pos)):
+	##							  if pos[iix] == 1:
+	##								  y1 = iix*2
+	##						  Line.append(wx.lib.plot.PolyLine(np.array([[x1,y1],[x2,y1]]),colour='black',
+	##													  width=1.5, style=wx.SOLID))
+	##						  #node next
+	##						  if str(tree[i,2]) in Nodes:
+	##							  x1 = Nodes[str(tree[i,2])][0]
+	##							  x2 = tree[i,3]
+	##							  y2 = Nodes[str(tree[i,2])][1]
+	##							  Line.append(wx.lib.plot.PolyLine(np.array([[x1,y2],[x2,y2]]),colour='black',
+	##														  width=1.5, style=wx.SOLID))
+	##						  #connect
+	##						  Line.append(wx.lib.plot.PolyLine(np.array([[x2,y1],[x2,y2]]),colour='black',
+	##													  width=1.5, style=wx.SOLID))
+	##						  #save node coord
+	##						  Nodes[str((tree[i,0]+1)*-1)] = (x2,(y1+y2)/2)
+	##
+	##			  if tree[i,1] < 0:
+	##				  if tree[i,2] >= 0:
+	##					  if str(tree[i,1]) in Nodes:
+	##						  #sample first
+	##						  x1 = 0
+	##						  x2 = tree[i,3]
+	##						  pos = order==int(tree[i,2])
+	##						  pos = pos.tolist()
+	##						  for iix in range(len(pos)):
+	##							  if pos[iix] == 1:
+	##								  y1 = iix*2
+	##						  Line.append(wx.lib.plot.PolyLine(np.array([[x1,y1],[x2,y1]]),colour='black',
+	##													  width=1.5, style=wx.SOLID))
+	##						  #node next
+	##						  if str(tree[i,1]) in Nodes:
+	##							  x1 = Nodes[str(tree[i,1])][0]
+	##							  x2 = tree[i,3]
+	##							  y2 = Nodes[str(tree[i,1])][1]
+	##							  Line.append(wx.lib.plot.PolyLine(np.array([[x1,y2],[x2,y2]]),colour='black',
+	##														  width=1.5, style=wx.SOLID))
+	##						  #connect
+	##						  Line.append(wx.lib.plot.PolyLine(np.array([[x2,y1],[x2,y2]]),colour='black',
+	##													  width=1.5, style=wx.SOLID))
+	##						  #save node coord
+	##						  Nodes[str((tree[i,0]+1)*-1)] = (x2,(y1+y2)/2)
+	##
+	##			  if tree[i,1] < 0:
+	##				  if tree[i,2] < 0:
+	##					  #nodes and nodes
+	##					  #n1
+	##					  x1 = Nodes[str(tree[i,1])][0]
+	##					  x2 = tree[i,3]
+	##					  y1 = Nodes[str(tree[i,1])][1]
+	##					  Line.append(wx.lib.plot.PolyLine(np.array([[x1,y1],[x2,y1]]),colour='black',
+	##												  width=1.5, style=wx.SOLID))
+	##					  #n2
+	##					  x1 = Nodes[str(tree[i,2])][0]
+	##					  x2 = tree[i,3]
+	##					  y2 = Nodes[str(tree[i,2])][1]
+	##					  Line.append(wx.lib.plot.PolyLine(np.array([[x1,y2],[x2,y2]]),colour='black',
+	##												  width=1.5, style=wx.SOLID))
+	##					  #connect
+	##					  Line.append(wx.lib.plot.PolyLine(np.array([[x2,y1],[x2,y2]]),colour='black',
+	##												  width=1.5, style=wx.SOLID))
+	##					  #save node coord
+	##					  Nodes[str((tree[i,0]+1)*-1)] = (x2,(y1+y2)/2)
+	##
+	##		  canvas.Draw(wx.lib.plot.PlotGraphics(Line))
 
 	def ReportPartitioning(self, textctrl, clusterid, error, nfound, title, centroids=None):
 		# report summary
-		summary = "".join((title, "\n-------------\n\n", "No. clusters\t\tError\t\tNo. optimal soln.\n", "----------------\t\t--------\t\t------------------------\n", str(max(self.clusterid) + 1), "\t\t\t", "% .2f" % error, "\t\t", str(nfound)))
+		summary = "".join((title, "\n-----------------------\n\n", "No. clusters\t\tError\t\tNo. optimal soln.\n", "----------------\t\t--------\t\t------------------------\n", str(max(self.clusterid) + 1), "\t\t\t", "% .2f" % error, "\t\t", str(nfound)))
 
 		# cluster centres
 		if centroids is not None:
@@ -639,11 +646,13 @@ class TitleBar(bp.ButtonPanel):
 
 class selFun(fpb.FoldPanelBar):
 	def _init_coll_gbsClusterMethod_Items(self, parent):
-		parent.AddWindow(self.rbKmeans, (0, 0), flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.rbKmedian, (1, 0), flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.rbKmedoids, (2, 0), flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.rbHcluster, (3, 0), flag=wx.EXPAND, span=(1, 1))
-		parent.AddSpacer(wx.Size(8, 8), (4, 0), flag=wx.EXPAND, span=(2, 1))
+		parent.AddWindow(self.rbKmeans, (0, 0), flag=wx.EXPAND, span=(1, 2))
+		parent.AddWindow(self.rbKmedian, (1, 0), flag=wx.EXPAND, span=(1, 2))
+		parent.AddWindow(self.rbKmedoids, (2, 0), flag=wx.EXPAND, span=(1, 2))
+		parent.AddWindow(self.rbHcluster, (3, 0), flag=wx.EXPAND, span=(1, 2))
+		parent.AddWindow(wx.StaticText(self.methPnl, -1, "No. iterations", style=wx.ALIGN_LEFT), (4, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.spnNoPass, (4, 1), flag=wx.EXPAND, span=(1, 1))
+		parent.AddSpacer(wx.Size(8, 8), (5, 0), flag=wx.EXPAND, span=(2, 2))
 
 	def _init_coll_gbsLinkageMethod_Items(self, parent):
 		parent.AddWindow(self.rbSingleLink, (0, 0), flag=wx.EXPAND, span=(1, 1))
@@ -658,26 +667,10 @@ class selFun(fpb.FoldPanelBar):
 		parent.AddWindow(self.rbCityBlock, (2, 0), flag=wx.EXPAND, span=(1, 1))
 		parent.AddWindow(self.rbCorrelation, (3, 0), flag=wx.EXPAND, span=(1, 1))
 		parent.AddWindow(self.rbEuclidean, (4, 0), flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.rbHarmonicEuc, (5, 0), flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.rbKendalls, (6, 0), flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.rbSpearmans, (7, 0), flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.rbUncentredCorr, (8, 0), flag=wx.EXPAND, span=(1, 1))
-		parent.AddSpacer(wx.Size(8, 8), (9, 0), flag=wx.EXPAND, span=(2, 1))
-
-	##		  parent.AddWindow(self.spnNumClass, (22, 0), flag=wx.EXPAND,
-	##				span=(1, 1))
-	##		  parent.AddWindow(wx.StaticText(self, -1, 'No. of centroids', style=wx.ALIGN_LEFT),
-	##				(22, 1), flag=wx.EXPAND, span=(1, 1))
-	####		parent.AddWindow(self.cbUseClass, (22, 0), flag=wx.EXPAND,
-	####			  span=(1, 2))
-	##		  parent.AddWindow(self.spnNoPass, (23, 0), flag=wx.EXPAND,
-	##				span=(1, 1))
-	##		  parent.AddWindow(wx.StaticText(self, -1, 'Iterations', style=wx.ALIGN_LEFT),
-	##				(23, 1), flag=wx.EXPAND, span=(1, 1))
-	####		parent.AddWindow(self.rbPlotName, (20, 0), flag=wx.EXPAND,
-	####			  span=(1, 2))
-	####		parent.AddWindow(self.rbPlotColours, (21, 0), flag=wx.EXPAND,
-	####			  span=(1, 2))
+		parent.AddWindow(self.rbKendalls, (5, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.rbSpearmans, (6, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.rbUncentredCorr, (7, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.AddSpacer(wx.Size(8, 8), (8, 0), flag=wx.EXPAND, span=(2, 1))
 
 	def _init_selparam_sizers(self):
 		self.gbsClusterMethod = wx.GridBagSizer(5, 5)
@@ -691,6 +684,7 @@ class selFun(fpb.FoldPanelBar):
 		self._init_coll_gbsDistanceMeasure_Items(self.gbsDistanceMeasure)
 
 		self.gbsClusterMethod.AddGrowableCol(0)
+		self.gbsClusterMethod.AddGrowableCol(1)
 		self.gbsLinkageMethod.AddGrowableCol(0)
 		self.gbsDistanceMeasure.AddGrowableCol(0)
 
@@ -711,12 +705,12 @@ class selFun(fpb.FoldPanelBar):
 
 		self.distType = self.AddFoldPanel("Distance measure", collapsed=True, foldIcons=icons)
 
-		self.linkType = self.AddFoldPanel("Linkage method", collapsed=True, foldIcons=icons)
+		self.linkType = self.AddFoldPanel("Linkage method (HCA)", collapsed=True, foldIcons=icons)
 
-		self.methPnl = wx.Panel(id=-1, name="methPnl", parent=self.clustType, pos=wx.Point(0, 0), size=wx.Size(200, 120), style=wx.TAB_TRAVERSAL)
+		self.methPnl = wx.Panel(id=-1, name="methPnl", parent=self.clustType, pos=wx.Point(0, 0), size=wx.Size(200, 220), style=wx.TAB_TRAVERSAL)
 		self.methPnl.SetToolTip("")
 
-		self.distPnl = wx.Panel(id=-1, name="distPnl", parent=self.distType, pos=wx.Point(0, 0), size=wx.Size(180, 300), style=wx.TAB_TRAVERSAL)
+		self.distPnl = wx.Panel(id=-1, name="distPnl", parent=self.distType, pos=wx.Point(0, 0), size=wx.Size(200, 290), style=wx.TAB_TRAVERSAL)
 		self.distPnl.SetToolTip("")
 
 		self.linkPnl = wx.Panel(id=-1, name="linkPnl", parent=self.linkType, pos=wx.Point(0, 0), size=wx.Size(200, 110), style=wx.TAB_TRAVERSAL)
@@ -782,32 +776,26 @@ class selFun(fpb.FoldPanelBar):
 		self.rbKendalls.SetValue(False)
 		self.rbKendalls.SetToolTip("")
 
-		self.rbHarmonicEuc = wx.RadioButton(id=-1, label="Harmonically summed Euclidean distance", name="rbHarmonicEuc", parent=self.distPnl, pos=wx.Point(16, 328), size=wx.Size(224, 21), style=0)
-		self.rbHarmonicEuc.SetValue(False)
-		self.rbHarmonicEuc.SetToolTip("")
-
 		self.rbCityBlock = wx.RadioButton(id=-1, label="City-block distance", name="rbCityBlock", parent=self.distPnl, pos=wx.Point(16, 256), size=wx.Size(136, 21), style=0)
 		self.rbCityBlock.SetValue(False)
 		self.rbCityBlock.SetToolTip("")
 
-		self.cbUseClass = wx.CheckBox(id=-1, label="Use class structure", name="cbUseClass", parent=self.distPnl, pos=wx.Point(16, 448), size=wx.Size(112, 21), style=0)
-		self.cbUseClass.SetValue(True)
-		self.cbUseClass.SetToolTip("")
-		self.cbUseClass.Bind(wx.EVT_CHECKBOX, self.OnCbUseClassCheckbox, id=-1)
-		self.cbUseClass.Show(False)
+		##		  self.cbUseClass = wx.CheckBox(id=-1, label='Use class structure',
+		##				name='cbUseClass', parent=self.methPnl, pos=wx.Point(16, 448),
+		##				size=wx.Size(112, 21), style=0)
+		##		  self.cbUseClass.SetValue(True)
+		##		  self.cbUseClass.SetToolTip('')
+		##		  self.cbUseClass.Bind(wx.EVT_CHECKBOX, self.OnCbUseClassCheckbox, id=-1)
 
-		self.spnNoPass = wx.SpinCtrl(id=-1, initial=1, max=1000, min=1, name="spnNoPass", parent=self.distPnl, pos=wx.Point(200, 444), size=wx.Size(80, 23), style=wx.SP_ARROW_KEYS)
+		self.spnNoPass = wx.SpinCtrl(id=-1, initial=1, max=1000, min=1, name="spnNoPass", parent=self.methPnl, pos=wx.Point(200, 444), size=wx.Size(80, 23), style=wx.SP_ARROW_KEYS)
 		self.spnNoPass.SetValue(1)
 		self.spnNoPass.SetToolTip("")
-		self.spnNoPass.Enable(False)
 		self.spnNoPass.SetRange(1, 1000)
-		self.spnNoPass.Show(False)
 
-		self.spnNumClass = wx.SpinCtrl(id=-1, initial=1, max=1000, min=1, name="spnNumClass", parent=self.distPnl, pos=wx.Point(200, 444), size=wx.Size(80, 23), style=wx.SP_ARROW_KEYS)
+		self.spnNumClass = wx.SpinCtrl(id=-1, initial=1, max=1000, min=1, name="spnNumClass", parent=self.methPnl, pos=wx.Point(200, 444), size=wx.Size(80, 23), style=wx.SP_ARROW_KEYS)
 		self.spnNumClass.SetValue(1)
 		self.spnNumClass.SetToolTip("")
 		self.spnNumClass.SetRange(1, 1000)
-		self.spnNumClass.Show(False)
 
 		self.rbPlotName = wx.RadioButton(id=-1, label="Plot using labels", name="rbPlotName", parent=self.distPnl, pos=wx.Point(16, 480), size=wx.Size(104, 21), style=wx.RB_GROUP)
 		self.rbPlotName.SetValue(True)
