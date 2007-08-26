@@ -14,8 +14,8 @@
 import os
 import string
 import sys
+import xml.etree.cElementTree as ET
 
-import cElementTree as ET
 import scipy
 import wx
 import wx.adv
