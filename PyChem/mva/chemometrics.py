@@ -133,7 +133,7 @@ def __split__(xdata, ydata, mask, labels=None):
 				n2.append(labels[i])
 
 	if max(mask) == 1:
-		return x1, x2, y1, y2, n1, n2
+		return x1, x2, 0, y1, y2, 0, n1, n2, 0
 	elif max(mask) == 2:
 		x3 = scipy.take(xdata, _index(mask, 2), 0)
 		y3 = scipy.take(ydata, _index(mask, 2), 0)
@@ -299,21 +299,20 @@ def PCA_SVD(myarray, type="covar"):
 		   [ -1. ,	-6. ,  34. ],
 		   [  8. ,	15. ,	2. ]])
 	"""
-	newarray = copy.deepcopy(myarray)
 	if type == "covar":
-		newarray = meancent(newarray)
+		myarray = meancent(myarray)
 	elif type == "corr":
-		newarray = autoscale(newarray)
+		myarray = autoscale(myarray)
 	else:
 		raise KeyError("'type' must be one of 'covar or 'corr'")
 
 	# I think this may run faster if myarray is converted to a matrix first.
 	# (This should be tested - anyone got a large dataset?)
 	# mymat = scipy.mat(myarray)
-	u, s, v = scipy.linalg.svd(newarray)
-	tt = scipy.dot(newarray, scipy.transpose(v))
+	u, s, v = scipy.linalg.svd(myarray)
+	tt = scipy.dot(myarray, scipy.transpose(v))
 	pp = v
-	pr = (1 - (s / scipy.sum(scipy.sum(newarray**2)))) * 100
+	pr = (1 - (s / scipy.sum(scipy.sum(myarray**2)))) * 100
 	pr = scipy.reshape(pr, (1, len(pr)))
 	pr = scipy.concatenate((np.array([[0.0]]), pr), 1)
 	pr = scipy.reshape(pr, (pr.shape[1],))
@@ -338,34 +337,33 @@ def PCA_NIPALS(myarray, comps, type="covar", stb=None):
 
 	"""
 
-	X = copy.deepcopy(myarray)
 	if type == "covar":
-		myarray = meancent(myarray)
+		newarray = meancent(myarray)
 	elif type == "corr":
-		myarray = autoscale(myarray)
+		newarray = autoscale(myarray)
 
-	arr_size = myarray.shape
+	arr_size = newarray.shape
 	tt, pp, i = scipy.zeros((arr_size[0], comps), "d"), scipy.zeros((comps, arr_size[1]), "d"), 0
 
 	while i < comps:
-		std = scipy.std(myarray, axis=0)
+		std = scipy.std(newarray, axis=0)
 		st2 = scipy.argsort(std)
 		ind = st2[
 			arr_size[1] - 1,
 		]
-		t0 = myarray[:, ind]
+		t0 = newarray[:, ind]
 		c = 0
 		while c == 0:  # NIPALS
-			p0 = scipy.dot(scipy.transpose(t0), myarray)
+			p0 = scipy.dot(scipy.transpose(t0), newarray)
 			p1 = p0 / scipy.sqrt(scipy.sum(p0**2))
-			t1 = scipy.dot(myarray, scipy.transpose(p1))
+			t1 = scipy.dot(newarray, scipy.transpose(p1))
 			if scipy.sqrt(scipy.sum(t1**2)) - scipy.sqrt(scipy.sum(t0**2)) < 5 * 10**-5:
 				tt[:, i] = t1
 				pp[i, :] = p1
 				c = 1
 			t0 = t1
 
-		myarray = myarray - scipy.dot(scipy.resize(t1, (arr_size[0], 1)), scipy.resize(p1, (1, arr_size[1])))
+		newarray = newarray - scipy.dot(scipy.resize(t1, (arr_size[0], 1)), scipy.resize(p1, (1, arr_size[1])))
 
 		i += 1
 		##		  print 'PC ',i
@@ -374,10 +372,14 @@ def PCA_NIPALS(myarray, comps, type="covar", stb=None):
 			stb.SetStatusText(" ".join(("Principal component", str(i))), 0)
 
 	# work out percentage explained variance
-	X = meancent(X)
-	s0, s = scipy.sum(scipy.sum(X**2)), []
+	if type == "covar":
+		newarray = meancent(myarray)
+	elif type == "corr":
+		newarray = autoscale(myarray)
+
+	s0, s = scipy.sum(scipy.sum(newarray**2)), []
 	for n in scipy.arange(1, comps + 1, 1):
-		E = X - scipy.dot(tt[:, 0:n], pp[0:n, :])
+		E = newarray - scipy.dot(tt[:, 0:n], pp[0:n, :])
 		s.append(scipy.sum(scipy.sum(E**2)))
 
 	pr = (1 - ((scipy.asarray(s) / s0))) * 100
@@ -486,7 +488,7 @@ def PLS(xdata, ydata, mask, factors, stb=None):
 	>>> xdata=np.array([[ 0.6 ,	0.57,  0.59,  0.81,	 0.45],[ 0.96,	0.76,  0.99,  0.08,	 0.17],[ 0.99,	0.06,  0.99,  0.28,	 0.98],[ 0.2 ,	0.02,  0.35,  0.12,	 0.34],[ 0.36,	0.02,  0.02,  0.48,	 0.07],[ 0.5 ,	0.5 ,  0.59,  0.26,	 0.81],[ 0.71,	0.07,  0.37,  0.09,	 0.53],[ 0.2 ,	0.88,  0.48,  0.53,	 0.93],[ 0.63,	0.44,  0.47,  0.33,	 0.02],[ 0.63,	0.45,  0.23,  0.5 ,	 0.59]])
 	>>> ydata=np.array([[ 0.48],[ 0.55],[ 0.74],[ 0.43],[ 0.52],[ 0.95],[ 0.7 ],[ 0.23],[ 0.08],[ 0.42]])
 	>>> mask=np.array([[0],[2],[0],[1],[0],[1],[1],[0],[2],[0]])
-	>>> W,T,P,Q,facs,predy,predyv,predyt,RMSEC,RMSEPC,rmsec,rmsepc,RMSEPT=PLS(xdata,ydata,mask,3)
+	>>> W,T,P,Q,facs,predy,predyv,predyt,RMSEC,RMSEPC,rmsec,rmsepc,RMSEPT,b=PLS(xdata,ydata,mask,3)
 	>>> W
 	array([[ 0.56264693, -0.06977376,  0.14315076],
 		   [-0.66930157, -0.33463909,  0.1648742 ],
@@ -497,8 +499,11 @@ def PLS(xdata, ydata, mask, factors, stb=None):
 
 	"""
 	x1, x2, x3, y1, y2, y3, dummy1, dummy2, dummy3 = __split__(xdata, ydata, mask)  # raw data
-	Xm, Xmv, Xmt = __mean__(x1), __mean__(x2), __mean__(x3)  # get column means
-	ym, ymv, ymt = __mean__(y1), __mean__(y2), __mean__(y3)
+	Xm, Xmv = __mean__(x1), __mean__(x2)  # get column means
+	ym, ymv = __mean__(y1), __mean__(y2)
+
+	if max(mask) > 1:
+		Xmt, ymt = __mean__(x3), __mean__(y3)
 
 	x, y = meancent(xdata), meancent(ydata)  # centre the data
 
@@ -542,7 +547,7 @@ def PLS(xdata, ydata, mask, factors, stb=None):
 			P = scipy.concatenate((P, p), 1)
 			Q = scipy.concatenate((Q, q), 0)
 
-		b = scipy.dot(scipy.dot(W, scipy.linalg.inv(scipy.dot(scipy.transpose(P), W))), Q)  # 882*1
+		b = scipy.dot(scipy.dot(W, scipy.linalg.inv(scipy.dot(scipy.transpose(P), W))), Q)
 
 		# rms for training data - rmsec
 		if NoY == 1:
@@ -589,22 +594,28 @@ def PLS(xdata, ydata, mask, factors, stb=None):
 		predy = b0 + scipy.dot(x1, b)
 		b1 = ymv - scipy.dot(Xmv, b)
 		predyv = b1 + scipy.dot(x2, b)
-		b2 = ymt - scipy.dot(Xmt, b)
-		predyt = b2 + scipy.dot(x3, b)
-		RMSEPT = float(__rms__(predyt, y3))
+		if max(mask) > 1:
+			b2 = ymt - scipy.dot(Xmt, b)
+			predyt = b2 + scipy.dot(x3, b)
+			RMSEPT = float(__rms__(predyt, y3))
+		else:
+			predyt, RMSEPT = 0.0, 0.0
 	elif NoY > 1:
-		predyt = scipy.zeros(y3.shape)
-		avrmsec = 0
-		for eachy in range(0, NoY, 1):
-			b2 = __mean__(y3[:, eachy]) - scipy.dot(Xmt, b)
-			predyt[:, eachy] = scipy.reshape(b2 + scipy.dot(x3, b), (y3.shape[0],))
-			avrmsec = avrmsec + float(__rms__(predyt[:, eachy], y3[:, eachy]))
-		RMSEPT = avrmsec / NoY
+		if max(mask) > 1:
+			predyt = scipy.zeros(y3.shape)
+			avrmsec = 0
+			for eachy in range(0, NoY, 1):
+				b2 = __mean__(y3[:, eachy]) - scipy.dot(Xmt, b)
+				predyt[:, eachy] = scipy.reshape(b2 + scipy.dot(x3, b), (y3.shape[0],))
+				avrmsec = avrmsec + float(__rms__(predyt[:, eachy], y3[:, eachy]))
+			RMSEPT = avrmsec / NoY
+		else:
+			predyt, RMSEPT = 0.0, 0.0
 
 	if stb is not None:
 		stb.SetStatusText("Status", 0)
 
-	return W, T, P, Q, facs, predy, predyv, predyt, RMSEC, RMSEPC, rmsec, rmsepc, RMSEPT
+	return W, T, P, Q, facs, predy, predyv, predyt, RMSEC, RMSEPC, rmsec, rmsepc, RMSEPT, b
 
 
 def DFA_XVALRAW(X, group, mask, nofac):
@@ -618,10 +629,10 @@ def DFA_XVALRAW(X, group, mask, nofac):
 
 
 	"""
-	if int(max(mask)) > 1:
-		x1, x2, x3, y1, y2, y3, dummy1, dummy2, dummy3 = __split__(X, np.array(group, "i"), mask)
-	elif int(max(mask)) < 2:
-		x1, x2, y1, y2, dummy1, dummy2 = __split__(X, np.array(group, "i"), mask)
+	##	  if int(max(mask)) > 1:
+	x1, x2, x3, y1, y2, y3, dummy1, dummy2, dummy3 = __split__(X, np.array(group, "i"), mask)
+	##	  elif int(max(mask)) < 2:
+	##		  x1,x2,y1,y2,dummy1,dummy2=__split__(X,np.array(group,'i'),mask)
 
 	# get indices
 	idxn = scipy.arange(X.shape[0])[:, nA]
@@ -668,10 +679,7 @@ def DFA_XVAL(X, pca, noloads, group, mask, nofac, ptype="covar"):
 	>>> scores,loads,eigs = DFA_XVAL(X,'NIPALS',3,group,mask,2,'covar')
 
 	"""
-	if int(max(mask)) > 1:
-		rx1, rx2, rx3, ry1, ry2, ry3, dummy1, dummy2, dummy3 = __split__(X, np.array(group, "i")[:, nA], mask[:, nA])
-	elif int(max(mask)) < 2:
-		rx1, rx2, ry1, ry2, dummy1, dummy2 = __split__(X, np.array(group, "i")[:, nA], mask[:, nA])
+	rx1, rx2, rx3, ry1, ry2, ry3, dummy1, dummy2, dummy3 = __split__(X, np.array(group, "i")[:, nA], mask[:, nA])
 
 	if pca == "SVD":
 		pcscores, pp, pr, pceigs = PCA_SVD(rx1, type=ptype)
@@ -688,7 +696,11 @@ def DFA_XVAL(X, pca, noloads, group, mask, nofac, ptype="covar"):
 
 	# cross validation
 	# Get projected pc scores
-	rx2 = rx2 - scipy.resize(scipy.mean(rx2, 0), (len(rx2), rx1.shape[1]))
+	if ptype in ["covar"]:
+		rx2 = rx2 - scipy.resize(scipy.mean(rx2, 0), (len(rx2), rx1.shape[1]))
+	else:
+		rx2 = (rx2 - scipy.resize(scipy.mean(rx2, 0), (len(rx2), rx1.shape[1]))) / scipy.resize(scipy.std(rx2, 0), (len(rx2), rx1.shape[1]))
+
 	pcscores = scipy.dot(rx2, scipy.transpose(pp))
 
 	cvscores = scipy.dot(pcscores[:, 0:noloads], loads)
@@ -696,7 +708,10 @@ def DFA_XVAL(X, pca, noloads, group, mask, nofac, ptype="covar"):
 	# independent test
 	if max(mask) > 1:
 		ts_idx = scipy.take(idxn, _index(mask, 2), 0)
-		rx3 = rx3 - scipy.resize(scipy.mean(rx3, 0), (len(rx3), rx1.shape[1]))
+		if ptype in ["covar"]:
+			rx3 = rx3 - scipy.resize(scipy.mean(rx3, 0), (len(rx3), rx1.shape[1]))
+		else:
+			rx3 = (rx3 - scipy.resize(scipy.mean(rx3, 0), (len(rx3), rx1.shape[1]))) / scipy.resize(scipy.std(rx3, 0), (len(rx3), rx1.shape[1]))
 		pcscores = scipy.dot(rx3, scipy.transpose(pp))
 		tstscores = scipy.dot(pcscores[:, 0:noloads], loads)
 

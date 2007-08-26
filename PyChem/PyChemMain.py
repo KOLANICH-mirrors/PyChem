@@ -14,7 +14,7 @@
 import os
 import string
 import sys
-import xml.etree.cElementTree as ET
+from xml.etree import cElementTree as ET
 
 import scipy
 import wx
@@ -259,6 +259,7 @@ class PyChemMain(wx.Frame):
 
 		self.plCluster = Cluster.Cluster(id=wxID_PYCHEMMAINPLCLUSTER, name="plCluster", parent=self.nbMain, pos=wx.Point(0, 0), size=wx.Size(1008, 635), style=wx.TAB_TRAVERSAL)
 		self.plCluster.SetToolTip("")
+		self.plCluster.parent = self
 
 		self.plDfa = Dfa.Dfa(id=wxID_PYCHEMMAINPLDFA, name="plDfa", parent=self.nbMain, pos=wx.Point(0, 0), size=wx.Size(1008, 635), style=wx.TAB_TRAVERSAL)
 		self.plDfa.SetToolTip("")
@@ -309,8 +310,8 @@ class PyChemMain(wx.Frame):
 			if tree is not None:
 				dlg.ShowModal()
 				workSpace = dlg.getWorkspace()
-				self.Reset()
 				if workSpace != 0:
+					self.Reset()
 					self.xmlLoad(tree, workSpace)
 					self.data["exppath"] = loadFile
 					self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEEXP, True)
@@ -325,9 +326,10 @@ class PyChemMain(wx.Frame):
 			try:
 				dlg.ShowModal()
 				workSpace = dlg.getWorkspace()
-				tree = dlg.getTree()
-				self.Reset(1)
-				self.xmlLoad(tree, workSpace, "ws")
+				if workSpace != 0:
+					self.Reset(1)
+					tree = dlg.getTree()
+					self.xmlLoad(tree, workSpace, "ws")
 			finally:
 				dlg.Destroy()
 		else:
@@ -592,7 +594,7 @@ class PyChemMain(wx.Frame):
 		wx.TheClipboard.Close()
 
 	def Reset(self, case=0):
-		varList = "'proc':None,'class':None,'label':None," + "'split':None,'processlist':[],'xaxis':None," + "'class':None,'label':None,'validation':None," + "'pcscores':None,'pcloads':None,'pcpervar':None," + "'pceigs':None,'pcadata':None,'niporsvd':None," + "'indlabels':None,'plsloads':None,'pcatype':None," + "'dfscores':None,'dfloads':None,'dfeigs':None," + "'sampleidx':None,'variableidx':None," + "'rawtrunc':None,'proctrunc':None," + "'gadfachroms':None,'gadfascores':None," + "'gadfacurves':None,'gaplschroms':None," + "'gaplsscores':None,'gaplscurves':None," + "'gadfadfscores':None,'gadfadfaloads':None," + "'gaplsplsloads':None,'gridsel':None,'plotsel':None," + "'tree':None,'order':None,'plstrnpred':None," + "'plscvpred':None,'plststpred':None,'plsfactors':None," + "'rmsec':None,'rmsepc':None,'rmsept':None," + "'gacurrentchrom':None"
+		varList = "'proc':None,'class':None,'label':None," + "'split':None,'processlist':[],'xaxis':None," + "'class':None,'label':None,'validation':None," + "'pcscores':None,'pcloads':None,'pcpervar':None," + "'pceigs':None,'pcadata':None,'niporsvd':None," + "'indlabels':None,'plsloads':None,'pcatype':None," + "'dfscores':None,'dfloads':None,'dfeigs':None," + "'sampleidx':None,'variableidx':None," + "'rawtrunc':None,'proctrunc':None," + "'gadfachroms':None,'gadfascores':None," + "'gadfacurves':None,'gaplschroms':None," + "'gaplsscores':None,'gaplscurves':None," + "'gadfadfscores':None,'gadfadfaloads':None," + "'gaplsplsloads':None,'gridsel':None,'plotsel':None," + "'tree':None,'order':None,'plstrnpred':None," + "'plscvpred':None,'plststpred':None,'plsfactors':None," + "'rmsec':None,'rmsepc':None,'rmsept':None," + "'gacurrentchrom':None,'plspred':None"
 
 		if case == 0:
 			exec('self.data = {"raw":None,"exppath":None,' + varList + "}")
@@ -666,142 +668,143 @@ class PyChemMain(wx.Frame):
 		if proceed == 1:
 			try:
 				locals()[workspace] = ET.SubElement(Workspaces, workspace)
+
+				# get preprocessing options
+				if len(self.data["processlist"]) != 0:
+					ppOptions = ET.SubElement(locals()[workspace], "ppOptions")
+					for each in self.data["processlist"]:
+						item = ET.SubElement(ppOptions, "item")
+						item.set("key", "int")
+						item.text = str(each)
+
+				# save choice options
+				Choices = ET.SubElement(locals()[workspace], "Choices")
+				choiceCtrls = ["plPls.titleBar.cbxData", "plPca.titleBar.cbxPcaType", "plPca.titleBar.cbxPreprocType", "plPca.titleBar.cbxData", "plDfa.titleBar.cbxData", "plCluster.titleBar.cbxData", "plGadfa.titleBar.cbxFeature1", "plGadfa.titleBar.cbxFeature2", "plGapls.titleBar.cbxFeature1", "plGapls.titleBar.cbxFeature2"]
+
+				for each in choiceCtrls:
+					name = each.split(".")[len(each.split(".")) - 1]
+					locals()[name] = ET.SubElement(Choices, each)
+					locals()[name].set("key", "int")
+					locals()[name].text = str(getByPath(self, each).GetCurrentSelection())
+
+				# save spin, string and boolean ctrl values
+				Controls = ET.SubElement(locals()[workspace], "Controls")
+				# spin controls
+				spinCtrls = ["plGadfa.titleBar.spnGaScoreFrom", "plGadfa.titleBar.spnGaScoreTo", "plGadfa.optDlg.spnGaMaxFac", "plGadfa.optDlg.spnGaMaxGen", "plGadfa.optDlg.spnGaVarsFrom", "plGadfa.optDlg.spnGaVarsTo", "plGadfa.optDlg.spnGaNoInds", "plGadfa.optDlg.spnGaNoRuns", "plGadfa.optDlg.spnGaRepUntil", "plGapls.titleBar.spnGaScoreFrom", "plGapls.titleBar.spnGaScoreTo", "plGapls.optDlg.spnGaMaxFac", "plGapls.optDlg.spnGaMaxGen", "plGapls.optDlg.spnGaVarsFrom", "plGapls.optDlg.spnGaVarsTo", "plGapls.optDlg.spnGaNoInds", "plGapls.optDlg.spnGaNoRuns", "plGapls.optDlg.spnGaRepUntil", "plPls.titleBar.spnPLSmaxfac", "plPls.titleBar.spnPLSfactor1", "plPls.titleBar.spnPLSfactor2", "plPca.titleBar.spnNumPcs1", "plPca.titleBar.spnNumPcs2", "plPca.titleBar.spnPCAnum", "plDfa.titleBar.spnDfaDfs", "plDfa.titleBar.spnDfaScore1", "plDfa.titleBar.spnDfaScore2", "plDfa.titleBar.spnDfaPcs"]
+
+				for each in spinCtrls:
+					name = each.split(".")[len(each.split(".")) - 1]
+					locals()[name] = ET.SubElement(Controls, each)
+					locals()[name].set("key", "int")
+					locals()[name].text = str(getByPath(self, each).GetValue())
+
+				# string controls
+				stringCtrls = ["plExpset.indTitleBar.stcRangeFrom", "plExpset.indTitleBar.stcRangeTo", "plGadfa.optDlg.stGaXoverRate", "plGadfa.optDlg.stGaMutRate", "plGadfa.optDlg.stGaInsRate", "plGapls.optDlg.stGaXoverRate", "plGapls.optDlg.stGaMutRate", "plGapls.optDlg.stGaInsRate"]
+
+				for each in stringCtrls:
+					# quick fix!
+					if each == "plExpset.indTitleBar.stcRangeFrom":
+						if self.plExpset.indTitleBar.stcRangeFrom.GetValue() in [""]:
+							self.plExpset.indTitleBar.stcRangeFrom.SetValue("1")
+					if each == "plExpset.indTitleBar.stcRangeTo":
+						if self.plExpset.indTitleBar.stcRangeTo.GetValue() in [""]:
+							self.plExpset.indTitleBar.stcRangeTo.SetValue(str(self.data["raw"].shape[1]))
+
+					name = each.split(".")[len(each.split(".")) - 1]
+
+					locals()[name] = ET.SubElement(Controls, each)
+					locals()[name].set("key", "str")
+					locals()[name].text = getByPath(self, each).GetValue()
+
+				boolCtrls = ["plCluster.optDlg.rbKmeans", "plCluster.optDlg.rbKmedian", "plCluster.optDlg.rbKmedoids", "plCluster.optDlg.rbHcluster", "plCluster.optDlg.rbSingleLink", "plCluster.optDlg.rbMaxLink", "plCluster.optDlg.rbAvLink", "plCluster.optDlg.rbCentLink", "plCluster.optDlg.rbEuclidean", "plCluster.optDlg.rbCorrelation", "plCluster.optDlg.rbAbsCorr", "plCluster.optDlg.rbUncentredCorr", "plCluster.optDlg.rbAbsUncentCorr", "plCluster.optDlg.rbSpearmans", "plCluster.optDlg.rbKendalls", "plCluster.optDlg.rbCityBlock", "plCluster.optDlg.rbPlotName", "plCluster.optDlg.rbPlotColours", "plGadfa.optDlg.cbGaRepUntil", "plGadfa.optDlg.cbGaMaxGen", "plGadfa.optDlg.cbGaMut", "plGadfa.optDlg.cbGaXover", "plDfa.titleBar.cbDfaXval"]
+
+				for each in boolCtrls:
+					name = each.split(".")[len(each.split(".")) - 1]
+					locals()[name] = ET.SubElement(Controls, each)
+					locals()[name].set("key", "bool")
+					locals()[name].text = str(getByPath(self, each).GetValue())
+
+				# any wxgrid ctrl values
+				wxGrids = ["plExpset.grdNames", "plExpset.grdIndLabels"]
+
+				Grid = ET.SubElement(locals()[workspace], "Grid")
+
+				for each in wxGrids:
+					name = each.split(".")[len(each.split(".")) - 1]
+
+					g, gn = self.getGrid(getByPath(self, each))
+
+					locals()[name] = ET.SubElement(Grid, each)
+
+					# save grid column labels
+					columnLabels = ET.SubElement(locals()[name], "columnLabels")
+					for item in gn:
+						label = ET.SubElement(columnLabels, "label")
+						label.set("key", "str")
+						exec('label.text = "' + item + '"')
+
+					# save grid cell values
+					gridElements = ET.SubElement(locals()[name], "gridElements")
+					for Rows in g:
+						row = ET.SubElement(gridElements, "row")
+						for Cols in Rows:
+							if Cols == "":
+								Cols = "0"
+							col = ET.SubElement(row, "col")
+							col.set("key", "str")
+							exec('col.text = "' + Cols + '"')
+
+				# any scipy arrays
+				scipyArrays = ["pcscores", "pcloads", "pcpervar", "pceigs", "plsloads", "dfscores", "dfloads", "dfeigs", "gadfachroms", "gadfascores", "gadfacurves", "gaplschroms", "gaplsscores", "gaplscurves", "gadfadfscores", "gadfadfloads", "gaplsplsloads"]
+
+				Array = ET.SubElement(locals()[workspace], "Array")
+				for each in scipyArrays:
+					try:
+						# save array elements
+						isthere = self.data[each]
+						if isthere != None:
+							locals()["item" + each] = ET.SubElement(Array, each)
+							arrData = str_array(self.data[each],col_sep="\t")
+							locals()["item" + each].set("key", "array")
+							locals()["item" + each].text = arrData
+					except:
+						continue
+
+				# create run clustering flag
+				Flags = ET.SubElement(locals()[workspace], "Flags")
+
+				doClustering = ET.SubElement(Flags, "doClustering")
+				doClustering.set("key", "int")
+				if (self.data["tree"] is not None) is True:
+					doClustering.text = "1"
+				else:
+					doClustering.text = "0"
+
+				# create run plsr flag global variable
+				doPlsr = ET.SubElement(Flags, "doPlsr")
+				doPlsr.set("key", "int")
+				if self.data["plsloads"] is not None:
+					doPlsr.text = "1"
+				else:
+					doPlsr.text = "0"
+
+				# wrap it in an ElementTree instance, and save as XML
+				tree = ET.ElementTree(root)
+				tree.write(path)
+
+				# enable menu options
+				self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEWS, True)
+				self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILELOADWS, True)
+
 			except:
-				dlg = wx.MessageDialog(self, "Unable to save under current name.\n\nCharacters " / +'such as "%", "&", "-", "+" can not be used for the workspace name', "Error!", wx.OK | wx.ICON_ERROR)
+				dlg = wx.MessageDialog(self, "Unable to save under current name.\n\nCharacters " + 'such as "%", "&", "-", "+" can not be used for the workspace name', "Error!", wx.OK | wx.ICON_ERROR)
 				try:
 					dlg.ShowModal()
 				finally:
 					dlg.Destroy()
 
-			# get preprocessing options
-			if len(self.data["processlist"]) != 0:
-				ppOptions = ET.SubElement(locals()[workspace], "ppOptions")
-				for each in self.data["processlist"]:
-					item = ET.SubElement(ppOptions, "item")
-					item.set("key", "int")
-					item.text = str(each)
-
-			# save choice options
-			Choices = ET.SubElement(locals()[workspace], "Choices")
-			choiceCtrls = ["plPls.titleBar.cbxData", "plPca.titleBar.cbxPcaType", "plPca.titleBar.cbxPreprocType", "plPca.titleBar.cbxData", "plDfa.titleBar.cbxData", "plCluster.titleBar.cbxData", "plGadfa.titleBar.cbxFeature1", "plGadfa.titleBar.cbxFeature2", "plGapls.titleBar.cbxFeature1", "plGapls.titleBar.cbxFeature2"]
-
-			for each in choiceCtrls:
-				name = each.split(".")[len(each.split(".")) - 1]
-				locals()[name] = ET.SubElement(Choices, each)
-				locals()[name].set("key", "int")
-				locals()[name].text = str(getByPath(self, each).GetCurrentSelection())
-
-			# save spin, string and boolean ctrl values
-			Controls = ET.SubElement(locals()[workspace], "Controls")
-			# spin controls
-			spinCtrls = ["plGadfa.titleBar.spnGaScoreFrom", "plGadfa.titleBar.spnGaScoreTo", "plGadfa.optDlg.spnGaMaxFac", "plGadfa.optDlg.spnGaMaxGen", "plGadfa.optDlg.spnGaVarsFrom", "plGadfa.optDlg.spnGaVarsTo", "plGadfa.optDlg.spnGaNoInds", "plGadfa.optDlg.spnGaNoRuns", "plGadfa.optDlg.spnGaRepUntil", "plGapls.titleBar.spnGaScoreFrom", "plGapls.titleBar.spnGaScoreTo", "plGapls.optDlg.spnGaMaxFac", "plGapls.optDlg.spnGaMaxGen", "plGapls.optDlg.spnGaVarsFrom", "plGapls.optDlg.spnGaVarsTo", "plGapls.optDlg.spnGaNoInds", "plGapls.optDlg.spnGaNoRuns", "plGapls.optDlg.spnGaRepUntil", "plPls.titleBar.spnPLSmaxfac", "plPls.titleBar.spnPLSfactor1", "plPls.titleBar.spnPLSfactor2", "plPca.titleBar.spnNumPcs1", "plPca.titleBar.spnNumPcs2", "plPca.titleBar.spnPCAnum", "plDfa.titleBar.spnDfaDfs", "plDfa.titleBar.spnDfaScore1", "plDfa.titleBar.spnDfaScore2", "plDfa.titleBar.spnDfaPcs"]
-
-			for each in spinCtrls:
-				name = each.split(".")[len(each.split(".")) - 1]
-				locals()[name] = ET.SubElement(Controls, each)
-				locals()[name].set("key", "int")
-				locals()[name].text = str(getByPath(self, each).GetValue())
-
-			# string controls
-			stringCtrls = ["plExpset.indTitleBar.stcRangeFrom", "plExpset.indTitleBar.stcRangeTo", "plGadfa.optDlg.stGaXoverRate", "plGadfa.optDlg.stGaMutRate", "plGadfa.optDlg.stGaInsRate", "plGapls.optDlg.stGaXoverRate", "plGapls.optDlg.stGaMutRate", "plGapls.optDlg.stGaInsRate"]
-
-			for each in stringCtrls:
-				# quick fix!
-				if each == "plExpset.indTitleBar.stcRangeFrom":
-					if self.plExpset.indTitleBar.stcRangeFrom.GetValue() in [""]:
-						self.plExpset.indTitleBar.stcRangeFrom.SetValue("1")
-				if each == "plExpset.indTitleBar.stcRangeTo":
-					if self.plExpset.indTitleBar.stcRangeTo.GetValue() in [""]:
-						self.plExpset.indTitleBar.stcRangeTo.SetValue(str(self.data["raw"].shape[1]))
-
-				name = each.split(".")[len(each.split(".")) - 1]
-
-				locals()[name] = ET.SubElement(Controls, each)
-				locals()[name].set("key", "str")
-				locals()[name].text = getByPath(self, each).GetValue()
-
-			boolCtrls = ["plCluster.optDlg.rbKmeans", "plCluster.optDlg.rbKmedian", "plCluster.optDlg.rbKmedoids", "plCluster.optDlg.rbHcluster", "plCluster.optDlg.rbSingleLink", "plCluster.optDlg.rbMaxLink", "plCluster.optDlg.rbAvLink", "plCluster.optDlg.rbCentLink", "plCluster.optDlg.rbEuclidean", "plCluster.optDlg.rbCorrelation", "plCluster.optDlg.rbAbsCorr", "plCluster.optDlg.rbUncentredCorr", "plCluster.optDlg.rbAbsUncentCorr", "plCluster.optDlg.rbSpearmans", "plCluster.optDlg.rbKendalls", "plCluster.optDlg.rbCityBlock", "plCluster.optDlg.rbPlotName", "plCluster.optDlg.rbPlotColours", "plGadfa.optDlg.cbGaRepUntil", "plGadfa.optDlg.cbGaMaxGen", "plGadfa.optDlg.cbGaMut", "plGadfa.optDlg.cbGaXover", "plDfa.titleBar.cbDfaXval"]
-
-			for each in boolCtrls:
-				name = each.split(".")[len(each.split(".")) - 1]
-				locals()[name] = ET.SubElement(Controls, each)
-				locals()[name].set("key", "bool")
-				locals()[name].text = str(getByPath(self, each).GetValue())
-
-			# any wxgrid ctrl values
-			wxGrids = ["plExpset.grdNames", "plExpset.grdIndLabels"]
-
-			Grid = ET.SubElement(locals()[workspace], "Grid")
-
-			for each in wxGrids:
-				name = each.split(".")[len(each.split(".")) - 1]
-
-				g, gn = self.getGrid(getByPath(self, each))
-
-				locals()[name] = ET.SubElement(Grid, each)
-
-				# save grid column labels
-				columnLabels = ET.SubElement(locals()[name], "columnLabels")
-				for item in gn:
-					label = ET.SubElement(columnLabels, "label")
-					label.set("key", "str")
-					exec('label.text = "' + item + '"')
-
-				# save grid cell values
-				gridElements = ET.SubElement(locals()[name], "gridElements")
-				for Rows in g:
-					row = ET.SubElement(gridElements, "row")
-					for Cols in Rows:
-						if Cols == "":
-							Cols = "0"
-						col = ET.SubElement(row, "col")
-						col.set("key", "str")
-						exec('col.text = "' + Cols + '"')
-
-			# any scipy arrays
-			scipyArrays = ["pcscores", "pcloads", "pcpervar", "pceigs", "plsloads", "dfscores", "dfloads", "dfeigs", "gadfachroms", "gadfascores", "gadfacurves", "gaplschroms", "gaplsscores", "gaplscurves", "gadfadfscores", "gadfadfloads", "gaplsplsloads"]
-
-			Array = ET.SubElement(locals()[workspace], "Array")
-			for each in scipyArrays:
-				try:
-					# save array elements
-					isthere = self.data[each]
-					if isthere != None:
-						locals()["item" + each] = ET.SubElement(Array, each)
-						arrData = str_array(self.data[each],col_sep="\t")
-						locals()["item" + each].set("key", "array")
-						locals()["item" + each].text = arrData
-				except:
-					continue
-
-			# create run clustering flag
-			Flags = ET.SubElement(locals()[workspace], "Flags")
-
-			doClustering = ET.SubElement(Flags, "doClustering")
-			doClustering.set("key", "int")
-			if (self.data["tree"] is not None) is True:
-				doClustering.text = "1"
-			else:
-				doClustering.text = "0"
-
-			# create run plsr flag global variable
-			doPlsr = ET.SubElement(Flags, "doPlsr")
-			doPlsr.set("key", "int")
-			if self.data["plsloads"] is not None:
-				doPlsr.text = "1"
-			else:
-				doPlsr.text = "0"
-
-			# wrap it in an ElementTree instance, and save as XML
-			tree = ET.ElementTree(root)
-			tree.write(path)
-
-			# enable menu options
-			self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEWS, True)
-			self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILELOADWS, True)
-
 		# end busy cursor
-		wx.BeginBusyCursor()
+		wx.EndBusyCursor()
 
 	def xmlLoad(self, tree, workspace, type="new"):
 		# load pychem experiments from saved xml files

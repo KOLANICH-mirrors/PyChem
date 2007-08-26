@@ -20,6 +20,7 @@ import wx.lib.agw.buttonpanel as bp
 import wx.lib.buttons
 import wx.lib.plot
 import wx.lib.stattext
+from Bio.Cluster import *
 from scipy import newaxis as nA
 from wx.lib.anchors import LayoutAnchors
 
@@ -80,7 +81,7 @@ class Dfa(wx.Panel):
 
 		parent.AddWindow(self.plcDFAscores, 0, border=0, flag=wx.EXPAND)
 		parent.AddWindow(self.plcDfaLoadsV, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.plcDfaError, 0, border=0, flag=wx.EXPAND)
+		parent.AddWindow(self.plcDfaCluster, 0, border=0, flag=wx.EXPAND)
 		parent.AddWindow(self.plcDFAeigs, 0, border=0, flag=wx.EXPAND)
 
 	def _init_coll_bxsDfa1_Items(self, parent):
@@ -145,16 +146,18 @@ class Dfa(wx.Panel):
 		self.plcDFAeigs.fontSizeLegend = 8
 		self.plcDFAeigs.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
-		self.plcDfaError = MyPlotCanvas(id=-1, name="plcDfaPerVar", parent=self, pos=wx.Point(176, 214), size=wx.Size(305, 212), style=0)
-		self.plcDfaError.fontSizeAxis = 8
-		self.plcDfaError.fontSizeTitle = 10
-		self.plcDfaError.enableZoom = True
-		self.plcDfaError.enableLegend = False
-		self.plcDfaError.SetToolTip("")
-		self.plcDfaError.SetAutoLayout(True)
-		self.plcDfaError.SetConstraints(LayoutAnchors(self.plcDfaError, True, True, False, True))
-		self.plcDfaError.fontSizeLegend = 8
-		self.plcDfaError.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
+		self.plcDfaCluster = MyPlotCanvas(id=-1, name="plcDfaCluster", parent=self, pos=wx.Point(176, 214), size=wx.Size(305, 212), style=0)
+		self.plcDfaCluster.fontSizeAxis = 8
+		self.plcDfaCluster.fontSizeTitle = 10
+		self.plcDfaCluster.enableZoom = True
+		self.plcDfaCluster.enableLegend = False
+		self.plcDfaCluster.SetToolTip("")
+		self.plcDfaCluster.SetAutoLayout(True)
+		self.plcDfaCluster.xSpec = "none"
+		self.plcDfaCluster.ySpec = "none"
+		self.plcDfaCluster.SetConstraints(LayoutAnchors(self.plcDfaCluster, True, True, False, True))
+		self.plcDfaCluster.fontSizeLegend = 8
+		self.plcDfaCluster.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
 		self.titleBar = TitleBar(self, id=-1, text="Discriminant Function Analysis", style=bp.BP_USE_GRADIENT, alignment=bp.BP_ALIGN_LEFT)
 
@@ -171,7 +174,7 @@ class Dfa(wx.Panel):
 		self.titleBar.spnDfaScore1.SetValue(1)
 		self.titleBar.spnDfaScore2.SetValue(2)
 
-		objects = {"plcDFAeigs": ["Eigenvalues", "Discriminant Function", "Eigenvalue"], "plcDfaError": ["95% Confidence Ellipsoids", "DF 1", "DF 2"], "plcDFAscores": ["DFA Scores", "DF 1", "DF 2"], "plcDfaLoadsV": ["DFA Loading", "Arbitrary", "Arbitrary"]}
+		objects = {"plcDFAeigs": ["Eigenvalues", "Discriminant Function", "Eigenvalue"], "plcDfaCluster": ["Hierarchical Cluster Analysis", "Distance", "Sample"], "plcDFAscores": ["DFA Scores", "DF 1", "DF 2"], "plcDfaLoadsV": ["DFA Loading", "Arbitrary", "Arbitrary"]}
 		curve = wx.lib.plot.PolyLine([[0, 0], [1, 1]], colour="white", width=1, style=wx.TRANSPARENT)
 
 		for each in list(objects.keys()):
@@ -361,7 +364,7 @@ class TitleBar(bp.ButtonPanel):
 
 	def plotDfa(self):
 		# plot scores
-		plotScores(self.parent.plcDFAscores, self.data["dfscores"], self.data["class"], self.data["label"], self.data["validation"], self.spnDfaScore1.GetValue() - 1, self.spnDfaScore2.GetValue() - 1, title="DFA Scores", xLabel="Discriminant Function " + str(self.spnDfaScore1.GetValue()), yLabel="Discriminant Function " + str(self.spnDfaScore2.GetValue()), xval=self.cbDfaXval.GetValue(), symb=False)
+		plotScores(self.parent.plcDFAscores, self.data["dfscores"], cl=self.data["class"], labels=self.data["label"], validation=self.data["validation"], col1=self.spnDfaScore1.GetValue() - 1, col2=self.spnDfaScore2.GetValue() - 1, title="DFA Scores", xLabel="Discriminant Function " + str(self.spnDfaScore1.GetValue()), yLabel="Discriminant Function " + str(self.spnDfaScore2.GetValue()), xval=self.cbDfaXval.GetValue(), symb=False, text=True, pconf=True)
 
 		# plot loadings
 		if self.cbxData.GetSelection() == 0:
@@ -370,14 +373,25 @@ class TitleBar(bp.ButtonPanel):
 			label = "DFA loading "
 
 		if self.spnDfaScore1.GetValue() != self.spnDfaScore2.GetValue():
-			plotLoads(self.parent.plcDfaLoadsV, self.data["dfloads"], self.data["indlabels"], self.spnDfaScore1.GetValue() - 1, self.spnDfaScore2.GetValue() - 1, title="DFA Loadings", xLabel=label + str(self.spnDfaScore1.GetValue()), yLabel=label + str(self.spnDfaScore2.GetValue()), type=1)
+			plotLoads(self.parent.plcDfaLoadsV, self.data["dfloads"], xaxis=self.data["indlabels"], col1=self.spnDfaScore1.GetValue() - 1, col2=self.spnDfaScore2.GetValue() - 1, title="DFA Loadings", xLabel=label + str(self.spnDfaScore1.GetValue()), yLabel=label + str(self.spnDfaScore2.GetValue()), type=1)
 
 		else:
 			idx = self.spnDfaScore1.GetValue() - 1
-			plotStem(self.parent.plcDfaLoadsV, scipy.concatenate((scipy.arange(1, self.data["dfloads"].shape[0] + 1)[:, nA], self.data["dfloads"][:, idx][:, nA]), 1), "DFA Loadings", "Variable", label + str(idx + 1))
+			plotStem(self.parent.plcDfaLoadsV, scipy.concatenate((scipy.arange(1, self.data["dfloads"].shape[0] + 1)[:, nA], self.data["dfloads"][:, idx][:, nA]), 1), tit="DFA Loadings", xLabel="Variable", yLabel=label + str(idx + 1), wdth=1)
+
+		# calculate and plot hierarchical clustering using euclidean distance
+		# get average df scores for each class
+		mS, mSn = [], []
+		for each in scipy.unique(self.data["class"]):
+			mS.append(scipy.mean(self.data["dfscores"][self.data["class"] == each, :], 0))
+			mSn.append(self.data["label"][_index(self.data["class"], each)[0]])
+
+		tree = treecluster(data=mS, method="m", dist="e")
+		tree, order = self.parent.parent.parent.plCluster.titleBar.treestructure(tree, scipy.arange(len(tree) + 1))
+		self.parent.parent.parent.plCluster.titleBar.drawTree(self.parent.plcDfaCluster, tree, order, mSn, tit="Hierarchical Cluster Analysis", xL="Euclidean Distance", yL="Sample")
 
 		# Plot eigs
-		self.DrawDfaEig = plotLine(self.parent.plcDFAeigs, self.data["dfeigs"], scipy.arange(1, self.spnDfaDfs.GetValue() + 1)[:, nA], 0, "Eigenvalues", "Discriminant Function", "Eigenvalues", wdth=3)
+		self.DrawDfaEig = plotLine(self.parent.plcDFAeigs, self.data["dfeigs"], xaxis=scipy.arange(1, self.data["dfeigs"].shape[1] + 1)[:, nA], rownum=0, tit="Eigenvalues", xLabel="Discriminant Function", yLabel="Eigenvalues", wdth=3, type="single", ledge=[])
 
 		# make sure ctrls enabled
 		self.spnDfaScore1.Enable(True)

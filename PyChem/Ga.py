@@ -192,7 +192,7 @@ class Ga(wx.Panel):
 			exec("self." + each + ".Draw(wx.lib.plot.PlotGraphics([curve]," + 'objects["' + each + '"][0],' + 'objects["' + each + '"][1],' + 'objects["' + each + '"][2]))')
 
 	def OnSplitterDclick(self, event):
-		if self.Splitter.GetSashPosition() == 1:
+		if self.Splitter.GetSashPosition() <= 5:
 			self.Splitter.SetSashPosition(250)
 		else:
 			self.Splitter.SetSashPosition(1)
@@ -227,7 +227,7 @@ class TitleBar(bp.ButtonPanel):
 		self.spnGaScoreFrom.Bind(wx.EVT_SPINCTRL, self.OnSpnGascorefromSpinctrl, id=-1)
 
 		self.spnGaScoreTo = wx.SpinCtrl(id=-1, initial=2, max=100, min=1, name="spnGaScoreTo", parent=self, pos=wx.Point(256, 2), size=wx.Size(40, 23), style=wx.SP_ARROW_KEYS)
-		self.spnGaScoreTo.SetValue(2)
+		self.spnGaScoreTo.SetValue(1)
 		self.spnGaScoreTo.SetToolTip("")
 		self.spnGaScoreTo.Bind(wx.EVT_SPINCTRL, self.OnSpnGascoretoSpinctrl, id=-1)
 
@@ -241,7 +241,7 @@ class TitleBar(bp.ButtonPanel):
 
 		self._init_btnpanel_ctrls(parent)
 
-		self.spnGaScoreFrom.Show(0)
+		self.spnGaScoreFrom.Show(False)
 		self.spnGaScoreTo.Show(False)
 
 		self.CreateButtons()
@@ -295,7 +295,7 @@ class TitleBar(bp.ButtonPanel):
 		bpArt.SetColor(bp.BP_SELECTION_PEN_COLOUR, wx.Colour(206, 206, 195))
 
 	def OnBtnbtnSetParamsButton(self, event):
-		if self.parent.Splitter.GetSashPosition() == 1:
+		if self.parent.Splitter.GetSashPosition() <= 5:
 			self.parent.Splitter.SetSashPosition(250)
 		else:
 			self.parent.Splitter.SetSashPosition(1)
@@ -317,14 +317,14 @@ class TitleBar(bp.ButtonPanel):
 
 	def OnSpnGascorefromSpinctrl(self, event):
 		# GA scores plot
-		plotScores(self.parent.plcGaPlot, self.data["gadfadfscores"], self.data["class"], self.data["label"], self.data["validation"], self.spnGaScoreFrom.GetValue() - 1, self.spnGaScoreTo.GetValue() - 1, title="DF Scores", xLabel="Discriminant Function " + str(self.spnGaScoreFrom.GetValue()), yLabel="Discriminant Function " + str(self.spnGaScoreTo.GetValue()), xval=True)
+		plotScores(self.parent.plcGaPlot, self.data["gadfadfscores"], cl=self.data["class"], labels=self.data["label"], validation=self.data["validation"], col1=self.spnGaScoreFrom.GetValue() - 1, col2=self.spnGaScoreTo.GetValue() - 1, title="DF Scores", xLabel="Discriminant Function " + str(self.spnGaScoreFrom.GetValue()), yLabel="Discriminant Function " + str(self.spnGaScoreTo.GetValue()), xval=True, text=True, pconf=True, symb=False)
 
 		# DF loadings
 		exec("self.parent.optDlg.plotGaLoads(self.parent.optDlg.currentChrom,self.data['ga" + self.type.lower() + self.type.lower() + "loads'],self.parent.plcGaSpecLoad,self.spnGaScoreFrom.GetValue()-1)")
 
 	def OnSpnGascoretoSpinctrl(self, event):
 		# GA scores plot
-		plotScores(self.parent.plcGaPlot, self.data["gadfadfscores"], self.data["class"], self.data["label"], self.data["validation"], self.spnGaScoreFrom.GetValue() - 1, self.spnGaScoreTo.GetValue() - 1, title="DF Scores", xLabel="Discriminant Function " + str(self.spnGaScoreFrom.GetValue()), yLabel="Discriminant Function " + str(self.spnGaScoreTo.GetValue()), xval=True)
+		plotScores(self.parent.plcGaPlot, self.data["gadfadfscores"], cl=self.data["class"], labels=self.data["label"], validation=self.data["validation"], col1=self.spnGaScoreFrom.GetValue() - 1, col2=self.spnGaScoreTo.GetValue() - 1, title="DF Scores", xLabel="Discriminant Function " + str(self.spnGaScoreFrom.GetValue()), yLabel="Discriminant Function " + str(self.spnGaScoreTo.GetValue()), xval=True, text=True, pconf=True, symb=False)
 
 		# DF loadings
 		exec("self.parent.optDlg.plotGaLoads(self.parent.optDlg.currentChrom,self.data['ga" + self.type.lower() + self.type.lower() + "loads'],self.parent.plcGaSpecLoad,self.spnGaScoreFrom.GetValue()-1)")
@@ -386,11 +386,6 @@ class TitleBar(bp.ButtonPanel):
 
 				for Vars in range(varRange):
 					# set num latent variables
-					if int(maxf) >= int(max(self.data["class"])):
-						Lvs = int(max(self.data["class"])) - 1
-					else:
-						Lvs = int(maxf)
-
 					for Runs in range(runs):
 						# run ga-dfa
 
@@ -399,9 +394,18 @@ class TitleBar(bp.ButtonPanel):
 
 						# evaluate initial population
 						if self.type in ["DFA"]:
+							# check factors
+							if int(maxf) >= int(max(self.data["class"])):
+								Lvs = int(max(self.data["class"])) - 1
+							else:
+								Lvs = int(maxf)
+							# run dfa
 							scores = mva.fitfun.call_dfa(chrom, xdata, self.data["validation"], self.data["class"], self.data["label"], Lvs)
 
 						elif self.type in ["PLS"]:
+							# set factors
+							Lvs = int(maxf)
+							# run pls
 							scores = mva.fitfun.call_pls(chrom, xdata, self.data["validation"][:, nA], np.array(self.data["class"])[:, nA], Lvs)
 
 						# add additional methods here
@@ -475,15 +479,24 @@ class TitleBar(bp.ButtonPanel):
 						if varRange == 1:
 							if Vars + Runs == 0:
 								# scores
-								scoreList = [1.0 / float(scores[0])]
+								if self.type in ["PLS"]:
+									scoreList = [float(scores[0])]
+									cUrves = scipy.reshape(scoresOut, (1, len(scoresOut)))
+								else:
+									scoreList = [1.0 / float(scores[0])]
+									cUrves = scipy.reshape(1.0 / scoresOut, (1, len(scoresOut)))
 								# chromosomes
 								chromList = chrom[0, :][nA]
 								chromList.sort()
 								# opt curves
-								cUrves = scipy.reshape(scoresOut, (1, len(scoresOut)))
+
 							else:
 								# scores
-								scoreList.append(1.0 / float(scores[0]))
+								if self.type in ["PLS"]:
+									scoreList.append(float(scores[0]))
+								else:
+									scoreList.append(1.0 / float(scores[0]))
+									scoresOut = 1.0 / scoresOut
 								# chromosomes
 								ins = chrom[0, :][nA]
 								ins.sort()
@@ -499,16 +512,27 @@ class TitleBar(bp.ButtonPanel):
 						elif varRange > 1:
 							if Vars + Runs == 0:
 								# scores
-								scoreList = [1.0 / float(scores[0])]
+								if self.type in ["PLS"]:
+									scoreList = [float(scores[0])]
+									cUrves = scipy.reshape(scoresOut, (1, len(scoresOut)))
+								else:
+									scoreList = [1.0 / float(scores[0])]
+									cUrves = scipy.reshape(1.0 / scoresOut, (1, len(scoresOut)))
+								##								  scoreList = [1.0/float(scores[0])]
 								# chromosomes
 								ins = chrom[0, :][nA]
 								ins.sort()
 								chromList = scipy.concatenate((ins, scipy.zeros((1, varRange - Vars - 1), "d")), 1)
 								# opt curves
-								cUrves = scipy.reshape(scoresOut, (1, len(scoresOut)))
+							##								  cUrves = scipy.reshape(scoresOut,(1,len(scoresOut)))
 							else:
 								# scores
-								scoreList.append(1.0 / float(scores[0]))
+								if self.type in ["PLS"]:
+									scoreList.append(float(scores[0]))
+								else:
+									scoreList.append(1.0 / float(scores[0]))
+									scoresOut = 1.0 / scoresOut
+								##								  scoreList.append(1.0/float(scores[0]))
 								# chromosomes
 								ins = chrom[0, :][nA]
 								ins.sort()
@@ -807,13 +831,17 @@ class selParam(fpb.FoldPanelBar):
 			if self.prnt.splitPrnt.titleBar.data["gadfadfaloads"].shape[1] > 1:
 				self.prnt.splitPrnt.titleBar.spnGaScoreTo.SetValue(2)
 
-			plotScores(self.prnt.splitPrnt.plcGaPlot, self.prnt.splitPrnt.titleBar.data["gadfadfscores"], self.prnt.splitPrnt.titleBar.data["class"], self.prnt.splitPrnt.titleBar.data["label"], self.prnt.splitPrnt.titleBar.data["validation"], self.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue() - 1, self.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue() - 1, title="DF Scores", xLabel="Discriminant Function " + str(self.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue()), yLabel="Discriminant Function " + str(self.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue()), xval=True)
+			plotScores(self.prnt.splitPrnt.plcGaPlot, self.prnt.splitPrnt.titleBar.data["gadfadfscores"], cl=self.prnt.splitPrnt.titleBar.data["class"], labels=self.prnt.splitPrnt.titleBar.data["label"], validation=self.prnt.splitPrnt.titleBar.data["validation"], col1=self.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue() - 1, col2=self.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue() - 1, title="DF Scores", xLabel="Discriminant Function " + str(self.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue()), yLabel="Discriminant Function " + str(self.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue()), xval=True, text=True, pconf=True, symb=False)
 
 		if self.prnt.splitPrnt.type in ["PLS"]:
 			# select only chrom vars from x
-			self.prnt.splitPrnt.titleBar.data["gaplsplsloads"], T, P, Q, facs, predy, predyv, predyt, RMSEC, RMSEPC, rmsec, rmsepc, RMSEPT = mva.fitfun.rerun_pls(currentChrom, xdata, np.array(self.prnt.splitPrnt.titleBar.data["class"])[:, nA], self.prnt.splitPrnt.titleBar.data["validation"][:, nA], Lvs)
+			self.prnt.splitPrnt.titleBar.data["gaplsplsloads"], T, P, Q, facs, predy, predyv, predyt, RMSEC, RMSEPC, rmsec, rmsepc, RMSEPT, b = mva.fitfun.rerun_pls(currentChrom, xdata, np.array(self.prnt.splitPrnt.titleBar.data["class"])[:, nA], self.prnt.splitPrnt.titleBar.data["validation"][:, nA], Lvs)
 
 			gaError = scipy.concatenate((np.array(rmsec)[nA, :], np.array(rmsepc)[nA, :]), 0)
+
+			# set defaults
+			self.prnt.splitPrnt.titleBar.spnGaScoreFrom.SetValue(1)
+			self.prnt.splitPrnt.titleBar.spnGaScoreTo.SetValue(1)
 
 			# plot pls predictions
 			plsModel = PlotPlsModel(self, self.prnt.splitPrnt.plcGaPlot, np.array(self.prnt.splitPrnt.titleBar.data["class"])[:, nA], predy, predyv, predyt, self.prnt.splitPrnt.titleBar.data["validation"][:, nA], RMSEPT, Lvs)
@@ -896,17 +924,18 @@ class selParam(fpb.FoldPanelBar):
 
 		# plot ga optimisation curve
 		noGens = self.CountForOptCurve(self.curves[chromId])
-		gaPlotOptLine = plotLine(self.prnt.splitPrnt.plcGaOptPlot, scipy.reshape(self.curves[chromId, 0:noGens], (1, noGens)), scipy.arange(1, noGens + 1)[:, nA], 0, "GA Optimisation Curve", "Generation", "Objective function score", wdth=3)
+		gaPlotOptLine = plotLine(self.prnt.splitPrnt.plcGaOptPlot, scipy.reshape(self.curves[chromId, 0:noGens], (1, noGens)), xaxis=scipy.arange(1, noGens + 1)[:, nA], rownum=0, tit="GA Optimisation Curve", xLabel="Generation", yLabel="Objective function score", wdth=3, type="single", ledge=[])
 
 		# plot loadings
 		self.prnt.splitPrnt.titleBar.data["gacurrentchrom"] = currentChrom
+
 		exec("self.plotGaLoads(currentChrom,self.prnt.splitPrnt.titleBar.data['ga" + self.prnt.splitPrnt.type.lower() + self.prnt.splitPrnt.type.lower() + "loads'],self.prnt.splitPrnt.plcGaSpecLoad,0)")
 
 		# plot eigenvalues
 		if gaError.shape[0] == 1:
-			errorCurve = plotLine(self.prnt.splitPrnt.plcGaEigs, gaError, scipy.arange(1, gaError.shape[0] + 1)[:, nA], 0, "", "Eigenvalues", "Discriminant Function", wdth=3)
+			errorCurve = plotLine(self.prnt.splitPrnt.plcGaEigs, gaError, xaxis=scipy.arange(1, gaError.shape[0] + 1)[:, nA], rownum=0, xLabel="Eigenvalues", tit="", yLabel="Discriminant Function", wdth=3, type="single", ledge=[])
 		else:
-			errorCurve = plotLine(self.prnt.splitPrnt.plcGaEigs, gaError, scipy.arange(1, gaError.shape[1] + 1)[:, nA], 0, "", "PLS Factor", "RMS Error", type="multi", ledge=["Train err", "Test err"], wdth=3)
+			errorCurve = plotLine(self.prnt.splitPrnt.plcGaEigs, gaError, xaxis=scipy.arange(1, gaError.shape[1] + 1)[:, nA], rownum=0, xLabel="PLS Factor", tit="", yLabel="RMS Error", type="multi", ledge=["Train err", "Test err"], wdth=3)
 
 			self.prnt.splitPrnt.nbGaModPlot.SetPageText(1, "Model Error")
 
@@ -1024,18 +1053,18 @@ class selParam(fpb.FoldPanelBar):
 			coords = scipy.reshape(scipy.take(xdata, [int(chrom[pos1])], 1), (len(xdata), 1))
 			L1 = "Dummy"
 			L2 = str(self.prnt.splitPrnt.titleBar.data["indlabels"][int(chrom[pos1])])
-			plotScores(canvas, coords, self.prnt.splitPrnt.titleBar.data["class"], self.prnt.splitPrnt.titleBar.data["label"], self.prnt.splitPrnt.titleBar.data["validation"], 0, 0, title=canvas.last_draw[0].title, xLabel=L1, yLabel=L2, xval=True, pconf=False)
+			plotScores(canvas, coords, cl=self.prnt.splitPrnt.titleBar.data["class"], labels=self.prnt.splitPrnt.titleBar.data["label"], validation=self.prnt.splitPrnt.titleBar.data["validation"], col1=0, col2=0, title=canvas.last_draw[0].title, xLabel=L1, yLabel=L2, xval=True, pconf=False, text=True, symb=False)
 
 		else:
 			coords = scipy.reshape(scipy.take(xdata, [int(chrom[pos1]), int(chrom[pos2])], 1), (len(xdata), 2))
 			L1 = str(self.prnt.splitPrnt.titleBar.data["indlabels"][int(chrom[pos1])])
 			L2 = str(self.prnt.splitPrnt.titleBar.data["indlabels"][int(chrom[pos2])])
-			plotScores(canvas, coords, self.prnt.splitPrnt.titleBar.data["class"], self.prnt.splitPrnt.titleBar.data["label"], self.prnt.splitPrnt.titleBar.data["validation"], 0, 1, title=canvas.last_draw[0].title, xLabel=L1, yLabel=L2, xval=True, pconf=False)
+			plotScores(canvas, coords, cl=self.prnt.splitPrnt.titleBar.data["class"], labels=self.prnt.splitPrnt.titleBar.data["label"], validation=self.prnt.splitPrnt.titleBar.data["validation"], col1=0, col2=1, title=canvas.last_draw[0].title, xLabel=L1, yLabel=L2, xval=True, pconf=False, text=True, symb=False)
 
 		self.prnt.splitPrnt.titleBar.data["gavarcoords"] = coords
 
 	def plotGaLoads(self, chrom, loads, canvas, xL="Variable"):
-		# facors
+		# factors
 		col1 = self.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue() - 1
 		col2 = self.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue() - 1
 
@@ -1048,9 +1077,9 @@ class selParam(fpb.FoldPanelBar):
 			# gather values
 			plotVals = scipy.concatenate((loads[:, col1][:, nA], loads[:, col2][:, nA]), 1)
 
-			plotLoads(canvas, plotVals, labels, 0, 1, title="DF Loadings", xLabel="Loading " + str(self.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue()), yLabel="Loading " + str(self.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue()), type=0)
+			plotLoads(canvas, plotVals, xaxis=labels, title="DF Loadings", xLabel="Loading " + str(self.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue()), yLabel="Loading " + str(self.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue()), type=0, col1=0, col2=1)
 		else:
 			# plot loadings as stem
 			plotVals = scipy.concatenate((scipy.take(self.prnt.splitPrnt.titleBar.data["xaxis"], chrom)[:, nA], loads[:, col1][:, nA]), 1)
 
-			plotStem(canvas, plotVals, xLabel="Variable")
+			plotStem(canvas, plotVals, xLabel="Variable", yLabel="", wdth=1, tit="")

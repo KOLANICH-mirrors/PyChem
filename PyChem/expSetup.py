@@ -481,40 +481,40 @@ class DepTitleBar(bp.ButtonPanel):
 	def OnBtnImportMetaDataButton(self, event):
 		dlg = wxImportMetaDataDialog(self, "dvar")
 		if len(self.data["raw"]) > 0:
-			##			  try:
-			dlg.ShowModal()
-			if dlg.GetButtonPress() == 1:
-				out = dlg.GetMetaData()
-				if len(out) > 0:
-					headers = out[0]
-					values = out[1]
-					if len(values[0][len(values[0]) - 1].split("\r")) == 2:
-						delim = "\r"
-					else:
-						delim = "\n"
-					if len(values) == len(self.data["raw"]) + 2:
-						ResizeGrids(self.grid, len(values) - 2, len(headers), 1)
-						for i in range(1, len(headers) + 1):
-							self.grid.SetColLabelValue(i, headers[i - 1])
-						for i in range(len(values)):
-							for j in range(1, len(values[i]) + 1):
-								self.grid.SetCellValue(i, j, values[i][j - 1].split(delim)[0])
-						self.grid.Enable(1)
-						self.grid.EnableEditing(1)
-						self.btnAddClass.Enable(1)
-						self.btnAddName.Enable(1)
-						self.btnAddMask.Enable(1)
-						SetValidationEditor(self.grid)
+			try:
+				dlg.ShowModal()
+				if dlg.GetButtonPress() == 1:
+					out = dlg.GetMetaData()
+					if len(out) > 0:
+						headers = out[0]
+						values = out[1]
+						if len(values[0][len(values[0]) - 1].split("\r")) == 2:
+							delim = "\r"
+						else:
+							delim = "\n"
+						if len(values) == len(self.data["raw"]) + 2:
+							ResizeGrids(self.grid, len(values) - 2, len(headers), 1)
+							for i in range(1, len(headers) + 1):
+								self.grid.SetColLabelValue(i, headers[i - 1])
+							for i in range(len(values)):
+								for j in range(1, len(values[i]) + 1):
+									self.grid.SetCellValue(i, j, values[i][j - 1].split(delim)[0])
+							self.grid.Enable(1)
+							self.grid.EnableEditing(1)
+							self.btnAddClass.Enable(1)
+							self.btnAddName.Enable(1)
+							self.btnAddMask.Enable(1)
+							SetValidationEditor(self.grid)
 
-					else:
-						dlg = wx.MessageDialog(self, "The number of rows in" + "the experimental setup file does not\n" + "match the" + "number of rows in the data file", "Error!", wx.OK | wx.ICON_ERROR)
-						try:
-							dlg.ShowModal()
-						finally:
-							dlg.Destroy()
-		##			  except Exception, error:
-		##				  errorBox(self,'%s' %str(error))
-		##				  dlg.Destroy()
+						else:
+							dlg = wx.MessageDialog(self, "The number of rows in" + "the experimental setup file does not\n" + "match the" + "number of rows in the data file", "Error!", wx.OK | wx.ICON_ERROR)
+							try:
+								dlg.ShowModal()
+							finally:
+								dlg.Destroy()
+			except Exception as error:
+				errorBox(self, "%s" % str(error))
+				dlg.Destroy()
 		##				  raise
 
 		else:

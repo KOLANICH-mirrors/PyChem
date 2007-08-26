@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
 	name="PyChem",
-	version="3.0.1 Beta",
+	version="3.0.2 Beta",
 	description="The Python Multivariate Analysis Package",
 	author="Roger Jarvis",
 	author_email="roger.jarvis@manchester.ac.uk",

@@ -91,7 +91,20 @@ def errorBox(window, error):
 		dlg.Destroy()
 
 
-def plotLine(plotCanvas, plotArr, xaxis, rownum, tit, xLabel, yLabel, type="single", ledge=[], wdth=1):
+def plotLine(plotCanvas, plotArr, **_attr):
+	"""Line plot
+	**_attr - key word _attributes
+		Defaults:
+			'xaxis' = None,	   - Vector of x-axis values
+			'rownum' = 0,	   - Row of plotArr to plot
+			'tit'= '',		   - A small domestic bird
+			'xLabel'= '',	   - The desired x-axis label
+			'yLabel'= '',	   - The desired y-axis label
+			'type'= 'single',  - 'single' or 'multi'
+			'ledge'= [],	   - Figure legend labels
+			'wdth'= 1,		   - Line width
+	"""
+
 	colourList = ["BLACK", "RED", "BLUE", "BROWN", "CYAN", "GREY", "GREEN", "MAGENTA", "ORANGE", "PURPLE", "VIOLET"]
 	if type == "single":
 		pA = plotArr[rownum, 0 : len(xaxis)]
@@ -113,12 +126,21 @@ def plotLine(plotCanvas, plotArr, xaxis, rownum, tit, xLabel, yLabel, type="sing
 	plotCanvas.Draw(NewplotLine, xAxis=(xaxis.min(), xaxis.max()))
 
 
-def plotStem(plotCanvas, plotArr, tit="", xLabel="", yLabel="", stemWidth=3):
+def plotStem(plotCanvas, plotArr, **_attr):
+	"""Stem plot
+	**_attr - key word _attributes
+		Defaults:
+			'tit'= '',	   - Figure title
+			'xLabel'= '',  - The desired x-axis label
+			'yLabel'= '',  - The desired y-axis label
+			'wdth'= 1,	   - Line width
+	"""
+
 	# plotArr is an n x 2 array
 	plotStem = []
 	for i in range(plotArr.shape[0]):
 		newCoords = np.array([[plotArr[i, 0], 0], [plotArr[i, 0], plotArr[i, 1]]])
-		plotStem.append(wx.lib.plot.PolyLine(newCoords, colour="black", width=stemWidth, style=wx.SOLID))
+		plotStem.append(wx.lib.plot.PolyLine(newCoords, colour="black", width=wdth, style=wx.SOLID))
 
 	plotStem.append(wx.lib.plot.PolyLine(np.array([[plotArr[0, 0] - (0.1 * plotArr[0, 0]), 0], [plotArr[len(plotArr) - 1, 0] + (0.1 * plotArr[0, 0]), 0]]), colour="black", width=1, style=wx.SOLID))
 
@@ -127,7 +149,24 @@ def plotStem(plotCanvas, plotArr, tit="", xLabel="", yLabel="", stemWidth=3):
 	plotCanvas.Draw(plotStem)
 
 
-def plotSymbols(plotCanvas, coords, mask, cLass, text, col1, col2, tit, axis, usemask=True, xL="", yL=""):
+def plotSymbols(plotCanvas, coords, **_attr):
+	"""Symbol plot
+	**_attr - key word _attributes
+		Defaults:
+			'mask' = [],	- List of zeros, ones and/or twos to
+							  define train, cross-validation and
+							  test samples
+			'cLass' = [],	- List of integers from 1:n, where
+							  n=no. of groups
+			'col1' = 0,		- Column to plot along abscissa
+			'col2' = 1,		- Column to plot along ordinate
+			'tit'= '',		- A small domestic bird
+			'xL'= '',		- The desired x-axis label
+			'yL'= '',		- The desired y-axis label
+			'text'= [],		- List of labels to use in legend
+			'usemask'= True,- Flag to define whether to use 'mask'
+	"""
+
 	desCl = scipy.unique(cLass)
 
 	symbols = ["circle", "square", "triangle", "triangle_down"]
@@ -170,7 +209,24 @@ def plotSymbols(plotCanvas, coords, mask, cLass, text, col1, col2, tit, axis, us
 	return plotSym
 
 
-def plotText(plotCanvas, coords, mask, cLass, text, col1, col2, tit, axis, usemask=True, xL="", yL=""):
+def plotText(plotCanvas, coords, **_attr):
+	"""Text label plot
+	**_attr - key word _attributes
+		Defaults:
+			'mask' = [],	- List of zeros, ones and/or twos to
+							  define train, cross-validation and
+							  test samples
+			'cLass' = [],	- List of integers from 1:n, where
+							  n=no. of groups
+			'col1' = 0,		- Column to plot along abscissa
+			'col2' = 1,		- Column to plot along ordinate
+			'tit'= '',		- A small domestic bird
+			'xL'= '',		- The desired x-axis label
+			'yL'= '',		- The desired y-axis label
+			'text'= [],		- List of labels to use in plotting
+			'usemask'= True,- Flag to define whether to use 'mask'
+	"""
+
 	# make sure label string
 	nt = []
 	for i in range(len(text)):
@@ -223,7 +279,19 @@ def plotText(plotCanvas, coords, mask, cLass, text, col1, col2, tit, axis, usema
 	return plotText
 
 
-def plotLoads(canvas, loads, xaxis, col1, col2, title="", xLabel="", yLabel="", type=0):
+def plotLoads(canvas, loads, **_attr):
+	"""Model loadings plot
+	**_attr - key word _attributes
+		Defaults:
+			'xaxis' = [],	- Vector of x-axis values
+			'col1' = 0,		- Column to plot along abscissa
+			'col2' = 1,		- Column to plot along ordinate
+			'title'= '',	- Figure title
+			'xLabel'= '',	- The desired x-axis label
+			'yLabel'= '',	- The desired y-axis label
+			'type'= 0,		- List of labels to use in plotting
+	"""
+
 	# for model loadings plots
 	plot = []
 
@@ -238,7 +306,7 @@ def plotLoads(canvas, loads, xaxis, col1, col2, title="", xLabel="", yLabel="", 
 		if type == 0:
 			# plot labels
 			labels = []
-			textPlot = plotText(None, select, None, None, xaxis, 0, 1, "", "", usemask=False)
+			textPlot = plotText(None, select, mask=None, cLass=None, text=xaxis, usemask=False, col1=0, col2=1, tit="", xL="", yL="")
 			for each in textPlot:
 				plot.append(each)
 
@@ -258,7 +326,7 @@ def plotLoads(canvas, loads, xaxis, col1, col2, title="", xLabel="", yLabel="", 
 				labels = []
 				for each in outIdx:
 					labels.append(xaxis[each])
-				textPlot = plotText(None, getOutliers, None, None, labels, 0, 1, "", "", usemask=False)
+				textPlot = plotText(None, getOutliers, mask=None, cLass=None, text=labels, usemask=False, col1=0, col2=1, tit="", xL="", yL="")
 				for each in textPlot:
 					plot.append(each)
 
@@ -274,7 +342,7 @@ def plotLoads(canvas, loads, xaxis, col1, col2, title="", xLabel="", yLabel="", 
 				labels = []
 				for each in outIdx:
 					labels.append(xaxis[each])
-				textPlot = plotText(None, getOutliers, None, None, labels, 0, 1, "", "", usemask=False)
+				textPlot = plotText(None, getOutliers, mask=None, cLass=None, text=labels, usemask=False, col1=0, col2=1, tit="", xL="", yL="")
 				for each in textPlot:
 					plot.append(each)
 
@@ -311,7 +379,7 @@ def plotLoads(canvas, loads, xaxis, col1, col2, title="", xLabel="", yLabel="", 
 						labels.append(str(xaxis[regions[i]]) + " - " + str(xaxis[regions[i + 1]]))
 					i += 2
 
-				symPlot = plotSymbols(None, getOutliers, None, cl, labels, 0, 1, "", "", usemask=False)
+				symPlot = plotSymbols(None, getOutliers, mask=None, cLass=cl, text=labels, usemask=False, col1=0, col2=1, tit="", xL="", yL="")
 
 				for each in symPlot:
 					plot.append(each)
@@ -332,7 +400,24 @@ def plotLoads(canvas, loads, xaxis, col1, col2, title="", xLabel="", yLabel="", 
 			canvas.enableLegend = True
 
 
-def plotScores(canvas, scores, cl, labels, validation, col1, col2, title="", xLabel="", yLabel="", xval=False, text=True, pconf=True, symb=False):
+def plotScores(canvas, scores, **_attr):
+	"""Model scores plot
+	**_attr - key word _attributes
+		Defaults:
+			'cl' = []			- List of integers
+			'labels' = []		- List of sample labels
+			'validation' = []	- List of zeros, ones and/or twos
+			'col1' = 0,			- Column to plot along abscissa
+			'col2' = 1,			- Column to plot along ordinate
+			'title'= '',		- Figure title
+			'xLabel'= '',		- The desired x-axis label
+			'yLabel'= '',		- The desired y-axis label
+			'xval'= False,		- Cross-validation used flag
+			'text'= True,		- Text label plotting used flag
+			'pconf'= True,		- 95% confidence limits plotted flag
+			'symb'= False,		- Symbol plotting used flag
+	"""
+
 	# get mean centres
 	# nb for a dfa/cva plot scaled to unit variance 95% confidence radius is 2.15
 	sHape = scores.shape
@@ -353,13 +438,13 @@ def plotScores(canvas, scores, cl, labels, validation, col1, col2, title="", xLa
 
 		if symb is True:
 			# plot symbols
-			symPlot = plotSymbols(None, scores, validation, cl, labels, 0, 1, "", "", xval)
+			symPlot = plotSymbols(None, scores, mask=validation, cLass=cl, text=labels, usemask=xval, col1=0, col2=1, tit="", xL="", yL="")
 			for each in symPlot:
 				plot.append(each)
 
 		if text is True:
 			# plot labels
-			textPlot = plotText(None, scores, validation, cl, labels, 0, 1, "", "", xval)
+			textPlot = plotText(None, scores, mask=validation, cLass=cl, text=labels, col1=0, col2=1, usemask=xval, tit="", xL="", yL="")
 			for each in textPlot:
 				plot.append(each)
 
@@ -378,7 +463,7 @@ def plotScores(canvas, scores, cl, labels, validation, col1, col2, title="", xLa
 	else:
 		if text is True:
 			# plot labels
-			textPlot = plotText(None, scores, validation, cl, labels, col1, col1, title, None, xL="Arbitrary", yL=yLabel, usemask=xval)
+			textPlot = plotText(None, scores, mask=validation, cLass=cl, text=labels, col1=col1, col2=col1, tit=title, xL="Arbitrary", yL=yLabel, usemask=xval)
 			for each in textPlot:
 				plot.append(each)
 
@@ -400,7 +485,7 @@ def plotScores(canvas, scores, cl, labels, validation, col1, col2, title="", xLa
 				cTa = cTb
 			nSc = nSc[1 : len(nSc)]
 			# plot symbols
-			symPlot = plotSymbols(None, nSc, validation, nCs, nTx, 0, 1, "", "", xval)
+			symPlot = plotSymbols(None, nSc, mask=validation, cLass=nCs, text=nTx, usemask=xval, col1=0, col2=1, tit="", xL="", yL="")
 			for each in symPlot:
 				plot.append(each)
 
@@ -716,10 +801,8 @@ class TitleBar(bp.ButtonPanel):
 
 			if self.cbxData.GetSelection() == 0:
 				xdata = self.data["rawtrunc"]
-			##				  self.data['pcadata'] = 'rawtrunc'
 			elif self.cbxData.GetSelection() == 1:
 				xdata = self.data["proctrunc"]
-			##				  self.data['pcadata'] = 'proctrunc'
 
 			if self.cbxPreprocType.GetSelection() == 0:
 				self.data["pcatype"] = "covar"
@@ -755,32 +838,34 @@ class TitleBar(bp.ButtonPanel):
 		except Exception as error:
 			errorBox(self, "%s" % str(error))
 
+	##			  raise
+
 	def PlotPca(self):
 		# check for metadata & setup limits for dfa
 		if (sum(self.data["class"]) != 0) and (self.data["class"] is not None):
 			self.parent.parent.parent.plDfa.titleBar.cbxData.SetSelection(0)
 			self.parent.parent.parent.plDfa.titleBar.spnDfaPcs.SetRange(2, len(self.data["pceigs"]))
-			self.parent.parent.parent.plDfa.titleBar.spnDfaDfs.SetRange(1, int(max(self.data["class"])) - 1)
+			self.parent.parent.parent.plDfa.titleBar.spnDfaDfs.SetRange(1, len(scipy.unique(self.data["class"])))
 
 		# Plot scores
 		xL = "PC " + str(self.spnNumPcs1.GetValue()) + " (" + "%.2f" % (self.data["pcpervar"][self.spnNumPcs1.GetValue()] - self.data["pcpervar"][self.spnNumPcs1.GetValue() - 1]) + "%)"
 
 		yL = "PC " + str(self.spnNumPcs2.GetValue()) + " (" + "%.2f" % (self.data["pcpervar"][self.spnNumPcs2.GetValue()] - self.data["pcpervar"][self.spnNumPcs2.GetValue() - 1]) + "%)"
 
-		plotScores(self.parent.plcPCAscore, self.data["pcscores"], self.data["class"], self.data["label"], self.data["validation"], self.spnNumPcs1.GetValue() - 1, self.spnNumPcs2.GetValue() - 1, title="PCA Scores", xLabel=xL, yLabel=yL, xval=False, pconf=False)
+		plotScores(self.parent.plcPCAscore, self.data["pcscores"], cl=self.data["class"], labels=self.data["label"], validation=self.data["validation"], col1=self.spnNumPcs1.GetValue() - 1, col2=self.spnNumPcs2.GetValue() - 1, title="PCA Scores", xLabel=xL, yLabel=yL, xval=False, pconf=False, symb=False, text=True)
 
 		# Plot loadings
 		if self.spnNumPcs1.GetValue() != self.spnNumPcs2.GetValue():
-			plotLoads(self.parent.plcPcaLoadsV, scipy.transpose(self.data["pcloads"]), self.data["indlabels"], self.spnNumPcs1.GetValue() - 1, self.spnNumPcs2.GetValue() - 1, title="PC Loadings", xLabel="Loading " + str(self.spnNumPcs1.GetValue()), yLabel="Loading " + str(self.spnNumPcs2.GetValue()), type=1)
+			plotLoads(self.parent.plcPcaLoadsV, scipy.transpose(self.data["pcloads"]), xaxis=self.data["indlabels"], col1=self.spnNumPcs1.GetValue() - 1, col2=self.spnNumPcs2.GetValue() - 1, title="PC Loadings", xLabel="Loading " + str(self.spnNumPcs1.GetValue()), yLabel="Loading " + str(self.spnNumPcs2.GetValue()), type=1)
 		else:
 			idx = self.spnNumPcs1.GetValue() - 1
-			plotStem(self.parent.plcPcaLoadsV, scipy.concatenate((scipy.arange(1, self.data["pcloads"].shape[1] + 1)[:, nA], scipy.transpose(self.data["pcloads"])[:, idx][:, nA]), 1), "PCA Loadings", "Variable", "Loading " + str(idx + 1))
+			plotStem(self.parent.plcPcaLoadsV, scipy.concatenate((scipy.arange(1, self.data["pcloads"].shape[1] + 1)[:, nA], scipy.transpose(self.data["pcloads"])[:, idx][:, nA]), 1), tit="PCA Loadings", xLabel="Variable", yLabel="Loading " + str(idx + 1), wdth=1)
 
 		# Plot % variance
-		plotLine(self.parent.plcPCvar, scipy.transpose(self.data["pcpervar"]), scipy.arange(0, len(self.data["pcpervar"]))[:, nA], 0, "Percentage Explained Variance", "Principal Component", "Cumulative % Variance", wdth=3)
+		plotLine(self.parent.plcPCvar, scipy.transpose(self.data["pcpervar"]), xaxis=scipy.arange(0, len(self.data["pcpervar"]))[:, nA], rownum=0, tit="Percentage Explained Variance", tit="", type="single", xLabel="Principal Component", yLabel="Cumulative % Variance", wdth=3, ledge=[])
 
 		# Plot eigenvalues
-		plotLine(self.parent.plcPCeigs, scipy.transpose(self.data["pceigs"]), scipy.arange(1, len(self.data["pceigs"]) + 1)[:, nA], 0, "Eigenvalues", "Principal Component", "Eigenvalue", wdth=3)
+		plotLine(self.parent.plcPCeigs, scipy.transpose(self.data["pceigs"]), xaxis=scipy.arange(1, len(self.data["pceigs"]) + 1)[:, nA], rownum=0, tit="Eigenvalues", xLabel="Principal Component", yLabel="Eigenvalue", wdth=3, tit="", type="single", ledge=[])
 
 		# make sure ctrls enabled
 		self.spnNumPcs1.Enable(True)
@@ -1137,40 +1222,40 @@ class plotProperties(wx.Dialog):
 
 	def doPlot(self, loadType=0):
 		if self.canvas.GetName() in ["plcDFAscores"]:
-			plotScores(self.canvas, self.canvas.prnt.titleBar.data["dfscores"], self.canvas.prnt.titleBar.data["class"], self.canvas.prnt.titleBar.data["label"], self.canvas.prnt.titleBar.data["validation"], self.canvas.prnt.titleBar.spnDfaScore1.GetValue() - 1, self.canvas.prnt.titleBar.spnDfaScore2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=self.canvas.prnt.titleBar.cbDfaXval.GetValue(), text=self.tbPoints.GetValue(), pconf=self.tbConf.GetValue(), symb=self.tbSymbols.GetValue())
+			plotScores(self.canvas, self.canvas.prnt.titleBar.data["dfscores"], cl=self.canvas.prnt.titleBar.data["class"], labels=self.canvas.prnt.titleBar.data["label"], validation=self.canvas.prnt.titleBar.data["validation"], col1=self.canvas.prnt.titleBar.spnDfaScore1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnDfaScore2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=self.canvas.prnt.titleBar.cbDfaXval.GetValue(), text=self.tbPoints.GetValue(), pconf=self.tbConf.GetValue(), symb=self.tbSymbols.GetValue())
 
 		elif self.canvas.GetName() in ["plcPCAscore"]:
-			plotScores(self.canvas, self.canvas.prnt.titleBar.data["pcscores"], self.canvas.prnt.titleBar.data["class"], self.canvas.prnt.titleBar.data["label"], self.canvas.prnt.titleBar.data["validation"], self.canvas.prnt.titleBar.spnNumPcs1.GetValue() - 1, self.canvas.prnt.titleBar.spnNumPcs2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=False, text=self.tbPoints.GetValue(), pconf=False, symb=self.tbSymbols.GetValue())
+			plotScores(self.canvas, self.canvas.prnt.titleBar.data["pcscores"], cl=self.canvas.prnt.titleBar.data["class"], labels=self.canvas.prnt.titleBar.data["label"], validation=self.canvas.prnt.titleBar.data["validation"], col1=self.canvas.prnt.titleBar.spnNumPcs1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnNumPcs2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=False, text=self.tbPoints.GetValue(), pconf=False, symb=self.tbSymbols.GetValue())
 
 		elif self.canvas.GetName() in ["plcGaFeatPlot"]:
-			plotScores(self.canvas, self.canvas.prnt.prnt.splitPrnt.titleBar.data["gavarcoords"], self.canvas.prnt.prnt.splitPrnt.titleBar.data["class"], self.canvas.prnt.prnt.splitPrnt.titleBar.data["label"], self.canvas.prnt.prnt.splitPrnt.titleBar.data["validation"], 0, 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=True, text=self.tbPoints.GetValue(), pconf=False, symb=self.tbSymbols.GetValue())
+			plotScores(self.canvas, self.canvas.prnt.prnt.splitPrnt.titleBar.data["gavarcoords"], cl=self.canvas.prnt.prnt.splitPrnt.titleBar.data["class"], labels=self.canvas.prnt.prnt.splitPrnt.titleBar.data["label"], validation=self.canvas.prnt.prnt.splitPrnt.titleBar.data["validation"], col1=0, col2=1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=True, text=self.tbPoints.GetValue(), pconf=False, symb=self.tbSymbols.GetValue())
 
 		elif self.canvas.GetName() in ["plcGaPlot"]:
 			if self.canvas.prnt.prnt.splitPrnt.type in ["DFA"]:
-				plotScores(self.canvas, self.canvas.prnt.prnt.splitPrnt.titleBar.data["gadfadfscores"], self.canvas.prnt.prnt.splitPrnt.titleBar.data["class"], self.canvas.prnt.prnt.splitPrnt.titleBar.data["label"], self.canvas.prnt.prnt.splitPrnt.titleBar.data["validation"], self.canvas.prnt.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue() - 1, self.canvas.prnt.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=True, text=self.tbPoints.GetValue(), pconf=self.tbConf.GetValue(), symb=self.tbSymbols.GetValue())
+				plotScores(self.canvas, self.canvas.prnt.prnt.splitPrnt.titleBar.data["gadfadfscores"], cl=self.canvas.prnt.prnt.splitPrnt.titleBar.data["class"], labels=self.canvas.prnt.prnt.splitPrnt.titleBar.data["label"], validation=self.canvas.prnt.prnt.splitPrnt.titleBar.data["validation"], col1=self.canvas.prnt.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue() - 1, col2=self.canvas.prnt.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=True, text=self.tbPoints.GetValue(), pconf=self.tbConf.GetValue(), symb=self.tbSymbols.GetValue())
 
 		elif self.canvas.GetName() in ["plcPcaLoadsV"]:
-			plotLoads(self.canvas, scipy.transpose(self.canvas.prnt.titleBar.data["pcloads"]), self.canvas.prnt.titleBar.data["indlabels"], self.canvas.prnt.titleBar.spnNumPcs1.GetValue() - 1, self.canvas.prnt.titleBar.spnNumPcs2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType)
+			plotLoads(self.canvas, scipy.transpose(self.canvas.prnt.titleBar.data["pcloads"]), xaxis=self.canvas.prnt.titleBar.data["indlabels"], col1=self.canvas.prnt.titleBar.spnNumPcs1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnNumPcs2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType)
 
 		elif self.canvas.GetName() in ["plcPLSloading"]:
-			plotLoads(self.canvas, self.canvas.prnt.titleBar.data["plsloads"], self.canvas.prnt.titleBar.data["indlabels"], self.canvas.prnt.titleBar.spnPLSfactor1.GetValue() - 1, self.canvas.prnt.titleBar.spnPLSfactor2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType)
+			plotLoads(self.canvas, self.canvas.prnt.titleBar.data["plsloads"], xaxis=self.canvas.prnt.titleBar.data["indlabels"], col1=self.canvas.prnt.titleBar.spnPLSfactor1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnPLSfactor2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType)
 
 		elif self.canvas.GetName() in ["plcDfaLoadsV"]:
-			plotLoads(self.canvas, self.canvas.prnt.titleBar.data["dfloads"], self.canvas.prnt.titleBar.data["indlabels"], self.canvas.prnt.titleBar.spnDfaScore1.GetValue() - 1, self.canvas.prnt.titleBar.spnDfaScore2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType)
+			plotLoads(self.canvas, self.canvas.prnt.titleBar.data["dfloads"], xaxis=self.canvas.prnt.titleBar.data["indlabels"], col1=self.canvas.prnt.titleBar.spnDfaScore1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnDfaScore2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType)
 
 		elif self.canvas.GetName() in ["plcGaSpecLoad"]:
 			if self.canvas.prnt.prnt.prnt.splitPrnt.type in ["DFA"]:
 				labels = []
 				for each in self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gacurrentchrom"]:
 					labels.append(self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["indlabels"][int(each)])
-				plotLoads(self.canvas, self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gadfadfaloads"], labels, 0, 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType)
+				plotLoads(self.canvas, self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gadfadfaloads"], xaxis=labels, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType)
 
 		elif self.canvas.GetName() in ["plcGaSpecLoad"]:
 			if self.canvas.prnt.prnt.splitPrnt.type in ["PLS"]:
 				labels = []
 				for each in self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gacurrentchrom"]:
 					labels.append(self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["indlabels"][int(each)])
-				plotLoads(self.canvas, self.canvas.prnt.prnt.splitPrnt.titleBar.data["gaplsplsloads"], labels, 0, 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType)
+				plotLoads(self.canvas, self.canvas.prnt.prnt.splitPrnt.titleBar.data["gaplsplsloads"], xaxis=labels, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType)
 
 	##	  def OnBtnFont(self, event):
 	##		  data = wx.FontData()

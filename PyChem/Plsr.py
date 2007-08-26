@@ -95,7 +95,7 @@ def PlotPlsModel(self, plot_canvas, ydata, predy, predyv, predyt, mask, RMSEPT, 
 
 	xAx = (ydata.min() - (0.05 * ydata.max()), ydata.max() + (0.05 * ydata.max()))
 
-	ys = scipy.concatenate((predy, predyv, predyt), 0)
+	ys = scipy.concatenate((predy, predyv), 0)
 
 	yAx = (ys.min() - (0.05 * ys.max()), ys.max() + (0.05 * ys.max()))
 
@@ -351,7 +351,7 @@ class TitleBar(bp.ButtonPanel):
 						pred.append([1, self.data["class"][i], float(self.data["plscvpred"][c3, 0])])
 						c3 += 1
 
-				out = "#PARTIAL_LEAST_SQUARES_PREDICTIONS\n" + str_array(np.array(pred), col_sep="\t") + "\n" + "#PARTIAL_LEAST_SQUARES_LOADINGS\n" + str_array(self.data["plsloads"], col_sep="\t") + "\n" + "#NUMBER_OF_PLS_FACTORS\n" + str(self.data["plsfactors"]) + "\n" + "#ROOT_MEAN_SQUARED_ERROR_OF_CALIBRATION\n" + str(self.data["rmsec"]) + "\n" + "#ROOT_MEAN_SQUARED_ERROR_OF_CROSS_VALIDATION\n" + str(self.data["rmsepc"]) + "\n" + "#ROOT_MEAN_SQUARED_ERROR_FOR_INDEPENDENT_TEST_SAMPLES\n" + str(self.data["rmsept"])
+				out = "#PARTIAL_LEAST_SQUARES_PREDICTIONS\n" + str_array(np.array(pred), col_sep="\t") + "\n" + "#PARTIAL_LEAST_SQUARES_LOADINGS\n" + str_array(self.data["plsloads"], col_sep="\t") + "\n" + "#NUMBER_OF_PLS_FACTORS\n" + str(self.data["plsfactors"] + 1) + "\n" + "#ROOT_MEAN_SQUARED_ERROR_OF_CALIBRATION\n" + str(self.data["rmsec"]) + "\n" + "#ROOT_MEAN_SQUARED_ERROR_OF_CROSS_VALIDATION\n" + str(self.data["rmsepc"]) + "\n" + "#ROOT_MEAN_SQUARED_ERROR_FOR_INDEPENDENT_TEST_SAMPLES\n" + str(self.data["rmsept"]) + "\n" + "#PARTIAL_PREDICTION\n" + str_array(self.data["plspred"], col_sep="\t")
 				f = file(saveFile, "w")
 				f.write(out)
 				f.close()
@@ -367,10 +367,10 @@ class TitleBar(bp.ButtonPanel):
 				xdata = self.data["proctrunc"]
 
 			# Run PLS
-			self.data["plsloads"], T, P, Q, self.data["plsfactors"], self.data["plstrnpred"], self.data["plscvpred"], self.data["plststpred"], self.data["rmsec"], self.data["rmsepc"], rmsec, rmsepc, self.data["rmsept"] = mva.chemometrics.PLS(xdata, np.array(self.data["class"], "f")[:, nA], self.data["validation"], self.spnPLSmaxfac.GetValue())
+			self.data["plsloads"], T, P, Q, self.data["plsfactors"], self.data["plstrnpred"], self.data["plscvpred"], self.data["plststpred"], self.data["rmsec"], self.data["rmsepc"], rmsec, rmsepc, self.data["rmsept"], self.data["plspred"] = mva.chemometrics.PLS(xdata, np.array(self.data["class"], "f")[:, nA], self.data["validation"], self.spnPLSmaxfac.GetValue())
 
 			# plot pls error
-			plotLine(self.parent.plcPLSerror, scipy.concatenate((scipy.reshape(rmsec, (1, len(rmsec))), scipy.reshape(rmsepc, (1, len(rmsepc)))), 0), scipy.arange(1, len(rmsec) + 1)[:, nA], 0, "PLS Error Curve", "PLS Factor", "RMS", type="multi", ledge=["Trn Err", "Tst Err"], wdth=3)
+			plotLine(self.parent.plcPLSerror, scipy.concatenate((np.array(rmsec)[nA, :], np.array(rmsepc)[nA, :]), 0), xaxis=scipy.arange(1, len(rmsec) + 1)[:, nA], rownum=0, tit="PLS Error Curve", xLabel="PLS Factor", yLabel="RMS", type="multi", ledge=["Trn Err", "Tst Err"], wdth=3)
 
 			# plot predicted vs. residuals for train and validation
 			TrainPlot = scipy.concatenate((self.data["plstrnpred"], self.data["plstrnpred"] - scipy.take(np.array(self.data["class"])[:, nA], _index(self.data["validation"], 0), 0)), 1)
@@ -418,6 +418,8 @@ class TitleBar(bp.ButtonPanel):
 		except Exception as error:
 			errorBox(self, "%s" % str(error))
 
+	##			  raise
+
 	def doOls(self, writeto, predy, predyv, predyt, labels, mask, rmsec, rmsecv, rmset):
 		# Do least squares regression on PLS results
 		n0, n1, n2 = [], [], []
@@ -433,7 +435,7 @@ class TitleBar(bp.ButtonPanel):
 		if max(mask) == 2:
 			tstgrad, tstyi, tstmserr, tstrmserr, tstgerr, tstierr = mva.chemometrics.OLS(n2, predyt)
 		else:
-			tstgrad, tstyi, tstmserr, tstrmserr, tstgerr, tstierr = ["N/A"], ["N/A"], ["N/A"], ["N/A"], ["N/A"], ["N/A"]
+			tstgrad, tstyi, tstmserr, tstrmserr, tstgerr, tstierr = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
 		# Write to textctrl
 		write = []
@@ -447,7 +449,8 @@ class TitleBar(bp.ButtonPanel):
 		write.append(wx.lib.plot.PolyLine([[24, 9.5], [32, 9.5]]))
 		write.append(wx.lib.plot.PolyMarker(np.array([[0, 9]]), marker="text", labels="% .2f" % rmsec))
 		write.append(wx.lib.plot.PolyMarker(np.array([[12, 9]]), marker="text", labels="% .2f" % rmsecv))
-		write.append(wx.lib.plot.PolyMarker(np.array([[24, 9]]), marker="text", labels="% .2f" % rmset))
+		if max(mask) > 1:
+			write.append(wx.lib.plot.PolyMarker(np.array([[24, 9]]), marker="text", labels="% .2f" % rmset))
 
 		write.append(wx.lib.plot.PolyMarker(np.array([[0, 7.5]]), marker="text", labels="Least Squares Regression"))
 
@@ -478,12 +481,13 @@ class TitleBar(bp.ButtonPanel):
 		write.append(wx.lib.plot.PolyMarker(np.array([[12, 1.5]]), marker="text", labels="%.2f" % cvgrad[0] + " (" + "%.2f" % cvgerr + ")"))
 
 		# test
-		write.append(wx.lib.plot.PolyMarker(np.array([[0, 0]]), marker="text", labels="Test Intercept (Error)"))
-		write.append(wx.lib.plot.PolyMarker(np.array([[12, 0]]), marker="text", labels="Test Slope (Error)"))
-		write.append(wx.lib.plot.PolyLine([[0, -1], [8, -1]]))
-		write.append(wx.lib.plot.PolyLine([[12, -1], [20, -1]]))
-		write.append(wx.lib.plot.PolyMarker(np.array([[0, -1.5]]), marker="text", labels="%.2f" % tstyi[0] + " (" + "%.2f" % tstierr[0] + ")"))
-		write.append(wx.lib.plot.PolyMarker(np.array([[12, -1.5]]), marker="text", labels="%.2f" % tstgrad[0] + " (" + "%.2f" % tstgerr + ")"))
+		if max(mask) > 1:
+			write.append(wx.lib.plot.PolyMarker(np.array([[0, 0]]), marker="text", labels="Test Intercept (Error)"))
+			write.append(wx.lib.plot.PolyMarker(np.array([[12, 0]]), marker="text", labels="Test Slope (Error)"))
+			write.append(wx.lib.plot.PolyLine([[0, -1], [8, -1]]))
+			write.append(wx.lib.plot.PolyLine([[12, -1], [20, -1]]))
+			write.append(wx.lib.plot.PolyMarker(np.array([[0, -1.5]]), marker="text", labels="%.2f" % tstyi[0] + " (" + "%.2f" % tstierr[0] + ")"))
+			write.append(wx.lib.plot.PolyMarker(np.array([[12, -1.5]]), marker="text", labels="%.2f" % tstgrad[0] + " (" + "%.2f" % tstgerr + ")"))
 
 		# filler
 		write.append(wx.lib.plot.PolyMarker(np.array([[0, -3]]), marker="text", labels=""))
@@ -495,7 +499,7 @@ class TitleBar(bp.ButtonPanel):
 	def plotPlsLoads(self):
 		# Plot loadings
 		if self.spnPLSfactor1.GetValue() != self.spnPLSfactor2.GetValue():
-			plotLoads(self.parent.plcPLSloading, self.data["plsloads"], self.data["indlabels"], self.spnPLSfactor1.GetValue() - 1, self.spnPLSfactor2.GetValue() - 1, title="PLS Loadings", xLabel="Loading " + str(self.spnPLSfactor1.GetValue()), yLabel="Loading " + str(self.spnPLSfactor2.GetValue()), type=1)
+			plotLoads(self.parent.plcPLSloading, self.data["plsloads"], xaxis=self.data["indlabels"], col1=self.spnPLSfactor1.GetValue() - 1, col2=self.spnPLSfactor2.GetValue() - 1, title="PLS Loadings", xLabel="Loading " + str(self.spnPLSfactor1.GetValue()), yLabel="Loading " + str(self.spnPLSfactor2.GetValue()), type=1)
 		else:
 			idx = self.spnPLSfactor1.GetValue() - 1
-			plotStem(self.parent.plcPLSloading, scipy.concatenate((self.data["xaxis"], self.data["plsloads"][:, idx][:, nA]), 1), "PLS Loadings", "Variable", "Loading " + str(idx + 1))
+			plotStem(self.parent.plcPLSloading, scipy.concatenate((self.data["xaxis"], self.data["plsloads"][:, idx][:, nA]), 1), tit="PLS Loadings", xLabel="Variable", yLabel="Loading " + str(idx + 1), wdth=1)

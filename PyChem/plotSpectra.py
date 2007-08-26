@@ -102,7 +102,7 @@ class plotSpectra(wx.Panel):
 		self.optDlg.lbSpectra2.Clear()
 
 	def OnSplitterDclick(self, event):
-		if self.Splitter.GetSashPosition() == 1:
+		if self.Splitter.GetSashPosition() <= 5:
 			self.Splitter.SetSashPosition(250)
 		else:
 			self.Splitter.SetSashPosition(1)
@@ -252,7 +252,7 @@ class TitleBar(bp.ButtonPanel):
 		self.parent.parent.parent.GetExperimentDetails()
 
 	def OnBtnSetProcButton(self, event):
-		if self.parent.Splitter.GetSashPosition() == 1:
+		if self.parent.Splitter.GetSashPosition() <= 5:
 			self.parent.Splitter.SetSashPosition(250)
 		else:
 			self.parent.Splitter.SetSashPosition(1)

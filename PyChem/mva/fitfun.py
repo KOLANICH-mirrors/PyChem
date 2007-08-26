@@ -105,15 +105,15 @@ def call_pls(chrom, xdata, mask, groups, factors):
 			# extract vars from xdata
 			##			  try:
 			slice = scipy.take(xdata, chrom[i, :].tolist(), 1)
-			W, T, P, Q, facs, predy, predyv, predyt, RMSEC, RMSEPC, rmsec, rmsepc, rmsept = PLS(slice, groups, mask, factors)
-			##			  if min(rmsec) <= min(rmsepc):
-			scores.append(RMSEPC)
-	##			  else:
-	##				  scores.append(10.0**5)
-	##			  except:
-	##				  scores.append(10.0**5)
-	##		  else:
-	##			  scores.append(10.0**5)
+			W, T, P, Q, facs, predy, predyv, predyt, RMSEC, RMSEPC, rmsec, rmsepc, RMSEPT, b = PLS(slice, groups, mask, factors)
+			if min(rmsec) <= min(rmsepc):
+				scores.append(RMSEPC)
+			else:
+				scores.append(10.0**5)
+		##			  except:
+		##				  scores.append(10.0**5)
+		else:
+			scores.append(10.0**5)
 
 	return scipy.asarray(scores)[:, nA]
 
