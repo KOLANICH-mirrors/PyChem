@@ -115,8 +115,9 @@ class Dfa(wx.Panel):
 		self.SetClientSize(wx.Size(788, 426))
 		self.SetToolTip("")
 		self.SetAutoLayout(True)
+		self.prnt = prnt
 
-		self.plcDFAscores = MyPlotCanvas(id=-1, name="plcDFAscores", parent=self, pos=wx.Point(0, 24), size=wx.Size(24, 20), style=0)
+		self.plcDFAscores = MyPlotCanvas(id=-1, name="plcDFAscores", parent=self, pos=wx.Point(0, 24), size=wx.Size(24, 20), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcDFAscores.fontSizeTitle = 10
 		self.plcDFAscores.fontSizeAxis = 8
 		self.plcDFAscores.enableZoom = True
@@ -126,7 +127,7 @@ class Dfa(wx.Panel):
 		self.plcDFAscores.SetConstraints(LayoutAnchors(self.plcDFAscores, True, True, True, True))
 		self.plcDFAscores.fontSizeLegend = 8
 
-		self.plcDfaLoadsV = MyPlotCanvas(id=-1, name="plcDfaLoadsV", parent=self, pos=wx.Point(-5, 24), size=wx.Size(24, 20), style=0)
+		self.plcDfaLoadsV = MyPlotCanvas(id=-1, name="plcDfaLoadsV", parent=self, pos=wx.Point(-5, 24), size=wx.Size(24, 20), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcDfaLoadsV.fontSizeAxis = 8
 		self.plcDfaLoadsV.fontSizeTitle = 10
 		self.plcDfaLoadsV.enableZoom = True
@@ -136,7 +137,7 @@ class Dfa(wx.Panel):
 		self.plcDfaLoadsV.fontSizeLegend = 8
 		self.plcDfaLoadsV.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
-		self.plcDFAeigs = MyPlotCanvas(id=-1, name="plcDFAeigs", parent=self, pos=wx.Point(483, 214), size=wx.Size(305, 212), style=0)
+		self.plcDFAeigs = MyPlotCanvas(id=-1, name="plcDFAeigs", parent=self, pos=wx.Point(483, 214), size=wx.Size(305, 212), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcDFAeigs.fontSizeAxis = 8
 		self.plcDFAeigs.fontSizeTitle = 10
 		self.plcDFAeigs.enableZoom = True
@@ -146,7 +147,7 @@ class Dfa(wx.Panel):
 		self.plcDFAeigs.fontSizeLegend = 8
 		self.plcDFAeigs.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
-		self.plcDfaCluster = MyPlotCanvas(id=-1, name="plcDfaCluster", parent=self, pos=wx.Point(176, 214), size=wx.Size(305, 212), style=0)
+		self.plcDfaCluster = MyPlotCanvas(id=-1, name="plcDfaCluster", parent=self, pos=wx.Point(176, 214), size=wx.Size(305, 212), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcDfaCluster.fontSizeAxis = 8
 		self.plcDfaCluster.fontSizeTitle = 10
 		self.plcDfaCluster.enableZoom = True
@@ -301,8 +302,8 @@ class TitleBar(bp.ButtonPanel):
 				self.data["niporsvd"] = "svd"
 
 			# check appropriate number of pcs/dfs
-			if self.spnDfaPcs.GetValue() < self.spnDfaDfs.GetValue():
-				self.spnDfaDfs.SetValue(self.spnDfaPcs.GetValue())
+			if self.spnDfaPcs.GetValue() <= self.spnDfaDfs.GetValue():
+				self.spnDfaDfs.SetValue(self.spnDfaPcs.GetValue() - 1)
 
 			# check for pca preproc method
 			if self.parent.parent.parent.plPca.titleBar.cbxPreprocType.GetSelection() == 0:

@@ -86,6 +86,7 @@ class Ga(wx.Panel):
 		wx.Panel.__init__(self, id=-1, name="Ga", parent=prnt, pos=wx.Point(47, 118), size=wx.Size(796, 460), style=wx.TAB_TRAVERSAL)
 		self.SetToolTip("")
 		self.SetAutoLayout(True)
+		self.prnt = prnt
 
 		self.Splitter = wx.SplitterWindow(id=-1, name="Splitter", parent=self, pos=wx.Point(16, 24), size=wx.Size(272, 168), style=wx.SP_3D | wx.SP_LIVE_UPDATE)
 		self.Splitter.SetAutoLayout(True)
@@ -98,7 +99,7 @@ class Ga(wx.Panel):
 
 		self.optDlg = selParam(self.Splitter)
 
-		self.plcGaPlot = MyPlotCanvas(id=-1, name="plcGaPlot", parent=self.p1, pos=wx.Point(0, 0), size=wx.Size(310, 272), style=0)
+		self.plcGaPlot = MyPlotCanvas(id=-1, name="plcGaPlot", parent=self.p1, pos=wx.Point(0, 0), size=wx.Size(310, 272), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcGaPlot.enableZoom = True
 		self.plcGaPlot.fontSizeAxis = 8
 		self.plcGaPlot.fontSizeLegend = 8
@@ -110,7 +111,7 @@ class Ga(wx.Panel):
 		self.nbGaModPlot.prnt = self.p1
 		self.nbGaModPlot.SetToolTip("")
 
-		self.plcGaEigs = MyPlotCanvas(id=-1, name="plcGaEigs", parent=self.nbGaModPlot, pos=wx.Point(0, 0), size=wx.Size(310, 272), style=0)
+		self.plcGaEigs = MyPlotCanvas(id=-1, name="plcGaEigs", parent=self.nbGaModPlot, pos=wx.Point(0, 0), size=wx.Size(310, 272), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcGaEigs.enableZoom = True
 		self.plcGaEigs.fontSizeAxis = 8
 		self.plcGaEigs.fontSizeLegend = 8
@@ -118,7 +119,7 @@ class Ga(wx.Panel):
 		self.plcGaEigs.SetToolTip("")
 		self.plcGaEigs.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
-		self.plcGaSpecLoad = MyPlotCanvas(id=-1, name="plcGaSpecLoad", parent=self.nbGaModPlot, pos=wx.Point(0, 24), size=wx.Size(503, 279), style=0)
+		self.plcGaSpecLoad = MyPlotCanvas(id=-1, name="plcGaSpecLoad", parent=self.nbGaModPlot, pos=wx.Point(0, 24), size=wx.Size(503, 279), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcGaSpecLoad.SetToolTip("")
 		self.plcGaSpecLoad.enableZoom = True
 		self.plcGaSpecLoad.fontSizeAxis = 8
@@ -126,7 +127,7 @@ class Ga(wx.Panel):
 		self.plcGaSpecLoad.fontSizeTitle = 10
 		self.plcGaSpecLoad.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
-		self.plcGaFreqPlot = MyPlotCanvas(id=-1, name="plcGaFreqPlot", parent=self.p1, pos=wx.Point(760, 0), size=wx.Size(310, 272), style=0)
+		self.plcGaFreqPlot = MyPlotCanvas(id=-1, name="plcGaFreqPlot", parent=self.p1, pos=wx.Point(760, 0), size=wx.Size(310, 272), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcGaFreqPlot.enableZoom = True
 		self.plcGaFreqPlot.fontSizeAxis = 8
 		self.plcGaFreqPlot.fontSizeLegend = 8
@@ -134,7 +135,7 @@ class Ga(wx.Panel):
 		self.plcGaFreqPlot.SetToolTip("")
 		self.plcGaFreqPlot.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
-		self.plcGaFeatPlot = MyPlotCanvas(id=-1, name="plcGaFeatPlot", parent=self.p1, pos=wx.Point(0, 24), size=wx.Size(310, 272), style=0)
+		self.plcGaFeatPlot = MyPlotCanvas(id=-1, name="plcGaFeatPlot", parent=self.p1, pos=wx.Point(0, 24), size=wx.Size(310, 272), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcGaFeatPlot.SetToolTip("")
 		self.plcGaFeatPlot.enableZoom = True
 		self.plcGaFeatPlot.fontSizeAxis = 8
@@ -142,7 +143,7 @@ class Ga(wx.Panel):
 		self.plcGaFeatPlot.fontSizeTitle = 10
 		self.plcGaFeatPlot.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
-		self.plcGaGrpDistPlot = MyPlotCanvas(id=-1, name="plcGaGrpDistPlot", parent=self.nbGaModPlot, pos=wx.Point(0, 0), size=wx.Size(310, 272), style=0)
+		self.plcGaGrpDistPlot = MyPlotCanvas(id=-1, name="plcGaGrpDistPlot", parent=self.nbGaModPlot, pos=wx.Point(0, 0), size=wx.Size(310, 272), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcGaGrpDistPlot.enableLegend = True
 		self.plcGaGrpDistPlot.enableZoom = True
 		self.plcGaGrpDistPlot.fontSizeAxis = 8
@@ -151,7 +152,7 @@ class Ga(wx.Panel):
 		self.plcGaGrpDistPlot.SetToolTip("")
 		self.plcGaGrpDistPlot.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
-		self.plcGaOptPlot = MyPlotCanvas(id=-1, name="plcGaOptPlot", parent=self.nbGaModPlot, pos=wx.Point(0, 0), size=wx.Size(310, 272), style=0)
+		self.plcGaOptPlot = MyPlotCanvas(id=-1, name="plcGaOptPlot", parent=self.nbGaModPlot, pos=wx.Point(0, 0), size=wx.Size(310, 272), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcGaOptPlot.enableLegend = False
 		self.plcGaOptPlot.enableZoom = True
 		self.plcGaOptPlot.fontSizeAxis = 8
@@ -249,6 +250,12 @@ class TitleBar(bp.ButtonPanel):
 	def getData(self, data):
 		self.data = data
 
+	def getExpGrid(self, grid):
+		self.grid = grid
+
+	def getValSplitPc(self, pc):
+		self.pcSplit = pc
+
 	def CreateButtons(self):
 		self.Freeze()
 
@@ -301,7 +308,7 @@ class TitleBar(bp.ButtonPanel):
 			self.parent.Splitter.SetSashPosition(1)
 
 	def OnBtnrungaButton(self, event):
-		self.runGa(varfrom=self.parent.optDlg.spnGaVarsFrom.GetValue(), varto=self.parent.optDlg.spnGaVarsTo.GetValue(), inds=self.parent.optDlg.spnGaNoInds.GetValue(), runs=self.parent.optDlg.spnGaNoRuns.GetValue(), xovr=float(self.parent.optDlg.stGaXoverRate.GetValue()), mutr=float(self.parent.optDlg.stGaMutRate.GetValue()), insr=float(self.parent.optDlg.stGaInsRate.GetValue()), maxf=self.parent.optDlg.spnGaMaxFac.GetValue(), mgen=self.parent.optDlg.spnGaMaxGen.GetValue(), rgen=self.parent.optDlg.spnGaRepUntil.GetValue())
+		self.runGa(varfrom=self.parent.optDlg.spnGaVarsFrom.GetValue(), varto=self.parent.optDlg.spnGaVarsTo.GetValue(), inds=self.parent.optDlg.spnGaNoInds.GetValue(), runs=self.parent.optDlg.spnGaNoRuns.GetValue(), xovr=float(self.parent.optDlg.stGaXoverRate.GetValue()), mutr=float(self.parent.optDlg.stGaMutRate.GetValue()), insr=float(self.parent.optDlg.stGaInsRate.GetValue()), maxf=self.parent.optDlg.spnGaMaxFac.GetValue(), mgen=self.parent.optDlg.spnGaMaxGen.GetValue(), rgen=self.parent.optDlg.spnGaRepUntil.GetValue(), nfold=self.parent.optDlg.spnNfold.GetValue())
 
 	def OnBtnexportgaButton(self, event):
 		dlg = wx.FileDialog(self, "Choose a file", ".", "", "Any files (*.*)|*.*", wx.FD_SAVE)
@@ -349,7 +356,7 @@ class TitleBar(bp.ButtonPanel):
 				'maxf'= 1,	   - Maximum no.of latent variables
 				'mgens'= 5,		 - Max. no. of generations
 				'rgens'= 5,		 - No. of repeat gens
-
+				'nfolds'= 1,	- No. of n-fold validation iterations
 		"""
 
 		dlg = wx.MessageDialog(self, "This can take a while, are you sure?", "Preparing to run GA", wx.OK | wx.CANCEL | wx.ICON_INFORMATION)
@@ -368,9 +375,9 @@ class TitleBar(bp.ButtonPanel):
 
 				# Set xdata
 				if self.cbxData.GetSelection() == 0:
-					xdata = self.data["raw"]
+					xdata = self.data["rawtrunc"]
 				elif self.cbxData.GetSelection() == 1:
-					xdata = self.data["proc"]
+					xdata = self.data["proctrunc"]
 
 				# Run DFA - set containers
 				scoreList = []
@@ -400,13 +407,13 @@ class TitleBar(bp.ButtonPanel):
 							else:
 								Lvs = int(maxf)
 							# run dfa
-							scores = mva.fitfun.call_dfa(chrom, xdata, self.data["validation"], self.data["class"], self.data["label"], Lvs)
+							scores = mva.fitfun.call_dfa(chrom, xdata, Lvs, nfold, self.data, self.grid, self.pcSplit)
 
 						elif self.type in ["PLS"]:
 							# set factors
 							Lvs = int(maxf)
 							# run pls
-							scores = mva.fitfun.call_pls(chrom, xdata, self.data["validation"][:, nA], np.array(self.data["class"])[:, nA], Lvs)
+							scores = mva.fitfun.call_pls(chrom, xdata, Lvs, self.data, nfold, self.grid, self.pcSplit)
 
 						# add additional methods here
 
@@ -436,9 +443,10 @@ class TitleBar(bp.ButtonPanel):
 
 							# evaluate chromSel
 							if self.type in ["DFA"]:
-								scoresSel = mva.fitfun.call_dfa(chromSel, xdata, self.data["validation"], self.data["class"], self.data["label"], Lvs)
+								scoresSel = mva.fitfun.call_dfa(chromSel, xdata, Lvs, nfold, self.data, self.grid, self.pcSplit)
+
 							elif self.type in ["PLS"]:
-								scoresSel = mva.fitfun.call_pls(chromSel, xdata, self.data["validation"][:, nA], np.array(self.data["class"])[:, nA], Lvs)
+								scoresSel = mva.fitfun.call_pls(chromSel, xdata, Lvs, self.data, nfold, self.grid, self.pcSplit)
 							# add additional methods here
 
 							# reinsert chromSel replacing worst parents in chrom
@@ -483,7 +491,7 @@ class TitleBar(bp.ButtonPanel):
 									scoreList = [float(scores[0])]
 									cUrves = scipy.reshape(scoresOut, (1, len(scoresOut)))
 								else:
-									scoreList = [1.0 / float(scores[0])]
+									scoreList = [1 / float(scores[0])]
 									cUrves = scipy.reshape(1.0 / scoresOut, (1, len(scoresOut)))
 								# chromosomes
 								chromList = chrom[0, :][nA]
@@ -495,7 +503,7 @@ class TitleBar(bp.ButtonPanel):
 								if self.type in ["PLS"]:
 									scoreList.append(float(scores[0]))
 								else:
-									scoreList.append(1.0 / float(scores[0]))
+									scoreList.append(1 / float(scores[0]))
 									scoresOut = 1.0 / scoresOut
 								# chromosomes
 								ins = chrom[0, :][nA]
@@ -516,7 +524,7 @@ class TitleBar(bp.ButtonPanel):
 									scoreList = [float(scores[0])]
 									cUrves = scipy.reshape(scoresOut, (1, len(scoresOut)))
 								else:
-									scoreList = [1.0 / float(scores[0])]
+									scoreList = [1 / float(scores[0])]
 									cUrves = scipy.reshape(1.0 / scoresOut, (1, len(scoresOut)))
 								##								  scoreList = [1.0/float(scores[0])]
 								# chromosomes
@@ -530,7 +538,7 @@ class TitleBar(bp.ButtonPanel):
 								if self.type in ["PLS"]:
 									scoreList.append(float(scores[0]))
 								else:
-									scoreList.append(1.0 / float(scores[0]))
+									scoreList.append(1 / float(scores[0]))
 									scoresOut = 1.0 / scoresOut
 								##								  scoreList.append(1.0/float(scores[0]))
 								# chromosomes
@@ -564,7 +572,7 @@ class TitleBar(bp.ButtonPanel):
 			except Exception as error:
 				wx.EndBusyCursor()
 				errorBox(self, "%s" % str(error))
-		##				  raise
+				raise
 
 		# clear status bar
 		self.parent.parent.parent.sbMain.SetStatusText("Status", 0)
@@ -667,7 +675,9 @@ class selParam(fpb.FoldPanelBar):
 		parent.AddWindow(wx.StaticText(self.plParams, -1, "Repeat until", style=wx.ALIGN_RIGHT), (9, 0), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddWindow(self.spnGaRepUntil, (9, 1), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddWindow(self.cbGaRepUntil, (9, 2), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddSpacer(wx.Size(8, 8), (10, 2), border=10, flag=wx.EXPAND, span=(2, 3))
+		parent.AddWindow(wx.StaticText(self.plParams, -1, "N-fold", style=wx.ALIGN_RIGHT), (10, 0), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.spnNfold, (10, 1), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.AddSpacer(wx.Size(8, 8), (11, 2), border=10, flag=wx.EXPAND, span=(2, 3))
 
 	def _init_selparam_sizers(self):
 		# generated method, don't edit
@@ -746,6 +756,9 @@ class selParam(fpb.FoldPanelBar):
 		self.cbGaRepUntil = wx.CheckBox(id=-1, label="", name="cbGaRepUntil", parent=self.plParams, pos=wx.Point(146, 92), size=wx.Size(10, 21), style=wx.ALIGN_LEFT)
 		self.cbGaRepUntil.SetValue(False)
 		self.cbGaRepUntil.SetToolTip("")
+
+		self.spnNfold = wx.SpinCtrl(id=-1, initial=1, max=100, min=1, name="spnNfold", parent=self.plParams, pos=wx.Point(73, 92), size=wx.Size(15, 21), style=wx.SP_ARROW_KEYS)
+		self.spnNfold.SetToolTip("Number of n-fold validation steps")
 
 		self.treGaResults = wx.TreeCtrl(id=-1, name="treGaResults", parent=self.fpResults, pos=wx.Point(0, 23), size=wx.Size(100, 100), style=wx.TR_DEFAULT_STYLE | wx.TR_HAS_BUTTONS, validator=wx.DefaultValidator)
 		self.treGaResults.SetToolTip("")

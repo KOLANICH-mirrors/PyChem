@@ -24,7 +24,7 @@ import wx.lib.bcrtl.user.StaticTextCtrl
 import wx.lib.stattext
 from wx.lib.anchors import LayoutAnchors
 
-from .mva.chemometrics import _sample
+from .mva.chemometrics import _index, _sample
 
 [
 	wxID_EXPSETUP,
@@ -54,6 +54,103 @@ def errorBox(window, error):
 		dlg.ShowModal()
 	finally:
 		dlg.Destroy()
+
+
+def valSplit(grid, data, pc):
+	# get class col(s)
+	cL1, cL2, currClass = [], [], []
+	for i in range(grid.GetNumberCols()):
+		# get active class col
+		if grid.GetCellValue(0, i) in ["Class"]:
+			if grid.GetCellValue(1, i) == "1":
+				currClass.append(i)
+
+	# no class structure therefore random split
+	if currClass == []:
+		PerSplit = pc / 100.0
+		NoX = data["rawtrunc"].shape[0]
+		Idx = _sample(NoX - 1, int(scipy.around(NoX * PerSplit)))
+		Ntest = Idx[0 : int(scipy.around(len(Idx) / 2))]
+		Nval = Idx[int(scipy.around(len(Idx) / 2)) + 1 : len(Idx)]
+		mask = [0] * NoX
+		for each in Ntest:
+			mask[each] = 1
+		for each in Nval:
+			mask[each] = 2
+
+	# split based upon class structure
+	else:
+		for i in range(data["rawtrunc"].shape[0]):
+			cL1.append(int(grid.GetCellValue(i + 2, currClass[len(currClass) - 1])))
+			cL, subCl = cL1, cL1
+			if len(currClass) > 1:
+				cL2.append(int(grid.GetCellValue(i + 2, currClass[len(currClass) - 2])))
+				if max(cL1) > max(cL2):
+					subCl, cL = cL1, cL2
+				else:
+					subCl, cL = cL2, cL1
+		# no subclass of machine reps for instance
+		if abs(len(scipy.unique(np.array(cL))) - len(scipy.unique(np.array(subCl)))) < 2:
+			mask = [0] * len(cL)
+			cL = np.array(cL)
+			ucL = scipy.unique(cL)
+			for i in range(len(ucL)):
+				thisId = _index(cL, ucL[i])
+				gS = len(thisId)
+				nV = round(gS * (pc / 100.0))
+				iNs = []
+				while len(iNs) < nV:
+					iNs = scipy.unique(scipy.around(scipy.rand(gS) * (gS - 1)))[0:nV]
+				count = 1
+				for each in iNs:
+					if count <= round(nV / 2.0):
+						mask[thisId[int(each)]] = 1
+					else:
+						mask[thisId[int(each)]] = 2
+					count += 1
+		else:
+			mask = [0] * len(cL)
+			cL = np.array(cL)
+			ucL = scipy.unique(cL)
+			for i in range(len(ucL)):
+				thisId = _index(cL, ucL[i])
+				thisSubCl = scipy.take(np.array(subCl), _index(cL, ucL[i]))
+				gS = len(scipy.unique(thisSubCl))
+				nV = round(gS * (pc / 100.0))
+				if (nV > 1) & (gS > 3) is True:
+					iNs = []
+					while len(iNs) < nV:
+						iNs = scipy.unique(scipy.around(scipy.rand(nV) * (gS - 1)))
+					count = 1
+					for each in iNs:
+						vId = _index(np.array(subCl), scipy.unique(thisSubCl)[int(each)])
+						if count <= int(round(nV / 2.0)):
+							for item in vId:
+								mask[int(item)] = 1
+						else:
+							for item in vId:
+								mask[int(item)] = 2
+						count += 1
+				else:
+					list = ["dummy"]
+					end = 3
+					if gS < 3:
+						end = gS
+					for i in range(1, end):
+						seL = "dummy"
+						while seL in list:
+							seL = scipy.around(scipy.rand(1) * (gS - 1))[0]
+						if seL not in list:
+							list.append(seL)
+							vId = _index(np.array(subCl), scipy.unique(thisSubCl)[seL])
+							for item in vId:
+								mask[int(item)] = i
+	##	  if trunc in ['yes']:
+	##		  for i in range(data['raw'].shape[0]):
+	##			  if grid.GetCellValue(i+2,0) == '0':
+	##				  del mask[i]
+
+	return mask
 
 
 def GetXaxis(From, To, Bins, Grid):
@@ -320,15 +417,15 @@ class expSetup(wx.Panel):
 				self.grdIndLabels.SetCellValue(i, 0, value)
 
 	def SizeGrdNames(self):
-		self.grdNames.SetSize((self.grdNames.GetSize()[0], self.pnl.GetSize()[1] - 50))
 		self.depTitleBar.SetSize((self.pnl.GetSize()[0], 49))
+		self.grdNames.SetSize((self.grdNames.GetSize()[0], self.pnl.GetSize()[1] - 50))
 
 	def OnDepWinSize(self, event):
 		self.SizeGrdNames()
 
 	def SizeGrdIndLabels(self):
-		self.grdIndLabels.SetSize((self.grdIndLabels.GetSize()[0], self.pnl.GetSize()[1] - 50))
 		self.indTitleBar.SetSize((self.pnl.GetSize()[0], 49))
+		self.grdIndLabels.SetSize((self.grdIndLabels.GetSize()[0], self.pnl.GetSize()[1] - 50))
 
 	def OnIndWinSize(self, event):
 		self.SizeGrdIndLabels()
@@ -368,7 +465,7 @@ class DepTitleBar(bp.ButtonPanel):
 		self.btnAddMask.Enable(False)
 		self.Bind(wx.EVT_BUTTON, self.OnBtnAddMaskButton, id=self.btnAddMask.GetId())
 
-		self.spcGenMask = wx.SpinCtrl(parent=self, id=-1, initial=1, max=100, min=1, pos=wx.Point(444, 30), size=wx.Size(46, 23), style=wx.TAB_TRAVERSAL | wx.SP_ARROW_KEYS)
+		self.spcGenMask = wx.SpinCtrl(parent=self, id=-1, initial=1, max=50, min=1, pos=wx.Point(444, 30), size=wx.Size(46, 23), style=wx.TAB_TRAVERSAL | wx.SP_ARROW_KEYS)
 		self.spcGenMask.SetValue(50)
 		self.spcGenMask.SetToolTip("")
 		self.spcGenMask.SetFont(wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
@@ -437,12 +534,16 @@ class DepTitleBar(bp.ButtonPanel):
 
 	def insertExpcols(self, type):
 		# insert new columns in exp setup grid
-		colHeads = []
+		colHeads, currClass = [], []
 		last = -1
 		for i in range(self.grid.GetNumberCols()):
 			colHeads.append(self.grid.GetColLabelValue(i))
 			if self.grid.GetCellValue(0, i) == type:
 				last = i
+			# get active class col
+			if self.grid.GetCellValue(0, i) in ["Class"]:
+				if self.grid.GetCellValue(1, i) == "1":
+					currClass.append(i)
 
 		temp = colHeads[last + 1 : len(colHeads)]
 		colHeads = colHeads[0 : last + 1]
@@ -455,18 +556,11 @@ class DepTitleBar(bp.ButtonPanel):
 			self.grid.SetColLabelValue(i, colHeads[i])
 
 		# automatically split data
-		if (self.cbGenerateMask.GetValue() is True) and (type == "Validation") is True:
-			PerSplit = self.spcGenMask.GetValue() / 100.0
-			NoX = self.data["raw"].shape[0]
-			Idx = _sample(NoX, int(scipy.around(NoX * PerSplit)))
-			Ntest = Idx[0 : int(scipy.around(len(Idx) / 2))]
-			Nval = Idx[int(scipy.around(len(Idx) / 2)) + 1 : len(Idx)]
-			for i in range(NoX):
-				self.grid.SetCellValue(i + 2, last + 1, "Train")
-			for i in range(len(Ntest)):
-				self.grid.SetCellValue(Ntest[i], last + 1, "Validation")
-			for i in range(len(Nval)):
-				self.grid.SetCellValue(Nval[i], last + 1, "Test")
+		if (self.cbGenerateMask.GetValue() is True) & (type == "Validation") is True:
+			mask = valSplit(self.grid, self.data, self.spcGenMask.GetValue())
+			options = ["Train", "Validation", "Test"]
+			for i in range(len(mask)):
+				self.grid.SetCellValue(i + 2, last + 1, options[int(mask[i])])
 
 		self.grid.SetCellAlignment(0, last + 1, wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
 		self.grid.SetCellAlignment(1, last + 1, wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)

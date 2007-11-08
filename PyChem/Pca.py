@@ -272,6 +272,8 @@ def plotText(plotCanvas, coords, **_attr):
 		draw_plotText = wx.lib.plot.PlotGraphics(plotText, tit, xLabel=xL, yLabel=yL)
 	else:
 		draw_plotText = wx.lib.plot.PlotGraphics(plotText, tit, xLabel="Arbitrary", yLabel=yL)
+	##		  if plotCanvas is not None:
+	##			  plotCanvas.xSpec = ('none')
 
 	if plotCanvas is not None:
 		plotCanvas.Draw(draw_plotText)
@@ -458,6 +460,19 @@ def plotScores(canvas, scores, **_attr):
 			# force boundary
 			plot.append(wx.lib.plot.PolyMarker([[min(mScores[:, 0] - 2.15), min(mScores[:, 1] - 2.15)], [max(mScores[:, 0] + 2.15), max(mScores[:, 1] + 2.15)]], colour="white", size=1, marker="circle"))
 
+			# class centroid label
+			if (symb is False) & (text is False) is True:
+				uC, centLab, centLabOrds = scipy.unique(np.array(cl)), [], []
+				for gC in range(len(uC)):
+					Idx = _index(np.array(cl), uC[gC])[0]
+					centLab.append(labels[Idx])
+					centLabOrds.append(scipy.reshape(scipy.take(scores, [Idx], 0), (2,)).tolist())
+
+				# print centroid labels
+				centPlot = plotText(None, np.array(centLabOrds), cLass=list(range(1, len(centLab) + 1)), text=centLab, col1=0, col2=1, tit="", xL="", yL="", usemask=False)
+				for each in centPlot:
+					plot.append(each)
+
 		canvas.Draw(wx.lib.plot.PlotGraphics(plot, title, xLabel, yLabel))
 
 	else:
@@ -517,14 +532,16 @@ class MyPlotCanvas(wx.lib.plot.PlotCanvas):
 
 		self._init_plot_menu_Items(self.plotMenu)
 
-	def __init__(self, parent, id, pos, size, style, name):
+	def __init__(self, parent, id, pos, size, style, name, toolbar):
 		wx.lib.plot.PlotCanvas.__init__(self, parent, id, pos, size, style, name)
-
 		self.Bind(wx.EVT_RIGHT_DOWN, self.OnMouseRightDown)
+		self.Bind(wx.EVT_LEFT_DOWN, self.OnMouseLeftDown)
 
 		self._init_utils()
 
 		self.prnt = parent
+
+		self.tbMain = toolbar
 
 	def OnMnuPlotCopy(self, event):
 		# for winxp
@@ -563,7 +580,11 @@ class MyPlotCanvas(wx.lib.plot.PlotCanvas):
 
 	def OnMnuPlotCoords(self, event):
 		# send coords to clipboard
-		coords = self.last_draw[0].objects[0]._points
+		getPoints = self.last_draw[0].objects
+		coords = []
+		for each in getPoints:
+			coords.extend(each._points.tolist())
+
 		data = str_array(coords, col_sep="\t")
 		wx.TheClipboard.Open()
 		wx.TheClipboard.SetData(wx.TextDataObject("X\tY\n" + data))
@@ -572,6 +593,65 @@ class MyPlotCanvas(wx.lib.plot.PlotCanvas):
 	def OnMouseRightDown(self, event):
 		pt = event.GetPosition()
 		self.PopupMenu(self.plotMenu, pt)
+
+	def OnMouseLeftDown(self, event):
+		# enable plot toolbar
+		self.tbMain.Enable(True)
+
+		# populate plot toolbae
+		self.tbMain.canvas = self
+		self.tbMain.graph = self.last_draw[0]
+
+		self.tbMain.txtPlot.SetValue(self.tbMain.graph.getTitle())
+		self.tbMain.txtXlabel.SetValue(self.tbMain.graph.getXLabel())
+		self.tbMain.txtYlabel.SetValue(self.tbMain.graph.getYLabel())
+
+		self.tbMain.spnAxesFont.SetValue(self.GetFontSizeAxis())
+		self.tbMain.spnTitleFont.SetValue(self.GetFontSizeTitle())
+
+		self.minXrange = self.GetXCurrentRange()[0]
+		self.maxXrange = self.GetXCurrentRange()[1]
+		self.minYrange = self.GetYCurrentRange()[0]
+		self.maxYrange = self.GetYCurrentRange()[1]
+
+		self.tbMain.Increment = (self.maxXrange - self.minXrange) / 100
+
+		self.tbMain.txtXmin.SetValue("%.2f" % self.minXrange)
+		self.tbMain.txtXmax.SetValue("%.2f" % self.maxXrange)
+		self.tbMain.txtYmax.SetValue("%.2f" % self.maxYrange)
+		self.tbMain.txtYmin.SetValue("%.2f" % self.minYrange)
+
+		# enable controls
+		if self.GetName() in ["plcDFAscores"]:  # dfa score plots
+			self.tbMain.tbConf.Enable(True)
+		else:
+			self.tbMain.tbConf.Enable(False)
+			self.tbMain.tbConf.SetValue(False)
+
+		if self.GetName() in ["plcGaPlot"]:  # ga-dfa score plots
+			if self.prnt.prnt.splitPrnt.type in ["DFA"]:
+				self.tbMain.tbConf.Enable(True)
+			else:
+				self.tbMain.tbConf.Enable(False)
+				self.tbMain.tbConf.SetValue(False)
+
+		if self.GetName() in ["plcPcaLoadsV", "plcDfaLoadsV", "plcGaSpecLoad", "plcPLSloading"]:
+			self.tbMain.tbLoadLabels.Enable(True)
+			self.tbMain.tbLoadLabStd1.Enable(True)
+			self.tbMain.tbLoadLabStd2.Enable(True)
+			self.tbMain.tbLoadSymStd2.Enable(True)
+		else:
+			self.tbMain.tbLoadLabels.Enable(False)
+			self.tbMain.tbLoadLabStd1.Enable(False)
+			self.tbMain.tbLoadLabStd2.Enable(False)
+			self.tbMain.tbLoadSymStd2.Enable(False)
+
+		# get coords for zoom centre
+		self._zoomCorner1[0], self._zoomCorner1[1] = self._getXY(event)
+		self._screenCoordinates = np.array(event.GetPosition())
+		if self._dragEnabled:
+			self.SetCursor(self.GrabHandCursor)
+			self.tbMain.canvas.CaptureMouse()
 
 
 class Pca(wx.Panel):
@@ -615,8 +695,9 @@ class Pca(wx.Panel):
 		self.SetClientSize(wx.Size(1016, 565))
 		self.SetAutoLayout(True)
 		self.SetToolTip("")
+		self.prnt = prnt
 
-		self.plcPCeigs = MyPlotCanvas(id=-1, name="plcPCeigs", parent=self, pos=wx.Point(589, 283), size=wx.Size(200, 200), style=0)
+		self.plcPCeigs = MyPlotCanvas(id=-1, name="plcPCeigs", parent=self, pos=wx.Point(589, 283), size=wx.Size(200, 200), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcPCeigs.SetToolTip("")
 		self.plcPCeigs.fontSizeTitle = 10
 		self.plcPCeigs.enableZoom = True
@@ -625,7 +706,7 @@ class Pca(wx.Panel):
 		self.plcPCeigs.fontSizeLegend = 8
 		self.plcPCeigs.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
-		self.plcPCvar = MyPlotCanvas(id=-1, name="plcPCvar", parent=self, pos=wx.Point(176, 283), size=wx.Size(200, 200), style=0)
+		self.plcPCvar = MyPlotCanvas(id=-1, name="plcPCvar", parent=self, pos=wx.Point(176, 283), size=wx.Size(200, 200), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcPCvar.fontSizeAxis = 8
 		self.plcPCvar.fontSizeTitle = 10
 		self.plcPCvar.enableZoom = True
@@ -633,7 +714,7 @@ class Pca(wx.Panel):
 		self.plcPCvar.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 		self.plcPCvar.fontSizeLegend = 8
 
-		self.plcPCAscore = MyPlotCanvas(parent=self, id=-1, name="plcPCAscore", pos=wx.Point(0, 24), size=wx.Size(200, 200), style=0)
+		self.plcPCAscore = MyPlotCanvas(parent=self, id=-1, name="plcPCAscore", pos=wx.Point(0, 24), size=wx.Size(200, 200), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcPCAscore.fontSizeTitle = 10
 		self.plcPCAscore.fontSizeAxis = 8
 		self.plcPCAscore.enableZoom = True
@@ -641,7 +722,7 @@ class Pca(wx.Panel):
 		self.plcPCAscore.SetToolTip("")
 		self.plcPCAscore.fontSizeLegend = 8
 
-		self.plcPcaLoadsV = MyPlotCanvas(id=-1, name="plcPcaLoadsV", parent=self, pos=wx.Point(0, 24), size=wx.Size(200, 200), style=0)
+		self.plcPcaLoadsV = MyPlotCanvas(id=-1, name="plcPcaLoadsV", parent=self, pos=wx.Point(0, 24), size=wx.Size(200, 200), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcPcaLoadsV.SetToolTip("")
 		self.plcPcaLoadsV.fontSizeTitle = 10
 		self.plcPcaLoadsV.enableZoom = True
@@ -832,6 +913,12 @@ class TitleBar(bp.ButtonPanel):
 			self.spnNumPcs2.SetRange(1, len(self.data["pceigs"]))
 			self.spnNumPcs2.SetValue(2)
 
+			# check for metadata & setup limits for dfa
+			if (sum(self.data["class"]) != 0) and (self.data["class"] is not None):
+				self.parent.parent.parent.plDfa.titleBar.cbxData.SetSelection(0)
+				self.parent.parent.parent.plDfa.titleBar.spnDfaPcs.SetRange(2, len(self.data["pceigs"]))
+				self.parent.parent.parent.plDfa.titleBar.spnDfaDfs.SetRange(1, len(scipy.unique(self.data["class"])) - 1)
+
 			# plot results
 			self.PlotPca()
 
@@ -841,12 +928,6 @@ class TitleBar(bp.ButtonPanel):
 	##			  raise
 
 	def PlotPca(self):
-		# check for metadata & setup limits for dfa
-		if (sum(self.data["class"]) != 0) and (self.data["class"] is not None):
-			self.parent.parent.parent.plDfa.titleBar.cbxData.SetSelection(0)
-			self.parent.parent.parent.plDfa.titleBar.spnDfaPcs.SetRange(2, len(self.data["pceigs"]))
-			self.parent.parent.parent.plDfa.titleBar.spnDfaDfs.SetRange(1, len(scipy.unique(self.data["class"])))
-
 		# Plot scores
 		xL = "PC " + str(self.spnNumPcs1.GetValue()) + " (" + "%.2f" % (self.data["pcpervar"][self.spnNumPcs1.GetValue()] - self.data["pcpervar"][self.spnNumPcs1.GetValue() - 1]) + "%)"
 

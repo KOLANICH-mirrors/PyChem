@@ -498,6 +498,7 @@ def PLS(xdata, ydata, mask, factors, stb=None):
 	>>>
 
 	"""
+
 	x1, x2, x3, y1, y2, y3, dummy1, dummy2, dummy3 = __split__(xdata, ydata, mask)  # raw data
 	Xm, Xmv = __mean__(x1), __mean__(x2)  # get column means
 	ym, ymv = __mean__(y1), __mean__(y2)

@@ -160,13 +160,14 @@ class Plsr(wx.Panel):
 		self.SetClientSize(wx.Size(788, 426))
 		self.SetAutoLayout(True)
 		self.SetToolTip("")
+		self.prnt = prnt
 
 		self.nbFullPls = wx.Notebook(id=-1, name="nbFullPls", parent=self, pos=wx.Point(176, 274), size=wx.Size(310, 272), style=wx.NB_BOTTOM)
 		self.nbFullPls.SetToolTip("")
 		self.nbFullPls.SetAutoLayout(True)
 		self.nbFullPls.SetConstraints(LayoutAnchors(self.nbFullPls, True, True, True, True))
 
-		self.plcPLSerror = MyPlotCanvas(id=-1, name="plcPLSerror", parent=self.nbFullPls, pos=wx.Point(0, 0), size=wx.Size(302, 246), style=0)
+		self.plcPLSerror = MyPlotCanvas(id=-1, name="plcPLSerror", parent=self.nbFullPls, pos=wx.Point(0, 0), size=wx.Size(302, 246), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcPLSerror.fontSizeAxis = 8
 		self.plcPLSerror.fontSizeTitle = 10
 		self.plcPLSerror.enableZoom = True
@@ -177,7 +178,7 @@ class Plsr(wx.Panel):
 		self.plcPLSerror.SetConstraints(LayoutAnchors(self.plcPLSerror, True, True, True, True))
 		self.plcPLSerror.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
-		self.plcPlsStats = MyPlotCanvas(id=-1, name="plcPlsStats", parent=self.nbFullPls, pos=wx.Point(176, 0), size=wx.Size(310, 272), style=0)
+		self.plcPlsStats = MyPlotCanvas(id=-1, name="plcPlsStats", parent=self.nbFullPls, pos=wx.Point(176, 0), size=wx.Size(310, 272), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcPlsStats.xSpec = "none"
 		self.plcPlsStats.ySpec = "none"
 		self.plcPlsStats.SetAutoLayout(True)
@@ -186,7 +187,7 @@ class Plsr(wx.Panel):
 		self.plcPlsStats.SetFont(wx.Font(6, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Courier New"))
 		self.plcPlsStats.SetToolTip("")
 
-		self.plcPLSmodel = MyPlotCanvas(id=-1, name="plcPLSmodel", parent=self, pos=wx.Point(176, 0), size=wx.Size(310, 272), style=0)
+		self.plcPLSmodel = MyPlotCanvas(id=-1, name="plcPLSmodel", parent=self, pos=wx.Point(176, 0), size=wx.Size(310, 272), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcPLSmodel.fontSizeTitle = 10
 		self.plcPLSmodel.fontSizeAxis = 8
 		self.plcPLSmodel.enableZoom = True
@@ -197,7 +198,7 @@ class Plsr(wx.Panel):
 		self.plcPLSmodel.SetAutoLayout(True)
 		self.plcPLSmodel.SetConstraints(LayoutAnchors(self.plcPLSmodel, True, True, True, True))
 
-		self.plcPlsHetero = MyPlotCanvas(id=-1, name="plcPlsHetero", parent=self, pos=wx.Point(488, 274), size=wx.Size(310, 272), style=0)
+		self.plcPlsHetero = MyPlotCanvas(id=-1, name="plcPlsHetero", parent=self, pos=wx.Point(488, 274), size=wx.Size(310, 272), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcPlsHetero.fontSizeAxis = 8
 		self.plcPlsHetero.fontSizeTitle = 10
 		self.plcPlsHetero.enableZoom = True
@@ -208,7 +209,7 @@ class Plsr(wx.Panel):
 		self.plcPlsHetero.SetConstraints(LayoutAnchors(self.plcPlsHetero, True, True, True, True))
 		self.plcPlsHetero.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
-		self.plcPLSloading = MyPlotCanvas(id=-1, name="plcPLSloading", parent=self, pos=wx.Point(0, 24), size=wx.Size(330, 292), style=0)
+		self.plcPLSloading = MyPlotCanvas(id=-1, name="plcPLSloading", parent=self, pos=wx.Point(0, 24), size=wx.Size(330, 292), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcPLSloading.fontSizeTitle = 10
 		self.plcPLSloading.fontSizeAxis = 8
 		self.plcPLSloading.enableZoom = True
@@ -348,13 +349,16 @@ class TitleBar(bp.ButtonPanel):
 						pred.append([1, self.data["class"][i], float(self.data["plscvpred"][c2, 0])])
 						c2 += 1
 					else:
-						pred.append([1, self.data["class"][i], float(self.data["plscvpred"][c3, 0])])
+						pred.append([1, self.data["class"][i], float(self.data["plststpred"][c3, 0])])
 						c3 += 1
 
 				out = "#PARTIAL_LEAST_SQUARES_PREDICTIONS\n" + str_array(np.array(pred), col_sep="\t") + "\n" + "#PARTIAL_LEAST_SQUARES_LOADINGS\n" + str_array(self.data["plsloads"], col_sep="\t") + "\n" + "#NUMBER_OF_PLS_FACTORS\n" + str(self.data["plsfactors"] + 1) + "\n" + "#ROOT_MEAN_SQUARED_ERROR_OF_CALIBRATION\n" + str(self.data["rmsec"]) + "\n" + "#ROOT_MEAN_SQUARED_ERROR_OF_CROSS_VALIDATION\n" + str(self.data["rmsepc"]) + "\n" + "#ROOT_MEAN_SQUARED_ERROR_FOR_INDEPENDENT_TEST_SAMPLES\n" + str(self.data["rmsept"]) + "\n" + "#PARTIAL_PREDICTION\n" + str_array(self.data["plspred"], col_sep="\t")
 				f = file(saveFile, "w")
 				f.write(out)
 				f.close()
+		except Exception as error:
+			errorBox(self, "%s" % str(error))
+		##			  raise
 		finally:
 			dlg.Destroy()
 

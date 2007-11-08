@@ -20,11 +20,13 @@ import scipy
 import wx
 import wx.adv
 import wx.lib.filebrowsebutton
+import wx.richtext
 from scipy import newaxis as nA
 from wx.lib.anchors import LayoutAnchors
 
 from . import Cluster, Dfa, Ga, Pca, Plsr, expSetup, mva, plotSpectra
 from .mva.chemometrics import _index
+from .Pca import plotLine, plotLoads, plotScores, plotStem, plotText
 from .utils import getByPath
 from .utils.io import str_array
 
@@ -113,6 +115,388 @@ def errorBox(window, error):
 		dlg.ShowModal()
 	finally:
 		dlg.Destroy()
+
+
+class SymColSelectTool(wx.PopupWindow):
+	def _init_sizers(self):
+		# generated method, don't edit
+		self.grsSelect = wx.GridSizer(cols=3, hgap=2, rows=2, vgap=2)
+
+		self.bxsSelect1 = wx.BoxSizer(orient=wx.HORIZONTAL)
+
+		self.bxsSelect2 = wx.BoxSizer(orient=wx.VERTICAL)
+
+		self._init_coll_grsSelect1_Items(self.grsSelect1)
+		self._init_coll_bxsSelect1_Items(self.bxsSelect1)
+		self._init_coll_bxsSelect2_Items(self.bxsSelect2)
+
+		self.SetSizer(self.bxsPls1)
+
+	def _init_coll_bxsSelect2_Items(self, parent):
+		# generated method, don't edit
+
+		parent.AddWindow(self.titleBar, 0, border=0, flag=wx.EXPAND)
+		parent.AddWindow(self.grsPls1, 1, border=0, flag=wx.EXPAND)
+
+	def _init_coll_bxsPls1_Items(self, parent):
+		# generated method, don't edit
+
+		parent.AddWindow(self.bxsPls2, 1, border=0, flag=wx.EXPAND)
+
+	def __init__(self, prnt):
+		wx.PopupWindow.__init__(self, flags=wx.SIMPLE_BORDER, parent=prnt)
+		self.SetSize(wx.Size(200, 250))
+		self.Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
+
+	##	  def AddMarkerColorItem(self,desc,marker,colour):
+
+	def OnRightUp(self, evt):
+		self.Show(False)
+		self.Destroy()
+
+
+class PlotToolBar(wx.ToolBar):
+	def __init__(self, parent):
+		wx.ToolBar.__init__(self, parent, id=-1, pos=(0, 0), size=(0, 0), style=wx.NO_BORDER | wx.TB_HORIZONTAL, name="")
+
+		self.stTitle = wx.lib.stattext.GenStaticText(self, -1, "Title:", pos=wx.Point(2, 5), style=wx.TRANSPARENT_WINDOW)
+		self.AddControl(self.stTitle)
+
+		self.txtPlot = wx.TextCtrl(id=-1, name="txtPlot", parent=self, pos=wx.Point(26, 2), size=wx.Size(120, 21), style=wx.TE_DONTWRAP, value="Title")
+		self.txtPlot.SetToolTip("Graph Title")
+		self.txtPlot.Bind(wx.EVT_TEXT_ENTER, self.OnTxtPlot)
+		self.AddControl(self.txtPlot)
+
+		self.spnTitleFont = wx.SpinCtrl(id=-1, initial=12, max=76, min=5, name="spnTitleFont", parent=self, pos=wx.Point(148, 2), size=wx.Size(50, 21), style=wx.SP_ARROW_KEYS)
+		self.spnTitleFont.SetToolTip("Title Font Size")
+		self.spnTitleFont.Bind(wx.EVT_SPIN, self.OnSpnTitleFont)
+		self.AddControl(self.spnTitleFont)
+
+		self.AddSeparator()
+
+		self.stXlabel = wx.lib.stattext.GenStaticText(self, -1, "X-label:", pos=wx.Point(202, 5), style=wx.TRANSPARENT_WINDOW)
+		self.AddControl(self.stXlabel)
+
+		self.txtXlabel = wx.TextCtrl(id=-1, name="txtXlabel", parent=self, pos=wx.Point(240, 2), size=wx.Size(70, 21), style=wx.TE_DONTWRAP, value="X-label")
+		self.txtXlabel.SetToolTip("Abscissa (X-axis) Label")
+		self.txtXlabel.Bind(wx.EVT_TEXT_ENTER, self.OnTxtXlabel)
+		self.AddControl(self.txtXlabel)
+
+		self.stYlabel = wx.lib.stattext.GenStaticText(self, -1, "Y-label:", pos=wx.Point(314, 5), style=wx.TRANSPARENT_WINDOW)
+		self.AddControl(self.stYlabel)
+
+		self.txtYlabel = wx.TextCtrl(id=-1, name="txtYlabel", parent=self, pos=wx.Point(352, 2), size=wx.Size(70, 21), style=wx.TE_DONTWRAP, value="Y-label")
+		self.txtYlabel.SetToolTip("Ordinate (Y-axis) Label")
+		self.txtYlabel.Bind(wx.EVT_TEXT_ENTER, self.OnTxtYlabel)
+		self.AddControl(self.txtYlabel)
+
+		self.spnAxesFont = wx.SpinCtrl(id=-1, initial=12, max=76, min=5, name="spnTitleFont", parent=self, pos=wx.Point(424, 2), size=wx.Size(50, 21), style=wx.SP_ARROW_KEYS)
+		self.spnAxesFont.SetToolTip("Axes Font Size")
+		self.spnAxesFont.Bind(wx.EVT_SPIN, self.OnSpnAxesFont)
+		self.AddControl(self.spnAxesFont)
+
+		self.AddSeparator()
+
+		self.stXrange = wx.lib.stattext.GenStaticText(self, -1, "X-range:", pos=wx.Point(480, 5), style=wx.TRANSPARENT_WINDOW)
+		self.AddControl(self.stXrange)
+
+		self.txtXmin = wx.TextCtrl(id=-1, name="txtXmin", parent=self, pos=wx.Point(522, 2), size=wx.Size(40, 21), style=wx.TE_DONTWRAP, value="0.0")
+		self.txtXmin.SetToolTip("Minimum X-axis range")
+		self.AddControl(self.txtXmin)
+
+		self.spnXmin = wx.SpinButton(id=-1, name="spnXmin", parent=self, pos=wx.Point(562, 2), size=wx.Size(15, 21), style=wx.SP_VERTICAL)
+		self.spnXmin.SetToolTip("Minimum X-axis range")
+		self.spnXmin.Bind(wx.EVT_SPIN_DOWN, self.OnSpnXminSpinDown)
+		self.spnXmin.Bind(wx.EVT_SPIN_UP, self.OnSpnXminSpinUp)
+		self.spnXmin.Bind(wx.EVT_SPIN, self.OnSpnXmin)
+		self.AddControl(self.spnXmin)
+
+		self.stDummy1 = wx.lib.stattext.GenStaticText(self, -1, " : ", pos=wx.Point(579, 5), style=wx.TRANSPARENT_WINDOW)
+		self.AddControl(self.stDummy1)
+
+		self.txtXmax = wx.TextCtrl(id=-1, name="txtXmax", parent=self, pos=wx.Point(590, 2), size=wx.Size(40, 21), style=wx.TE_DONTWRAP, value="0.0")
+		self.txtXmax.SetToolTip("Maximum X-axis range")
+		self.AddControl(self.txtXmax)
+
+		self.spnXmax = wx.SpinButton(id=-1, name="spnXmax", parent=self, pos=wx.Point(630, 2), size=wx.Size(15, 21), style=wx.SP_VERTICAL)
+		self.spnXmax.SetToolTip("Maximum X-axis range")
+		self.spnXmax.Bind(wx.EVT_SPIN_DOWN, self.OnSpnXmaxSpinDown)
+		self.spnXmax.Bind(wx.EVT_SPIN_UP, self.OnSpnXmaxSpinUp)
+		self.spnXmax.Bind(wx.EVT_SPIN, self.OnSpnXmax)
+		self.AddControl(self.spnXmax)
+
+		self.AddSeparator()
+
+		self.stYrange = wx.lib.stattext.GenStaticText(self, -1, "Y-range:", pos=wx.Point(647, 5), style=wx.TRANSPARENT_WINDOW)
+		self.AddControl(self.stYrange)
+
+		self.txtYmin = wx.TextCtrl(id=-1, name="txtYmin", parent=self, pos=wx.Point(690, 2), size=wx.Size(40, 21), style=wx.TE_DONTWRAP, value="0.0")
+		self.txtYmin.SetToolTip("Minimum Y-axis range")
+		self.AddControl(self.txtYmin)
+
+		self.spnYmin = wx.SpinButton(id=-1, name="spnYmin", parent=self, pos=wx.Point(732, 2), size=wx.Size(15, 21), style=wx.SP_VERTICAL)
+		self.spnYmin.SetToolTip("Minimum Y-axis range")
+		self.spnYmin.Bind(wx.EVT_SPIN_DOWN, self.OnSpnYminSpinDown)
+		self.spnYmin.Bind(wx.EVT_SPIN_UP, self.OnSpnYminSpinUp)
+		self.spnYmin.Bind(wx.EVT_SPIN, self.OnSpnYmin)
+		self.AddControl(self.spnYmin)
+
+		self.stDummy2 = wx.lib.stattext.GenStaticText(self, -1, " : ", pos=wx.Point(749, 5), style=wx.TRANSPARENT_WINDOW)
+		self.AddControl(self.stDummy1)
+
+		self.txtYmax = wx.TextCtrl(id=-1, name="txtYmax", parent=self, pos=wx.Point(760, 2), size=wx.Size(40, 21), style=wx.TE_DONTWRAP, value="0.0")
+		self.txtYmin.SetToolTip("Maximum Y-axis range")
+		self.AddControl(self.txtYmin)
+
+		self.spnYmax = wx.SpinButton(id=-1, name="spnYmax", parent=self, pos=wx.Point(800, 2), size=wx.Size(15, 21), style=wx.SP_VERTICAL)
+		self.spnYmax.SetToolTip("Maximum Y-axis range")
+		self.spnYmax.Bind(wx.EVT_SPIN_DOWN, self.OnSpnYmaxSpinDown)
+		self.spnYmax.Bind(wx.EVT_SPIN_UP, self.OnSpnYmaxSpinUp)
+		self.spnYmax.Bind(wx.EVT_SPIN, self.OnSpnYmax)
+		self.AddControl(self.spnYmax)
+
+		self.AddSeparator()
+
+		self.tbConf = wx.lib.buttons.GenBitmapToggleButton(bitmap=wx.Bitmap(os.path.join("bmp", "conf_int.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbConf", parent=self, pos=wx.Point(817, 2), size=wx.Size(21, 21))
+		self.tbConf.SetValue(False)
+		self.tbConf.SetToolTip("")
+		self.tbConf.Enable(False)
+		self.AddControl(self.tbConf)
+		self.tbConf.Bind(wx.EVT_BUTTON, self.OnTbConfButton)
+
+		self.tbPoints = wx.lib.buttons.GenBitmapToggleButton(bitmap=wx.Bitmap(os.path.join("bmp", "plot_text.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbPoints", parent=self, pos=wx.Point(839, 2), size=wx.Size(21, 21))
+		self.tbPoints.SetValue(True)
+		self.tbPoints.SetToolTip("Plot using text labels")
+		self.tbPoints.Enable(True)
+		self.tbPoints.Bind(wx.EVT_BUTTON, self.OnTbPointsButton)
+		self.AddControl(self.tbPoints)
+
+		self.tbSymbols = wx.lib.buttons.GenBitmapToggleButton(bitmap=wx.Bitmap(os.path.join("bmp", "plot_symbol.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbSymbols", parent=self, pos=wx.Point(861, 2), size=wx.Size(21, 21))
+		self.tbSymbols.SetValue(False)
+		self.tbSymbols.SetToolTip("Plot using colored symbols")
+		self.tbSymbols.Enable(True)
+		self.tbSymbols.Bind(wx.EVT_BUTTON, self.OnTbSymbolsButton)
+		self.AddControl(self.tbSymbols)
+
+		self.tbLoadLabels = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "conf_0.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbLoadLabels", parent=self, pos=wx.Point(883, 2), size=wx.Size(20, 21))
+		self.tbLoadLabels.SetToolTip("")
+		self.tbLoadLabels.Enable(False)
+		self.tbLoadLabels.Bind(wx.EVT_BUTTON, self.OnTbLoadLabelsButton)
+		self.AddControl(self.tbLoadLabels)
+
+		self.tbLoadLabStd1 = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "conf_1.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbLoadLabStd1", parent=self, pos=wx.Point(905, 2), size=wx.Size(20, 21))
+		self.tbLoadLabStd1.SetToolTip("")
+		self.tbLoadLabStd1.Enable(False)
+		self.tbLoadLabStd1.Bind(wx.EVT_BUTTON, self.OnTbLoadLabStd1Button)
+		self.AddControl(self.tbLoadLabStd1)
+
+		self.tbLoadLabStd2 = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "conf_2.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbLoadLabStd2", parent=self, pos=wx.Point(927, 2), size=wx.Size(20, 21))
+		self.tbLoadLabStd2.SetToolTip("")
+		self.tbLoadLabStd2.Enable(False)
+		self.tbLoadLabStd2.Bind(wx.EVT_BUTTON, self.OnTbLoadLabStd2Button)
+		self.AddControl(self.tbLoadLabStd2)
+
+		self.tbLoadSymStd2 = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "conf_2_sym.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbLoadSymStd2", parent=self, pos=wx.Point(949, 2), size=wx.Size(20, 21))
+		self.tbLoadSymStd2.SetToolTip("")
+		self.tbLoadSymStd2.Enable(False)
+		self.tbLoadSymStd2.Bind(wx.EVT_BUTTON, self.OnTbLoadSymStd2Button)
+		self.AddControl(self.tbLoadSymStd2)
+
+	def OnTbLoadLabelsButton(self, event):
+		# plot loadings
+		self.doPlot(loadType=0)
+
+	def OnTxtPlot(self, event):
+		self.graph.setTitle(self.txtPlot.GetValue())
+		self.graph.setXLabel(self.txtXlabel.GetValue())
+		self.graph.setYLabel(self.txtYlabel.GetValue())
+		self.canvas.Redraw()
+
+	def OnTxtXlabel(self, event):
+		self.graph.setTitle(self.txtPlot.GetValue())
+		self.graph.setXLabel(self.txtXlabel.GetValue())
+		self.graph.setYLabel(self.txtYlabel.GetValue())
+		self.canvas.Redraw()
+
+	def OnTxtYlabel(self, event):
+		self.graph.setTitle(self.txtPlot.GetValue())
+		self.graph.setXLabel(self.txtXlabel.GetValue())
+		self.graph.setYLabel(self.txtYlabel.GetValue())
+		self.canvas.Redraw()
+
+	def OnTbLoadLabStd1Button(self, event):
+		# plot loadings
+		self.doPlot(loadType=1)
+
+	def OnTbLoadLabStd2Button(self, event):
+		# plot loadings
+		self.doPlot(loadType=2)
+
+	def OnTbLoadSymStd2Button(self, event):
+		# plot loadings
+		# here
+		# plot loads
+		self.doPlot(loadType=3)
+
+		win = SymColSelectTool(self)
+		btn = event.GetEventObject()
+		pos = btn.ClientToScreen((0, 0))
+		sz = btn.GetSize()
+		win.Position(pos, (0, sz[1]))
+
+		# poopulate window
+		getPoints = self.canvas.last_draw[0].objects
+
+		coords = []
+		for each in getPoints:
+			try:
+				print(each.attributes["marker"])
+			except:
+				continue
+
+		##			  coords.extend(each._points.tolist())
+
+		##			  print coords
+		##			  print
+
+		# show plot options
+		win.Show()
+
+	def OnTbConfButton(self, event):
+		if (self.tbPoints.GetValue() is False) & (self.tbConf.GetValue() is False) & (self.tbSymbols.GetValue() is False) is False:
+			# plot scores
+			self.doPlot()
+
+	def OnTbPointsButton(self, event):
+		if (self.tbPoints.GetValue() is False) & (self.tbConf.GetValue() is False) & (self.tbSymbols.GetValue() is False) is False:
+			# plot scores
+			self.doPlot()
+
+	def OnTbSymbolsButton(self, event):
+		if (self.tbPoints.GetValue() is False) & (self.tbConf.GetValue() is False) & (self.tbSymbols.GetValue() is False) is False:
+			# plot scores
+			self.doPlot()
+
+	def doPlot(self, loadType=0):
+		if self.canvas.GetName() in ["plcDFAscores"]:
+			plotScores(self.canvas, self.canvas.prnt.titleBar.data["dfscores"], cl=self.canvas.prnt.titleBar.data["class"], labels=self.canvas.prnt.titleBar.data["label"], validation=self.canvas.prnt.titleBar.data["validation"], col1=self.canvas.prnt.titleBar.spnDfaScore1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnDfaScore2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=self.canvas.prnt.titleBar.cbDfaXval.GetValue(), text=self.tbPoints.GetValue(), pconf=self.tbConf.GetValue(), symb=self.tbSymbols.GetValue())
+
+		elif self.canvas.GetName() in ["plcPCAscore"]:
+			plotScores(self.canvas, self.canvas.prnt.titleBar.data["pcscores"], cl=self.canvas.prnt.titleBar.data["class"], labels=self.canvas.prnt.titleBar.data["label"], validation=self.canvas.prnt.titleBar.data["validation"], col1=self.canvas.prnt.titleBar.spnNumPcs1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnNumPcs2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=False, text=self.tbPoints.GetValue(), pconf=False, symb=self.tbSymbols.GetValue())
+
+		elif self.canvas.GetName() in ["plcGaFeatPlot"]:
+			plotScores(self.canvas, self.canvas.prnt.prnt.splitPrnt.titleBar.data["gavarcoords"], cl=self.canvas.prnt.prnt.splitPrnt.titleBar.data["class"], labels=self.canvas.prnt.prnt.splitPrnt.titleBar.data["label"], validation=self.canvas.prnt.prnt.splitPrnt.titleBar.data["validation"], col1=0, col2=1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=True, text=self.tbPoints.GetValue(), pconf=False, symb=self.tbSymbols.GetValue())
+
+		elif self.canvas.GetName() in ["plcGaPlot"]:
+			if self.canvas.prnt.prnt.splitPrnt.type in ["DFA"]:
+				plotScores(self.canvas, self.canvas.prnt.prnt.splitPrnt.titleBar.data["gadfadfscores"], cl=self.canvas.prnt.prnt.splitPrnt.titleBar.data["class"], labels=self.canvas.prnt.prnt.splitPrnt.titleBar.data["label"], validation=self.canvas.prnt.prnt.splitPrnt.titleBar.data["validation"], col1=self.canvas.prnt.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue() - 1, col2=self.canvas.prnt.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=True, text=self.tbPoints.GetValue(), pconf=self.tbConf.GetValue(), symb=self.tbSymbols.GetValue())
+
+		elif self.canvas.GetName() in ["plcPcaLoadsV"]:
+			plotLoads(self.canvas, scipy.transpose(self.canvas.prnt.titleBar.data["pcloads"]), xaxis=self.canvas.prnt.titleBar.data["indlabels"], col1=self.canvas.prnt.titleBar.spnNumPcs1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnNumPcs2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType)
+
+		elif self.canvas.GetName() in ["plcPLSloading"]:
+			plotLoads(self.canvas, self.canvas.prnt.titleBar.data["plsloads"], xaxis=self.canvas.prnt.titleBar.data["indlabels"], col1=self.canvas.prnt.titleBar.spnPLSfactor1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnPLSfactor2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType)
+
+		elif self.canvas.GetName() in ["plcDfaLoadsV"]:
+			plotLoads(self.canvas, self.canvas.prnt.titleBar.data["dfloads"], xaxis=self.canvas.prnt.titleBar.data["indlabels"], col1=self.canvas.prnt.titleBar.spnDfaScore1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnDfaScore2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType)
+
+		elif self.canvas.GetName() in ["plcGaSpecLoad"]:
+			if self.canvas.prnt.prnt.prnt.splitPrnt.type in ["DFA"]:
+				labels = []
+				for each in self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gacurrentchrom"]:
+					labels.append(self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["indlabels"][int(each)])
+				plotLoads(self.canvas, self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gadfadfaloads"], xaxis=labels, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType)
+
+		elif self.canvas.GetName() in ["plcGaSpecLoad"]:
+			if self.canvas.prnt.prnt.splitPrnt.type in ["PLS"]:
+				labels = []
+				for each in self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gacurrentchrom"]:
+					labels.append(self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["indlabels"][int(each)])
+				plotLoads(self.canvas, self.canvas.prnt.prnt.splitPrnt.titleBar.data["gaplsplsloads"], xaxis=labels, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType)
+
+	def OnTxtTitle(self, event):
+		self.graph.setTitle(self.txtTitle.GetValue())
+		self.canvas.Redraw()
+
+	def OnBtnApply(self, event):
+		self.canvas.fontSizeAxis = self.spnAxesFont.GetValue()
+		self.canvas.fontSizeTitle = self.spnTitleFont.GetValue()
+
+		self.graph.setTitle(self.txtTitle.GetValue())
+		self.graph.setXLabel(self.txtXlabel.GetValue())
+		self.graph.setYLabel(self.txtYlabel.GetValue())
+
+		if (float(self.txtXmin.GetValue()) < float(self.txtXmax.GetValue())) and (float(self.txtYmin.GetValue()) < float(self.txtYmax.GetValue())) is True:
+			self.canvas.last_draw = [self.canvas.last_draw[0], np.array([float(self.txtXmin.GetValue()), float(self.txtXmax.GetValue())]), np.array([float(self.txtYmin.GetValue()), float(self.txtYmax.GetValue())])]
+
+		self.canvas.Redraw()
+
+		self.Close()
+
+	def OnSpnAxesFont(self, event):
+		self.canvas.fontSizeAxis = self.spnAxesFont.GetValue()
+		self.canvas.Redraw()
+
+	def OnSpnTitleFont(self, event):
+		self.canvas.fontSizeTitle = self.spnTitleFont.GetValue()
+		self.canvas.Redraw()
+
+	def resizeAxes(self):
+		if (float(self.txtXmin.GetValue()) < float(self.txtXmax.GetValue())) and (float(self.txtYmin.GetValue()) < float(self.txtYmax.GetValue())) is True:
+			self.canvas.last_draw = [self.canvas.last_draw[0], np.array([float(self.txtXmin.GetValue()), float(self.txtXmax.GetValue())]), np.array([float(self.txtYmin.GetValue()), float(self.txtYmax.GetValue())])]
+		self.canvas.Redraw()
+
+	def OnSpnXmin(self, event):
+		self.resizeAxes()
+
+	def OnSpnXmax(self, event):
+		self.resizeAxes()
+
+	def OnSpnYmin(self, event):
+		self.resizeAxes()
+
+	def OnSpnYmax(self, event):
+		self.resizeAxes()
+
+	def OnSpnXminSpinUp(self, event):
+		curr = float(self.txtXmin.GetValue())
+		curr = curr + self.Increment
+		self.txtXmin.SetValue("%.3f" % curr)
+
+	def OnSpnXminSpinDown(self, event):
+		curr = float(self.txtXmin.GetValue())
+		curr = curr - self.Increment
+		self.txtXmin.SetValue("%.3f" % curr)
+
+	def OnSpnXmaxSpinUp(self, event):
+		curr = float(self.txtXmax.GetValue())
+		curr = curr + self.Increment
+		self.txtXmax.SetValue("%.3f" % curr)
+
+	def OnSpnXmaxSpinDown(self, event):
+		curr = float(self.txtXmax.GetValue())
+		curr = curr - self.Increment
+		self.txtXmax.SetValue("%.3f" % curr)
+
+	def OnSpnYmaxSpinUp(self, event):
+		curr = float(self.txtYmax.GetValue())
+		curr = curr + self.Increment
+		self.txtYmax.SetValue("%.3f" % curr)
+
+	def OnSpnYmaxSpinDown(self, event):
+		curr = float(self.txtYmax.GetValue())
+		curr = curr - self.Increment
+		self.txtYmax.SetValue("%.3f" % curr)
+
+	def OnSpnYminSpinUp(self, event):
+		curr = float(self.txtYmin.GetValue())
+		curr = curr + self.Increment
+		self.txtYmin.SetValue("%.3f" % curr)
+
+	def OnSpnYminSpinDown(self, event):
+		curr = float(self.txtYmin.GetValue())
+		curr = curr - self.Increment
+		self.txtYmin.SetValue("%.3f" % curr)
 
 
 class PyChemMain(wx.Frame):
@@ -225,7 +609,7 @@ class PyChemMain(wx.Frame):
 
 	def _init_ctrls(self, prnt):
 		# generated method, don't edit
-		wx.Frame.__init__(self, id=wxID_PYCHEMMAIN, name="PyChemMain", parent=prnt, pos=wx.Point(0, 0), size=wx.Size(1024, 738), style=wx.DEFAULT_FRAME_STYLE, title="PyChem 3.0.2 Beta")
+		wx.Frame.__init__(self, id=wxID_PYCHEMMAIN, name="PyChemMain", parent=prnt, pos=wx.Point(0, 0), size=wx.Size(1024, 738), style=wx.DEFAULT_FRAME_STYLE, title="PyChem 3.0.3 Beta")
 		self._init_utils()
 		self.SetClientSize(wx.Size(1016, 704))
 		self.SetToolTip("")
@@ -246,6 +630,10 @@ class PyChemMain(wx.Frame):
 		self.sbMain.SetToolTip("")
 		self._init_coll_stbMain_Fields(self.sbMain)
 		self.SetStatusBar(self.sbMain)
+
+		self.tbMain = PlotToolBar(self)
+		self.tbMain.Enable(False)
+		self.SetToolBar(self.tbMain)
 
 		self.plExpset = expSetup.expSetup(id=wxID_PYCHEMMAINPLEXPSET, name="plExpset", parent=self.nbMain, pos=wx.Point(0, 0), size=wx.Size(1008, 635), style=wx.TAB_TRAVERSAL)
 		self.plExpset.getFrame(self)
@@ -294,7 +682,7 @@ class PyChemMain(wx.Frame):
 
 		info = wx.adv.AboutDialogInfo()
 		info.Name = "PyChem"
-		info.Version = "3.0.2 Beta"
+		info.Version = "3.0.3 Beta"
 		info.Copyright = "(C) 2007 Roger Jarvis"
 		info.Description = wordwrap("PyChem is a software program for multivariate " "data analysis (MVA).	It includes algorithms for " "calibration and categorical analyses.	 In addition, " "novel genetic algorithm tools for spectral feature " "selection" "\n\nFor more information please go to the PyChem " "website using the link below, or email the project " "author, roger.jarvis@manchester.ac.uk", 350, wx.ClientDC(self))
 		info.WebSite = ("http://pychem.sf.net/", "PyChem home page")
@@ -611,7 +999,7 @@ class PyChemMain(wx.Frame):
 		self.plGadfa.Reset()
 		self.plGapls.Reset()
 
-		# associate algorithm objects with data
+		# create some global variables because i'm being lazy
 		self.plExpset.depTitleBar.getData(self.data)
 		self.plExpset.indTitleBar.getData(self.data)
 		self.plPreproc.titleBar.getData(self.data)
@@ -620,7 +1008,11 @@ class PyChemMain(wx.Frame):
 		self.plDfa.titleBar.getData(self.data)
 		self.plPls.titleBar.getData(self.data)
 		self.plGadfa.titleBar.getData(self.data)
+		self.plGadfa.titleBar.getExpGrid(self.plExpset.grdNames)
+		self.plGadfa.titleBar.getValSplitPc(self.plExpset.depTitleBar.spcGenMask.GetValue())
 		self.plGapls.titleBar.getData(self.data)
+		self.plGapls.titleBar.getValSplitPc(self.plExpset.depTitleBar.spcGenMask.GetValue())
+		self.plGapls.titleBar.getExpGrid(self.plExpset.grdNames)
 
 		# disable options on file menu
 		self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEEXP, False)
@@ -679,7 +1071,7 @@ class PyChemMain(wx.Frame):
 
 				# save choice options
 				Choices = ET.SubElement(locals()[workspace], "Choices")
-				choiceCtrls = ["plPls.titleBar.cbxData", "plPca.titleBar.cbxPcaType", "plPca.titleBar.cbxPreprocType", "plPca.titleBar.cbxData", "plDfa.titleBar.cbxData", "plCluster.titleBar.cbxData", "plGadfa.titleBar.cbxFeature1", "plGadfa.titleBar.cbxFeature2", "plGapls.titleBar.cbxFeature1", "plGapls.titleBar.cbxFeature2"]
+				choiceCtrls = ["plPls.titleBar.cbxData", "plPca.titleBar.cbxPcaType", "plPca.titleBar.cbxPreprocType", "plPca.titleBar.cbxData", "plDfa.titleBar.cbxData", "plCluster.titleBar.cbxData", "plGadfa.titleBar.cbxFeature1", "plGadfa.titleBar.cbxFeature2", "plGapls.titleBar.cbxFeature1", "plGapls.titleBar.cbxFeature2", "plGadfa.titleBar.cbxData", "plGapls.titleBar.cbxData"]
 
 				for each in choiceCtrls:
 					name = each.split(".")[len(each.split(".")) - 1]
@@ -690,7 +1082,7 @@ class PyChemMain(wx.Frame):
 				# save spin, string and boolean ctrl values
 				Controls = ET.SubElement(locals()[workspace], "Controls")
 				# spin controls
-				spinCtrls = ["plGadfa.titleBar.spnGaScoreFrom", "plGadfa.titleBar.spnGaScoreTo", "plGadfa.optDlg.spnGaMaxFac", "plGadfa.optDlg.spnGaMaxGen", "plGadfa.optDlg.spnGaVarsFrom", "plGadfa.optDlg.spnGaVarsTo", "plGadfa.optDlg.spnGaNoInds", "plGadfa.optDlg.spnGaNoRuns", "plGadfa.optDlg.spnGaRepUntil", "plGapls.titleBar.spnGaScoreFrom", "plGapls.titleBar.spnGaScoreTo", "plGapls.optDlg.spnGaMaxFac", "plGapls.optDlg.spnGaMaxGen", "plGapls.optDlg.spnGaVarsFrom", "plGapls.optDlg.spnGaVarsTo", "plGapls.optDlg.spnGaNoInds", "plGapls.optDlg.spnGaNoRuns", "plGapls.optDlg.spnGaRepUntil", "plPls.titleBar.spnPLSmaxfac", "plPls.titleBar.spnPLSfactor1", "plPls.titleBar.spnPLSfactor2", "plPca.titleBar.spnNumPcs1", "plPca.titleBar.spnNumPcs2", "plPca.titleBar.spnPCAnum", "plDfa.titleBar.spnDfaDfs", "plDfa.titleBar.spnDfaScore1", "plDfa.titleBar.spnDfaScore2", "plDfa.titleBar.spnDfaPcs"]
+				spinCtrls = ["plGadfa.titleBar.spnGaScoreFrom", "plGadfa.titleBar.spnGaScoreTo", "plGadfa.optDlg.spnGaMaxFac", "plGadfa.optDlg.spnGaMaxGen", "plGadfa.optDlg.spnGaVarsFrom", "plGadfa.optDlg.spnGaVarsTo", "plGadfa.optDlg.spnGaNoInds", "plGadfa.optDlg.spnGaNoRuns", "plGadfa.optDlg.spnGaRepUntil", "plGadfa.optDlg.spnNfold", "plGapls.titleBar.spnGaScoreFrom", "plGapls.titleBar.spnGaScoreTo", "plGapls.optDlg.spnGaMaxFac", "plGapls.optDlg.spnGaMaxGen", "plGapls.optDlg.spnGaVarsFrom", "plGapls.optDlg.spnGaVarsTo", "plGapls.optDlg.spnGaNoInds", "plGapls.optDlg.spnGaNoRuns", "plGapls.optDlg.spnGaRepUntil", "plGapls.optDlg.spnNfold", "plPls.titleBar.spnPLSmaxfac", "plPls.titleBar.spnPLSfactor1", "plPls.titleBar.spnPLSfactor2", "plPca.titleBar.spnNumPcs1", "plPca.titleBar.spnNumPcs2", "plPca.titleBar.spnPCAnum", "plDfa.titleBar.spnDfaDfs", "plDfa.titleBar.spnDfaScore1", "plDfa.titleBar.spnDfaScore2", "plDfa.titleBar.spnDfaPcs"]
 
 				for each in spinCtrls:
 					name = each.split(".")[len(each.split(".")) - 1]
@@ -918,8 +1310,20 @@ class PyChemMain(wx.Frame):
 						if len(array.tag.split(i)) > 1:
 							if i == "pc":
 								self.plPca.titleBar.PlotPca()
+								# set spn limits
+								self.plPca.titleBar.spnNumPcs1.SetRange(1, len(self.data["pceigs"]))
+								self.plPca.titleBar.spnNumPcs2.SetRange(1, len(self.data["pceigs"]))
+								# check for metadata & setup limits for dfa
+								if (sum(self.data["class"]) != 0) and (self.data["class"] is not None):
+									self.plDfa.titleBar.spnDfaPcs.SetRange(2, len(self.data["pceigs"]))
+									self.plDfa.titleBar.spnDfaDfs.SetRange(1, len(scipy.unique(self.data["class"])) - 1)
 							elif i == "dfs":
+								# set spn limits
+								self.plDfa.titleBar.spnDfaScore1.SetRange(1, self.data["dfeigs"].shape[1])
+								self.plDfa.titleBar.spnDfaScore2.SetRange(1, self.data["dfeigs"].shape[1])
+								# plot results
 								self.plDfa.titleBar.plotDfa()
+
 							elif i == "gadfa":
 								try:
 									self.plGadfa.titleBar.CreateGaResultsTree(self.plGadfa.optDlg.treGaResults, gacurves=self.data["gadfacurves"], chroms=self.data["gadfachroms"], varfrom=self.plGadfa.optDlg.spnGaVarsFrom.getValue(), varto=self.plGadfa.optDlg.spnGaVarsTo.getValue(), runs=self.plGadfa.optDlg.spnGaNoRuns.getValue() - 1)
@@ -971,11 +1375,11 @@ class PyChemMain(wx.Frame):
 		self.plExpset.grdIndLabels.SetGridCursor(1, 0)
 		# get col headings
 		colHeads = []
-		self.data["label"], self.data["class"], self.data["validation"] = [], [], []
 		for i in range(1, self.plExpset.grdNames.GetNumberCols()):
 			colHeads.append(self.plExpset.grdNames.GetColLabelValue(i))
 			# get label vector
 			if (self.plExpset.grdNames.GetCellValue(0, i) == "Label") and (self.plExpset.grdNames.GetCellValue(1, i) == "1") is True:
+				self.data["label"] = []
 				self.data["sampleidx"] = []
 				for j in range(2, self.plExpset.grdNames.GetNumberRows()):
 					if self.plExpset.grdNames.GetCellValue(j, 0) == "1":
@@ -984,16 +1388,20 @@ class PyChemMain(wx.Frame):
 
 			# get class vector
 			if (self.plExpset.grdNames.GetCellValue(0, i) == "Class") and (self.plExpset.grdNames.GetCellValue(1, i) == "1") is True:
+				self.data["class"] = []
 				for j in range(2, self.plExpset.grdNames.GetNumberRows()):
 					if self.plExpset.grdNames.GetCellValue(j, 0) == "1":
 						try:
 							self.data["class"].append(float(self.plExpset.grdNames.GetCellValue(j, i)))
 						except:
 							pass
+				# set max dfs that can be calculated
+				self.plDfa.titleBar.spnDfaDfs.SetRange(1, len(scipy.unique(self.data["class"])) - 1)
 			##				  self.plCluster.titleBar.dlg.spnNumClass.SetValue(max(self.data['class']))
 
 			# get validation vector
 			if (self.plExpset.grdNames.GetCellValue(0, i) == "Validation") and (self.plExpset.grdNames.GetCellValue(1, i) == "1") is True:
+				self.data["validation"] = []
 				for j in range(2, self.plExpset.grdNames.GetNumberRows()):
 					if self.plExpset.grdNames.GetCellValue(j, 0) == "1":
 						try:
@@ -1004,7 +1412,7 @@ class PyChemMain(wx.Frame):
 							elif self.plExpset.grdNames.GetCellValue(j, i) == "Test":
 								self.data["validation"].append(2)
 						except:
-							pass
+							continue
 				self.data["validation"] = np.array(self.data["validation"])
 
 		# get x-axis labels/values
@@ -1049,11 +1457,13 @@ class PyChemMain(wx.Frame):
 		# change ga results lists
 		try:
 			self.plGapls.titleBar.CreateGaResultsTree(self.plGapls.optDlg.treGaResults, gacurves=self.data["gaplscurves"], chroms=self.data["gaplschroms"], varfrom=self.plGapls.optDlg.spnGaVarsFrom.GetValue(), varto=self.plGapls.optDlg.spnGaVarsTo.GetValue(), runs=self.plGapls.optDlg.spnGaNoRuns.GetValue() - 1)
+			self.plGapls.titleBar.btnExportGa.Enable(1)
 		except:
 			pass
 
 		try:
 			self.plGadfa.titleBar.CreateGaResultsTree(self.plGadfa.optDlg.treGaResults, gacurves=self.data["gadfacurves"], chroms=self.data["gadfachroms"], varfrom=self.plGadfa.optDlg.spnGaVarsFrom.GetValue(), varto=self.plGadfa.optDlg.spnGaVarsTo.GetValue(), runs=self.plGadfa.optDlg.spnGaNoRuns.GetValue() - 1)
+			self.plGadfa.titleBar.btnExportGa.Enable(1)
 		except:
 			pass
 

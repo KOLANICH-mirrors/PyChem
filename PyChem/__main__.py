@@ -31,16 +31,17 @@ whereami = mva.__path__[0].split("mva")[0]
 class BoaApp(wx.App):
 	def OnInit(self):
 		# create splash object
-		bmp = wx.Image(os.path.join("bmp", "pychemsplash.png")).ConvertToBitmap()
-		splash = wx.SplashScreen(bmp, wx.SPLASH_CENTRE_ON_SCREEN, 5000, None, id=-1)
-		self.SetTopWindow(splash)
-		time.sleep(2)
+		##		  bmp = wx.Image(os.path.join('bmp', 'pychemsplash.png')).ConvertToBitmap()
+		##		  splash = wx.SplashScreen(bmp,wx.SPLASH_CENTRE_ON_SCREEN,
+		##								  5000, None, id=-1)
+		##		  self.SetTopWindow(splash)
+		##		  time.sleep(2)
 
 		# start pychem
 		self.main = PyChemMain.create(None)
 		self.main.Show()
 		self.SetTopWindow(self.main)
-		splash.Destroy()
+		##		  splash.Destroy()
 		return True
 
 

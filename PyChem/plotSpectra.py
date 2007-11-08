@@ -72,10 +72,11 @@ class plotSpectra(wx.Panel):
 
 		self.p1 = wx.Panel(self.Splitter)
 		self.p1.SetAutoLayout(True)
+		self.p1.prnt = prnt
 
 		self.optDlg = selFun(self.Splitter)
 
-		self.plcSpectraRaw = MyPlotCanvas(id=IDPLOTSPEC, name="plcSpectraRaw", parent=self.p1, pos=wx.Point(0, 0), size=wx.Size(200, 200), style=wx.SUNKEN_BORDER)
+		self.plcSpectraRaw = MyPlotCanvas(id=IDPLOTSPEC, name="plcSpectraRaw", parent=self.p1, pos=wx.Point(0, 0), size=wx.Size(200, 200), style=wx.SUNKEN_BORDER, toolbar=self.p1.prnt.parent.tbMain)
 		self.plcSpectraRaw.enableZoom = True
 		self.plcSpectraRaw.fontSizeTitle = 12
 		self.plcSpectraRaw.SetToolTip("")

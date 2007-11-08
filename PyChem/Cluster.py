@@ -97,6 +97,7 @@ class Cluster(wx.Panel):
 		wx.Panel.__init__(self, id=wxID_CLUSTER, name="Cluster", parent=prnt, pos=wx.Point(72, 35), size=wx.Size(907, 670), style=wx.TAB_TRAVERSAL)
 		self.SetToolTip("")
 		self.SetAutoLayout(True)
+		self.prnt = prnt
 
 		self.Splitter = wx.SplitterWindow(id=-1, name="Splitter", parent=self, pos=wx.Point(16, 24), size=wx.Size(272, 168), style=wx.SP_3D | wx.SP_LIVE_UPDATE)
 		self.Splitter.SetAutoLayout(True)
@@ -108,7 +109,7 @@ class Cluster(wx.Panel):
 
 		self.optDlg = selFun(self.Splitter)
 
-		self.plcCluster = MyPlotCanvas(id=-1, name="plcCluster", parent=self.p1, pos=wx.Point(0, 0), size=wx.Size(200, 200), style=wx.SUNKEN_BORDER)
+		self.plcCluster = MyPlotCanvas(id=-1, name="plcCluster", parent=self.p1, pos=wx.Point(0, 0), size=wx.Size(200, 200), style=wx.SUNKEN_BORDER, toolbar=self.prnt.parent.tbMain)
 		self.plcCluster.SetToolTip("")
 		self.plcCluster.enableZoom = True
 		self.plcCluster.fontSizeTitle = 12
