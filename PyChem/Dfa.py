@@ -26,7 +26,7 @@ from wx.lib.anchors import LayoutAnchors
 
 from .mva import chemometrics
 from .mva.chemometrics import _index
-from .Pca import MyPlotCanvas, plotLine, plotLoads, plotScores, plotStem, plotText
+from .Pca import MyPlotCanvas, SetButtonState, plotLine, plotLoads, plotScores, plotStem, plotText
 from .utils.io import str_array
 
 [
@@ -212,14 +212,12 @@ class TitleBar(bp.ButtonPanel):
 
 		self.spnDfaScore1 = wx.SpinCtrl(id=-1, initial=1, max=100, min=1, name="spnDfaScore1", parent=self, pos=wx.Point(199, 4), size=wx.Size(46, 23), style=wx.SP_ARROW_KEYS)
 		self.spnDfaScore1.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "MS Sans Serif"))
-		self.spnDfaScore1.SetValue(1)
 		self.spnDfaScore1.SetToolTip("")
 		self.spnDfaScore1.Enable(0)
 		self.spnDfaScore1.Bind(wx.EVT_SPINCTRL, self.OnSpnDfaScore1Spinctrl, id=-1)
 
 		self.spnDfaScore2 = wx.SpinCtrl(id=-1, initial=1, max=100, min=1, name="spnDfaScore2", parent=self, pos=wx.Point(287, 4), size=wx.Size(46, 23), style=wx.SP_ARROW_KEYS)
 		self.spnDfaScore2.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "MS Sans Serif"))
-		self.spnDfaScore2.SetValue(2)
 		self.spnDfaScore2.SetToolTip("")
 		self.spnDfaScore2.Enable(0)
 		self.spnDfaScore2.Bind(wx.EVT_SPINCTRL, self.OnSpnDfaScore2Spinctrl, id=-1)
@@ -359,13 +357,15 @@ class TitleBar(bp.ButtonPanel):
 
 	def OnSpnDfaScore1Spinctrl(self, event):
 		self.plotDfa()
+		SetButtonState(self.spnDfaScore1.GetValue(), self.spnDfaScore2.GetValue(), self.parent.parent.parent.tbMain)
 
 	def OnSpnDfaScore2Spinctrl(self, event):
 		self.plotDfa()
+		SetButtonState(self.spnDfaScore1.GetValue(), self.spnDfaScore2.GetValue(), self.parent.parent.parent.tbMain)
 
 	def plotDfa(self):
 		# plot scores
-		plotScores(self.parent.plcDFAscores, self.data["dfscores"], cl=self.data["class"], labels=self.data["label"], validation=self.data["validation"], col1=self.spnDfaScore1.GetValue() - 1, col2=self.spnDfaScore2.GetValue() - 1, title="DFA Scores", xLabel="Discriminant Function " + str(self.spnDfaScore1.GetValue()), yLabel="Discriminant Function " + str(self.spnDfaScore2.GetValue()), xval=self.cbDfaXval.GetValue(), symb=False, text=True, pconf=True)
+		plotScores(self.parent.plcDFAscores, self.data["dfscores"], cl=self.data["class"], labels=self.data["label"], validation=self.data["validation"], col1=self.spnDfaScore1.GetValue() - 1, col2=self.spnDfaScore2.GetValue() - 1, title="DFA Scores", xLabel="Discriminant Function " + str(self.spnDfaScore1.GetValue()), yLabel="Discriminant Function " + str(self.spnDfaScore2.GetValue()), xval=self.cbDfaXval.GetValue(), symb=self.parent.parent.parent.tbMain.tbSymbols.GetValue(), text=self.parent.parent.parent.tbMain.tbPoints.GetValue(), pconf=self.parent.parent.parent.tbMain.tbConf.GetValue())
 
 		# plot loadings
 		if self.cbxData.GetSelection() == 0:
@@ -374,11 +374,11 @@ class TitleBar(bp.ButtonPanel):
 			label = "DFA loading "
 
 		if self.spnDfaScore1.GetValue() != self.spnDfaScore2.GetValue():
-			plotLoads(self.parent.plcDfaLoadsV, self.data["dfloads"], xaxis=self.data["indlabels"], col1=self.spnDfaScore1.GetValue() - 1, col2=self.spnDfaScore2.GetValue() - 1, title="DFA Loadings", xLabel=label + str(self.spnDfaScore1.GetValue()), yLabel=label + str(self.spnDfaScore2.GetValue()), type=1)
+			plotLoads(self.parent.plcDfaLoadsV, self.data["dfloads"], xaxis=self.data["indlabels"], col1=self.spnDfaScore1.GetValue() - 1, col2=self.spnDfaScore2.GetValue() - 1, title="DFA Loadings", xLabel=label + str(self.spnDfaScore1.GetValue()), yLabel=label + str(self.spnDfaScore2.GetValue()), type=self.parent.parent.parent.tbMain.GetLoadPlotIdx())
 
 		else:
 			idx = self.spnDfaScore1.GetValue() - 1
-			plotStem(self.parent.plcDfaLoadsV, scipy.concatenate((scipy.arange(1, self.data["dfloads"].shape[0] + 1)[:, nA], self.data["dfloads"][:, idx][:, nA]), 1), tit="DFA Loadings", xLabel="Variable", yLabel=label + str(idx + 1), wdth=1)
+			plotLine(self.parent.plcDfaLoadsV, scipy.transpose(self.data["dfloads"]), xaxis=self.data["xaxis"], tit="DFA Loadings", rownum=idx, xLabel="Variable", yLabel=label + str(idx + 1), wdth=1, ledge=[], type="single")
 
 		# calculate and plot hierarchical clustering using euclidean distance
 		# get average df scores for each class

@@ -26,7 +26,7 @@ from wx.lib.anchors import LayoutAnchors
 
 from . import Cluster, Dfa, Ga, Pca, Plsr, expSetup, mva, plotSpectra
 from .mva.chemometrics import _index
-from .Pca import plotLine, plotLoads, plotScores, plotStem, plotText
+from .Pca import SymColSelectTool, plotLine, plotLoads, plotScores, plotStem, plotText
 from .utils import getByPath
 from .utils.io import str_array
 
@@ -115,44 +115,6 @@ def errorBox(window, error):
 		dlg.ShowModal()
 	finally:
 		dlg.Destroy()
-
-
-class SymColSelectTool(wx.PopupWindow):
-	def _init_sizers(self):
-		# generated method, don't edit
-		self.grsSelect = wx.GridSizer(cols=3, hgap=2, rows=2, vgap=2)
-
-		self.bxsSelect1 = wx.BoxSizer(orient=wx.HORIZONTAL)
-
-		self.bxsSelect2 = wx.BoxSizer(orient=wx.VERTICAL)
-
-		self._init_coll_grsSelect1_Items(self.grsSelect1)
-		self._init_coll_bxsSelect1_Items(self.bxsSelect1)
-		self._init_coll_bxsSelect2_Items(self.bxsSelect2)
-
-		self.SetSizer(self.bxsPls1)
-
-	def _init_coll_bxsSelect2_Items(self, parent):
-		# generated method, don't edit
-
-		parent.AddWindow(self.titleBar, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.grsPls1, 1, border=0, flag=wx.EXPAND)
-
-	def _init_coll_bxsPls1_Items(self, parent):
-		# generated method, don't edit
-
-		parent.AddWindow(self.bxsPls2, 1, border=0, flag=wx.EXPAND)
-
-	def __init__(self, prnt):
-		wx.PopupWindow.__init__(self, flags=wx.SIMPLE_BORDER, parent=prnt)
-		self.SetSize(wx.Size(200, 250))
-		self.Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
-
-	##	  def AddMarkerColorItem(self,desc,marker,colour):
-
-	def OnRightUp(self, evt):
-		self.Show(False)
-		self.Destroy()
 
 
 class PlotToolBar(wx.ToolBar):
@@ -300,11 +262,20 @@ class PlotToolBar(wx.ToolBar):
 		self.tbLoadSymStd2.SetToolTip("")
 		self.tbLoadSymStd2.Enable(False)
 		self.tbLoadSymStd2.Bind(wx.EVT_BUTTON, self.OnTbLoadSymStd2Button)
+		self.tbLoadSymStd2.Bind(wx.EVT_RIGHT_DOWN, self.OnTbLoadSymStd2RightClick)
 		self.AddControl(self.tbLoadSymStd2)
+
+		self.SymPopUpWin = SymColSelectTool(self)
+
+		self.loadIdx = 0
+
+	def GetLoadPlotIdx(self):
+		return self.loadIdx
 
 	def OnTbLoadLabelsButton(self, event):
 		# plot loadings
 		self.doPlot(loadType=0)
+		self.loadIdx = 0
 
 	def OnTxtPlot(self, event):
 		self.graph.setTitle(self.txtPlot.GetValue())
@@ -326,41 +297,37 @@ class PlotToolBar(wx.ToolBar):
 
 	def OnTbLoadLabStd1Button(self, event):
 		# plot loadings
-		self.doPlot(loadType=1)
+		try:
+			self.doPlot(loadType=1)
+			self.loadIdx = 1
+		except:
+			pass
 
 	def OnTbLoadLabStd2Button(self, event):
 		# plot loadings
-		self.doPlot(loadType=2)
+		try:
+			self.doPlot(loadType=2)
+			self.loadIdx = 2
+		except:
+			pass
 
 	def OnTbLoadSymStd2Button(self, event):
 		# plot loadings
-		# here
-		# plot loads
-		self.doPlot(loadType=3)
+		try:
+			self.doPlot(loadType=3)
+			self.loadIdx = 3
+		except:
+			pass
 
-		win = SymColSelectTool(self)
+	def OnTbLoadSymStd2RightClick(self, event):
+		# invoke loadings plot sym/col selector
 		btn = event.GetEventObject()
 		pos = btn.ClientToScreen((0, 0))
 		sz = btn.GetSize()
-		win.Position(pos, (0, sz[1]))
-
-		# poopulate window
-		getPoints = self.canvas.last_draw[0].objects
-
-		coords = []
-		for each in getPoints:
-			try:
-				print(each.attributes["marker"])
-			except:
-				continue
-
-		##			  coords.extend(each._points.tolist())
-
-		##			  print coords
-		##			  print
+		self.SymPopUpWin.SetPosition(wx.Point(pos[0] - 200, pos[1] + sz[1]))
 
 		# show plot options
-		win.Show()
+		self.SymPopUpWin.Show()
 
 	def OnTbConfButton(self, event):
 		if (self.tbPoints.GetValue() is False) & (self.tbConf.GetValue() is False) & (self.tbSymbols.GetValue() is False) is False:
@@ -377,42 +344,48 @@ class PlotToolBar(wx.ToolBar):
 			# plot scores
 			self.doPlot()
 
-	def doPlot(self, loadType=0):
+	def doPlot(self, loadType=0, symcolours=[]):
 		if self.canvas.GetName() in ["plcDFAscores"]:
-			plotScores(self.canvas, self.canvas.prnt.titleBar.data["dfscores"], cl=self.canvas.prnt.titleBar.data["class"], labels=self.canvas.prnt.titleBar.data["label"], validation=self.canvas.prnt.titleBar.data["validation"], col1=self.canvas.prnt.titleBar.spnDfaScore1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnDfaScore2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=self.canvas.prnt.titleBar.cbDfaXval.GetValue(), text=self.tbPoints.GetValue(), pconf=self.tbConf.GetValue(), symb=self.tbSymbols.GetValue())
+			if self.canvas.prnt.titleBar.data["dfscores"] is not None:
+				plotScores(self.canvas, self.canvas.prnt.titleBar.data["dfscores"], cl=self.canvas.prnt.titleBar.data["class"], labels=self.canvas.prnt.titleBar.data["label"], validation=self.canvas.prnt.titleBar.data["validation"], col1=self.canvas.prnt.titleBar.spnDfaScore1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnDfaScore2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=self.canvas.prnt.titleBar.cbDfaXval.GetValue(), text=self.tbPoints.GetValue(), pconf=self.tbConf.GetValue(), symb=self.tbSymbols.GetValue(), usecol=symcolours)
 
 		elif self.canvas.GetName() in ["plcPCAscore"]:
-			plotScores(self.canvas, self.canvas.prnt.titleBar.data["pcscores"], cl=self.canvas.prnt.titleBar.data["class"], labels=self.canvas.prnt.titleBar.data["label"], validation=self.canvas.prnt.titleBar.data["validation"], col1=self.canvas.prnt.titleBar.spnNumPcs1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnNumPcs2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=False, text=self.tbPoints.GetValue(), pconf=False, symb=self.tbSymbols.GetValue())
+			if self.canvas.prnt.titleBar.data["pcscores"] is not None:
+				plotScores(self.canvas, self.canvas.prnt.titleBar.data["pcscores"], cl=self.canvas.prnt.titleBar.data["class"], labels=self.canvas.prnt.titleBar.data["label"], validation=self.canvas.prnt.titleBar.data["validation"], col1=self.canvas.prnt.titleBar.spnNumPcs1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnNumPcs2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=False, text=self.tbPoints.GetValue(), pconf=False, symb=self.tbSymbols.GetValue(), usecol=symcolours)
 
 		elif self.canvas.GetName() in ["plcGaFeatPlot"]:
-			plotScores(self.canvas, self.canvas.prnt.prnt.splitPrnt.titleBar.data["gavarcoords"], cl=self.canvas.prnt.prnt.splitPrnt.titleBar.data["class"], labels=self.canvas.prnt.prnt.splitPrnt.titleBar.data["label"], validation=self.canvas.prnt.prnt.splitPrnt.titleBar.data["validation"], col1=0, col2=1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=True, text=self.tbPoints.GetValue(), pconf=False, symb=self.tbSymbols.GetValue())
+			plotScores(self.canvas, self.canvas.prnt.prnt.splitPrnt.titleBar.data["gavarcoords"], cl=self.canvas.prnt.prnt.splitPrnt.titleBar.data["class"], labels=self.canvas.prnt.prnt.splitPrnt.titleBar.data["label"], validation=self.canvas.prnt.prnt.splitPrnt.titleBar.data["validation"], col1=0, col2=1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=True, text=self.tbPoints.GetValue(), pconf=False, symb=self.tbSymbols.GetValue(), usecol=symcolours)
 
 		elif self.canvas.GetName() in ["plcGaPlot"]:
 			if self.canvas.prnt.prnt.splitPrnt.type in ["DFA"]:
-				plotScores(self.canvas, self.canvas.prnt.prnt.splitPrnt.titleBar.data["gadfadfscores"], cl=self.canvas.prnt.prnt.splitPrnt.titleBar.data["class"], labels=self.canvas.prnt.prnt.splitPrnt.titleBar.data["label"], validation=self.canvas.prnt.prnt.splitPrnt.titleBar.data["validation"], col1=self.canvas.prnt.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue() - 1, col2=self.canvas.prnt.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=True, text=self.tbPoints.GetValue(), pconf=self.tbConf.GetValue(), symb=self.tbSymbols.GetValue())
+				if self.canvas.prnt.prnt.splitPrnt.titleBar.data["gadfadfscores"] is not None:
+					plotScores(self.canvas, self.canvas.prnt.prnt.splitPrnt.titleBar.data["gadfadfscores"], cl=self.canvas.prnt.prnt.splitPrnt.titleBar.data["class"], labels=self.canvas.prnt.prnt.splitPrnt.titleBar.data["label"], validation=self.canvas.prnt.prnt.splitPrnt.titleBar.data["validation"], col1=self.canvas.prnt.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue() - 1, col2=self.canvas.prnt.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=True, text=self.tbPoints.GetValue(), pconf=self.tbConf.GetValue(), symb=self.tbSymbols.GetValue(), usecol=symcolours)
 
 		elif self.canvas.GetName() in ["plcPcaLoadsV"]:
-			plotLoads(self.canvas, scipy.transpose(self.canvas.prnt.titleBar.data["pcloads"]), xaxis=self.canvas.prnt.titleBar.data["indlabels"], col1=self.canvas.prnt.titleBar.spnNumPcs1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnNumPcs2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType)
+			if self.canvas.prnt.titleBar.data["pcloads"] is not None:
+				plotLoads(self.canvas, scipy.transpose(self.canvas.prnt.titleBar.data["pcloads"]), xaxis=self.canvas.prnt.titleBar.data["indlabels"], col1=self.canvas.prnt.titleBar.spnNumPcs1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnNumPcs2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType, usecol=symcolours)
 
 		elif self.canvas.GetName() in ["plcPLSloading"]:
-			plotLoads(self.canvas, self.canvas.prnt.titleBar.data["plsloads"], xaxis=self.canvas.prnt.titleBar.data["indlabels"], col1=self.canvas.prnt.titleBar.spnPLSfactor1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnPLSfactor2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType)
+			if self.canvas.prnt.titleBar.data["plsloads"] is not None:
+				plotLoads(self.canvas, self.canvas.prnt.titleBar.data["plsloads"], xaxis=self.canvas.prnt.titleBar.data["indlabels"], col1=self.canvas.prnt.titleBar.spnPLSfactor1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnPLSfactor2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType, usecol=symcolours)
 
 		elif self.canvas.GetName() in ["plcDfaLoadsV"]:
-			plotLoads(self.canvas, self.canvas.prnt.titleBar.data["dfloads"], xaxis=self.canvas.prnt.titleBar.data["indlabels"], col1=self.canvas.prnt.titleBar.spnDfaScore1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnDfaScore2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType)
+			if self.canvas.prnt.titleBar.data["dfloads"] is not None:
+				plotLoads(self.canvas, self.canvas.prnt.titleBar.data["dfloads"], xaxis=self.canvas.prnt.titleBar.data["indlabels"], col1=self.canvas.prnt.titleBar.spnDfaScore1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnDfaScore2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType, usecol=symcolours)
 
 		elif self.canvas.GetName() in ["plcGaSpecLoad"]:
 			if self.canvas.prnt.prnt.prnt.splitPrnt.type in ["DFA"]:
 				labels = []
 				for each in self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gacurrentchrom"]:
 					labels.append(self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["indlabels"][int(each)])
-				plotLoads(self.canvas, self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gadfadfaloads"], xaxis=labels, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType)
+				plotLoads(self.canvas, self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gadfadfaloads"], xaxis=labels, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType, usecol=symcolours)
 
 		elif self.canvas.GetName() in ["plcGaSpecLoad"]:
 			if self.canvas.prnt.prnt.splitPrnt.type in ["PLS"]:
 				labels = []
 				for each in self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gacurrentchrom"]:
 					labels.append(self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["indlabels"][int(each)])
-				plotLoads(self.canvas, self.canvas.prnt.prnt.splitPrnt.titleBar.data["gaplsplsloads"], xaxis=labels, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType)
+				plotLoads(self.canvas, self.canvas.prnt.prnt.splitPrnt.titleBar.data["gaplsplsloads"], xaxis=labels, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType, usecol=symcolours)
 
 	def OnTxtTitle(self, event):
 		self.graph.setTitle(self.txtTitle.GetValue())
@@ -507,7 +480,7 @@ class PyChemMain(wx.Frame):
 
 		parent.Append(help="", id=wxID_PYCHEMMAINMNUTOOLSEXPSET, kind=wx.ITEM_NORMAL, text="Experiment Setup")
 		parent.Append(help="", id=wxID_PYCHEMMAINMNUTOOLSPREPROC, kind=wx.ITEM_NORMAL, text="Spectral Pre-processing")
-		parent.Append(help="", id=wxID_PYCHEMMAINMNUTOOLSMNUPCA, kind=wx.ITEM_NORMAL, text="Principal Components Analysis (PCA)")
+		parent.Append(help="", id=wxID_PYCHEMMAINMNUTOOLSMNUPCA, kind=wx.ITEM_NORMAL, text="Principal Component Analysis (PCA)")
 		parent.Append(help="", id=wxID_PYCHEMMAINMNUTOOLSMNUCLUSTER, kind=wx.ITEM_NORMAL, text="Cluster Analysis")
 		parent.Append(help="", id=wxID_PYCHEMMAINMNUTOOLSMNUDFA, kind=wx.ITEM_NORMAL, text="Discriminant Function Analysis (DFA)")
 		parent.Append(help="", id=wxID_PYCHEMMAINMNUTOOLSMNUPLSR, kind=wx.ITEM_NORMAL, text="Partial Least Squares Regression (PLSR)")
@@ -570,7 +543,7 @@ class PyChemMain(wx.Frame):
 
 		parent.AddPage(imageId=-1, page=self.plExpset, select=True, text="Experiment Setup")
 		parent.AddPage(imageId=-1, page=self.plPreproc, select=False, text="Spectral Pre-processing")
-		parent.AddPage(imageId=-1, page=self.plPca, select=False, text="Principal Components Analysis")
+		parent.AddPage(imageId=-1, page=self.plPca, select=False, text="Principal Component Analysis")
 		parent.AddPage(imageId=-1, page=self.plCluster, select=False, text="Cluster Analysis")
 		parent.AddPage(imageId=-1, page=self.plDfa, select=False, text="Discriminant Function Analysis")
 		parent.AddPage(imageId=-1, page=self.plPls, select=False, text="Partial Least Squares Regression")
@@ -982,7 +955,7 @@ class PyChemMain(wx.Frame):
 		wx.TheClipboard.Close()
 
 	def Reset(self, case=0):
-		varList = "'proc':None,'class':None,'label':None," + "'split':None,'processlist':[],'xaxis':None," + "'class':None,'label':None,'validation':None," + "'pcscores':None,'pcloads':None,'pcpervar':None," + "'pceigs':None,'pcadata':None,'niporsvd':None," + "'indlabels':None,'plsloads':None,'pcatype':None," + "'dfscores':None,'dfloads':None,'dfeigs':None," + "'sampleidx':None,'variableidx':None," + "'rawtrunc':None,'proctrunc':None," + "'gadfachroms':None,'gadfascores':None," + "'gadfacurves':None,'gaplschroms':None," + "'gaplsscores':None,'gaplscurves':None," + "'gadfadfscores':None,'gadfadfaloads':None," + "'gaplsplsloads':None,'gridsel':None,'plotsel':None," + "'tree':None,'order':None,'plstrnpred':None," + "'plscvpred':None,'plststpred':None,'plsfactors':None," + "'rmsec':None,'rmsepc':None,'rmsept':None," + "'gacurrentchrom':None,'plspred':None"
+		varList = "'proc':None,'class':None,'label':None," + "'split':None,'processlist':[],'xaxis':None," + "'class':None,'label':None,'validation':None," + "'pcscores':None,'pcloads':None,'pcpervar':None," + "'pceigs':None,'pcadata':None,'niporsvd':None," + "'indlabels':None,'plsloads':None,'pcatype':None," + "'dfscores':None,'dfloads':None,'dfeigs':None," + "'sampleidx':None,'variableidx':None," + "'rawtrunc':None,'proctrunc':None," + "'gadfachroms':None,'gadfascores':None," + "'gadfacurves':None,'gaplschroms':None," + "'gaplsscores':None,'gaplscurves':None," + "'gadfadfscores':None,'gadfadfaloads':None," + "'gaplsplsloads':None,'gridsel':None,'plotsel':None," + "'tree':None,'order':None,'plstrnpred':None," + "'plscvpred':None,'plststpred':None,'plsfactors':None," + "'rmsec':None,'rmsepc':None,'rmsept':None," + "'gacurrentchrom':None,'plspred':None,'pcaloadsym':None," + "'dfaloadsym':None,'plsloadsym':None"
 
 		if case == 0:
 			exec('self.data = {"raw":None,"exppath":None,' + varList + "}")

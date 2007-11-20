@@ -223,12 +223,10 @@ class TitleBar(bp.ButtonPanel):
 		self.cbxFeature2.Bind(wx.EVT_CHOICE, self.OnCbxfeature2, id=-1)
 
 		self.spnGaScoreFrom = wx.SpinCtrl(id=-1, initial=1, max=100, min=1, name="spnGaScoreFrom", parent=self, pos=wx.Point(184, 2), size=wx.Size(40, 23), style=wx.SP_ARROW_KEYS)
-		self.spnGaScoreFrom.SetValue(1)
 		self.spnGaScoreFrom.SetToolTip("")
 		self.spnGaScoreFrom.Bind(wx.EVT_SPINCTRL, self.OnSpnGascorefromSpinctrl, id=-1)
 
-		self.spnGaScoreTo = wx.SpinCtrl(id=-1, initial=2, max=100, min=1, name="spnGaScoreTo", parent=self, pos=wx.Point(256, 2), size=wx.Size(40, 23), style=wx.SP_ARROW_KEYS)
-		self.spnGaScoreTo.SetValue(1)
+		self.spnGaScoreTo = wx.SpinCtrl(id=-1, initial=1, max=100, min=1, name="spnGaScoreTo", parent=self, pos=wx.Point(256, 2), size=wx.Size(40, 23), style=wx.SP_ARROW_KEYS)
 		self.spnGaScoreTo.SetToolTip("")
 		self.spnGaScoreTo.Bind(wx.EVT_SPINCTRL, self.OnSpnGascoretoSpinctrl, id=-1)
 
@@ -323,15 +321,19 @@ class TitleBar(bp.ButtonPanel):
 			dlg.Destroy()
 
 	def OnSpnGascorefromSpinctrl(self, event):
+		# Set loadings plot options
+		####
 		# GA scores plot
-		plotScores(self.parent.plcGaPlot, self.data["gadfadfscores"], cl=self.data["class"], labels=self.data["label"], validation=self.data["validation"], col1=self.spnGaScoreFrom.GetValue() - 1, col2=self.spnGaScoreTo.GetValue() - 1, title="DF Scores", xLabel="Discriminant Function " + str(self.spnGaScoreFrom.GetValue()), yLabel="Discriminant Function " + str(self.spnGaScoreTo.GetValue()), xval=True, text=True, pconf=True, symb=False)
+		plotScores(self.parent.plcGaPlot, self.data["gadfadfscores"], cl=self.data["class"], labels=self.data["label"], validation=self.data["validation"], col1=self.spnGaScoreFrom.GetValue() - 1, col2=self.spnGaScoreTo.GetValue() - 1, title="DF Scores", xLabel="Discriminant Function " + str(self.spnGaScoreFrom.GetValue()), yLabel="Discriminant Function " + str(self.spnGaScoreTo.GetValue()), xval=True, text=self.parent.parent.parent.tbMain.tbPoints.GetValue(), pconf=self.parent.parent.parent.tbMain.tbConf.GetValue(), symb=self.parent.parent.parent.tbMain.tbSymbols.GetValue())
 
 		# DF loadings
 		exec("self.parent.optDlg.plotGaLoads(self.parent.optDlg.currentChrom,self.data['ga" + self.type.lower() + self.type.lower() + "loads'],self.parent.plcGaSpecLoad,self.spnGaScoreFrom.GetValue()-1)")
 
 	def OnSpnGascoretoSpinctrl(self, event):
+		# Set loadings plot options
+		###
 		# GA scores plot
-		plotScores(self.parent.plcGaPlot, self.data["gadfadfscores"], cl=self.data["class"], labels=self.data["label"], validation=self.data["validation"], col1=self.spnGaScoreFrom.GetValue() - 1, col2=self.spnGaScoreTo.GetValue() - 1, title="DF Scores", xLabel="Discriminant Function " + str(self.spnGaScoreFrom.GetValue()), yLabel="Discriminant Function " + str(self.spnGaScoreTo.GetValue()), xval=True, text=True, pconf=True, symb=False)
+		plotScores(self.parent.plcGaPlot, self.data["gadfadfscores"], cl=self.data["class"], labels=self.data["label"], validation=self.data["validation"], col1=self.spnGaScoreFrom.GetValue() - 1, col2=self.spnGaScoreTo.GetValue() - 1, title="DF Scores", xLabel="Discriminant Function " + str(self.spnGaScoreFrom.GetValue()), yLabel="Discriminant Function " + str(self.spnGaScoreTo.GetValue()), xval=True, text=self.parent.parent.parent.tbMain.tbPoints.GetValue(), pconf=self.parent.parent.parent.tbMain.tbConf.GetValue(), symb=self.parent.parent.parent.tbMain.tbSymbols.GetValue())
 
 		# DF loadings
 		exec("self.parent.optDlg.plotGaLoads(self.parent.optDlg.currentChrom,self.data['ga" + self.type.lower() + self.type.lower() + "loads'],self.parent.plcGaSpecLoad,self.spnGaScoreFrom.GetValue()-1)")
@@ -1066,13 +1068,13 @@ class selParam(fpb.FoldPanelBar):
 			coords = scipy.reshape(scipy.take(xdata, [int(chrom[pos1])], 1), (len(xdata), 1))
 			L1 = "Dummy"
 			L2 = str(self.prnt.splitPrnt.titleBar.data["indlabels"][int(chrom[pos1])])
-			plotScores(canvas, coords, cl=self.prnt.splitPrnt.titleBar.data["class"], labels=self.prnt.splitPrnt.titleBar.data["label"], validation=self.prnt.splitPrnt.titleBar.data["validation"], col1=0, col2=0, title=canvas.last_draw[0].title, xLabel=L1, yLabel=L2, xval=True, pconf=False, text=True, symb=False)
+			plotScores(canvas, coords, cl=self.prnt.splitPrnt.titleBar.data["class"], labels=self.prnt.splitPrnt.titleBar.data["label"], validation=self.prnt.splitPrnt.titleBar.data["validation"], col1=0, col2=0, title=canvas.last_draw[0].title, xLabel=L1, yLabel=L2, xval=True, pconf=self.prnt.splitPrnt.parent.parent.tbMain.tbConf.GetValue(), text=self.prnt.splitPrnt.parent.parent.tbMain.tbPoints.GetValue(), symb=self.prnt.splitPrnt.parent.parent.tbMain.tbSymbols.GetValue())
 
 		else:
 			coords = scipy.reshape(scipy.take(xdata, [int(chrom[pos1]), int(chrom[pos2])], 1), (len(xdata), 2))
 			L1 = str(self.prnt.splitPrnt.titleBar.data["indlabels"][int(chrom[pos1])])
 			L2 = str(self.prnt.splitPrnt.titleBar.data["indlabels"][int(chrom[pos2])])
-			plotScores(canvas, coords, cl=self.prnt.splitPrnt.titleBar.data["class"], labels=self.prnt.splitPrnt.titleBar.data["label"], validation=self.prnt.splitPrnt.titleBar.data["validation"], col1=0, col2=1, title=canvas.last_draw[0].title, xLabel=L1, yLabel=L2, xval=True, pconf=False, text=True, symb=False)
+			plotScores(canvas, coords, cl=self.prnt.splitPrnt.titleBar.data["class"], labels=self.prnt.splitPrnt.titleBar.data["label"], validation=self.prnt.splitPrnt.titleBar.data["validation"], col1=0, col2=1, title=canvas.last_draw[0].title, xLabel=L1, yLabel=L2, xval=True, pconf=self.prnt.splitPrnt.parent.parent.tbMain.tbConf.GetValue(), text=self.prnt.splitPrnt.parent.parent.tbMain.tbPoints.GetValue(), symb=self.prnt.splitPrnt.parent.parent.tbMain.tbSymbols.GetValue())
 
 		self.prnt.splitPrnt.titleBar.data["gavarcoords"] = coords
 
@@ -1090,9 +1092,9 @@ class selParam(fpb.FoldPanelBar):
 			# gather values
 			plotVals = scipy.concatenate((loads[:, col1][:, nA], loads[:, col2][:, nA]), 1)
 
-			plotLoads(canvas, plotVals, xaxis=labels, title="DF Loadings", xLabel="Loading " + str(self.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue()), yLabel="Loading " + str(self.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue()), type=0, col1=0, col2=1)
+			plotLoads(canvas, plotVals, xaxis=labels, title="DF Loadings", xLabel="Loading " + str(self.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue()), yLabel="Loading " + str(self.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue()), type=self.prnt.splitPrnt.parent.parent.tbMain.GetLoadPlotIdx(), col1=0, col2=1)
 		else:
-			# plot loadings as stem
-			plotVals = scipy.concatenate((scipy.take(self.prnt.splitPrnt.titleBar.data["xaxis"], chrom)[:, nA], loads[:, col1][:, nA]), 1)
+			# plot loadings as line
+			xAx = scipy.take(self.prnt.splitPrnt.titleBar.data["xaxis"], chrom)[:, nA]
 
-			plotStem(canvas, plotVals, xLabel="Variable", yLabel="", wdth=1, tit="")
+			plotLine(canvas, plotVals, xAx, tit="", rownum=col1, xLabel="Variable", yLabel="", wdth=1, ledge=[], type="single")

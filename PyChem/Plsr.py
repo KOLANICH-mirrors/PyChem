@@ -25,7 +25,7 @@ from wx.lib.anchors import LayoutAnchors
 
 from .mva import chemometrics
 from .mva.chemometrics import _index
-from .Pca import MyPlotCanvas, plotLine, plotLoads, plotStem, plotText
+from .Pca import MyPlotCanvas, SetButtonState, plotLine, plotLoads, plotStem, plotText
 from .utils.io import str_array
 
 [
@@ -258,14 +258,12 @@ class TitleBar(bp.ButtonPanel):
 
 		self.spnPLSfactor1 = wx.SpinCtrl(id=-1, initial=1, max=100, min=1, name="spnPLSfactor1", parent=self, pos=wx.Point(228, 4), size=wx.Size(46, 23), style=wx.SP_ARROW_KEYS)
 		self.spnPLSfactor1.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "MS Sans Serif"))
-		self.spnPLSfactor1.SetValue(1)
 		self.spnPLSfactor1.SetToolTip("")
 		self.spnPLSfactor1.Enable(0)
 		self.spnPLSfactor1.Bind(wx.EVT_SPINCTRL, self.OnSpnPLSfactor1Spinctrl, id=-1)
 
 		self.spnPLSfactor2 = wx.SpinCtrl(id=-1, initial=1, max=100, min=1, name="spnPLSfactor2", parent=self, pos=wx.Point(228, 4), size=wx.Size(46, 23), style=wx.SP_ARROW_KEYS)
 		self.spnPLSfactor2.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "MS Sans Serif"))
-		self.spnPLSfactor2.SetValue(2)
 		self.spnPLSfactor2.SetToolTip("")
 		self.spnPLSfactor2.Enable(0)
 		self.spnPLSfactor2.Bind(wx.EVT_SPINCTRL, self.OnSpnPLSfactor2Spinctrl, id=-1)
@@ -503,7 +501,7 @@ class TitleBar(bp.ButtonPanel):
 	def plotPlsLoads(self):
 		# Plot loadings
 		if self.spnPLSfactor1.GetValue() != self.spnPLSfactor2.GetValue():
-			plotLoads(self.parent.plcPLSloading, self.data["plsloads"], xaxis=self.data["indlabels"], col1=self.spnPLSfactor1.GetValue() - 1, col2=self.spnPLSfactor2.GetValue() - 1, title="PLS Loadings", xLabel="Loading " + str(self.spnPLSfactor1.GetValue()), yLabel="Loading " + str(self.spnPLSfactor2.GetValue()), type=1)
+			plotLoads(self.parent.plcPLSloading, self.data["plsloads"], xaxis=self.data["indlabels"], col1=self.spnPLSfactor1.GetValue() - 1, col2=self.spnPLSfactor2.GetValue() - 1, title="PLS Loadings", xLabel="Loading " + str(self.spnPLSfactor1.GetValue()), yLabel="Loading " + str(self.spnPLSfactor2.GetValue()), type=self.parent.parent.parent.tbMain.GetLoadPlotIdx())
 		else:
 			idx = self.spnPLSfactor1.GetValue() - 1
-			plotStem(self.parent.plcPLSloading, scipy.concatenate((self.data["xaxis"], self.data["plsloads"][:, idx][:, nA]), 1), tit="PLS Loadings", xLabel="Variable", yLabel="Loading " + str(idx + 1), wdth=1)
+			plotLine(self.parent.plcPLSloading, self.data["plsloads"], xaxis=self.data["xaxis"], tit="PLS Loadings", rownum=idx, type="single", xLabel="Variable", yLabel="Loading " + str(idx + 1), wdth=1, ledge=[])
