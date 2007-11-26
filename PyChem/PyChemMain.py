@@ -238,6 +238,7 @@ class PlotToolBar(wx.ToolBar):
 		self.tbSymbols.SetToolTip("Plot using colored symbols")
 		self.tbSymbols.Enable(True)
 		self.tbSymbols.Bind(wx.EVT_BUTTON, self.OnTbSymbolsButton)
+		self.tbSymbols.Bind(wx.EVT_RIGHT_DOWN, self.OnTbSymbolsRightClick)
 		self.AddControl(self.tbSymbols)
 
 		self.tbLoadLabels = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "conf_0.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbLoadLabels", parent=self, pos=wx.Point(883, 2), size=wx.Size(20, 21))
@@ -271,6 +272,16 @@ class PlotToolBar(wx.ToolBar):
 
 	def GetLoadPlotIdx(self):
 		return self.loadIdx
+
+	def OnTbSymbolsRightClick(self, event):
+		# symbol/colour options for scores plots
+		btn = event.GetEventObject()
+		pos = btn.ClientToScreen((0, 0))
+		sz = btn.GetSize()
+		self.SymPopUpWin.SetPosition(wx.Point(pos[0] - 200, pos[1] + sz[1]))
+
+		# show plot options
+		self.SymPopUpWin.Show()
 
 	def OnTbLoadLabelsButton(self, event):
 		# plot loadings
@@ -327,7 +338,7 @@ class PlotToolBar(wx.ToolBar):
 		self.SymPopUpWin.SetPosition(wx.Point(pos[0] - 200, pos[1] + sz[1]))
 
 		# show plot options
-		self.SymPopUpWin.Show()
+		self.SymPopUpWin.ShowModal()
 
 	def OnTbConfButton(self, event):
 		if (self.tbPoints.GetValue() is False) & (self.tbConf.GetValue() is False) & (self.tbSymbols.GetValue() is False) is False:

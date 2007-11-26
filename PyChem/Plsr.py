@@ -501,7 +501,7 @@ class TitleBar(bp.ButtonPanel):
 	def plotPlsLoads(self):
 		# Plot loadings
 		if self.spnPLSfactor1.GetValue() != self.spnPLSfactor2.GetValue():
-			plotLoads(self.parent.plcPLSloading, self.data["plsloads"], xaxis=self.data["indlabels"], col1=self.spnPLSfactor1.GetValue() - 1, col2=self.spnPLSfactor2.GetValue() - 1, title="PLS Loadings", xLabel="Loading " + str(self.spnPLSfactor1.GetValue()), yLabel="Loading " + str(self.spnPLSfactor2.GetValue()), type=self.parent.parent.parent.tbMain.GetLoadPlotIdx())
+			plotLoads(self.parent.plcPLSloading, self.data["plsloads"], xaxis=self.data["indlabels"], col1=self.spnPLSfactor1.GetValue() - 1, col2=self.spnPLSfactor2.GetValue() - 1, title="PLS Loadings", xLabel="Loading " + str(self.spnPLSfactor1.GetValue()), yLabel="Loading " + str(self.spnPLSfactor2.GetValue()), type=self.parent.parent.parent.tbMain.GetLoadPlotIdx(), usecol=[])
 		else:
 			idx = self.spnPLSfactor1.GetValue() - 1
 			plotLine(self.parent.plcPLSloading, self.data["plsloads"], xaxis=self.data["xaxis"], tit="PLS Loadings", rownum=idx, type="single", xLabel="Variable", yLabel="Loading " + str(idx + 1), wdth=1, ledge=[])

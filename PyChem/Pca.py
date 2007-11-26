@@ -185,7 +185,7 @@ def plotSymbols(plotCanvas, coords, **_attr):
 
 	desCl = scipy.unique(cLass)
 
-	symbols = ["circle", "square", "triangle", "triangle_down"]
+	symbols = ["circle", "square", "plus", "triangle", "cross", "triangle_down"]
 
 	if usecol == []:
 		colours = [wx.NamedColour("blue"), wx.NamedColour("red"), wx.NamedColour("green"), wx.NamedColour("light_grey"), wx.NamedColour("cyan"), wx.NamedColour("black")]
@@ -197,7 +197,7 @@ def plotSymbols(plotCanvas, coords, **_attr):
 	# plot scores using symbols
 	plotSym, countSym, countColour, output = [], 0, 0, []
 	for i in range(len(desCl)):
-		if countSym > 3:
+		if countSym > len(symbols) - 1:
 			countSym = 0
 		if countColour > len(colours) - 1:
 			countColour = 0
@@ -295,8 +295,6 @@ def plotText(plotCanvas, coords, **_attr):
 		draw_plotText = wx.lib.plot.PlotGraphics(plotText, tit, xLabel=xL, yLabel=yL)
 	else:
 		draw_plotText = wx.lib.plot.PlotGraphics(plotText, tit, xLabel="Arbitrary", yLabel=yL)
-	##		  if plotCanvas is not None:
-	##			  plotCanvas.xSpec = ('none')
 
 	if plotCanvas is not None:
 		plotCanvas.Draw(draw_plotText)
@@ -346,7 +344,6 @@ def plotLoads(canvas, loads, **_attr):
 				inIdx = index[test <= std]
 
 				getOutliers = scipy.take(select, outIdx, 0)
-				##				  getRest = scipy.take(loads,inIdx,0)
 
 				# plot labels
 				labels = []
@@ -419,27 +416,37 @@ def plotLoads(canvas, loads, **_attr):
 				# close button
 				canvas.tbMain.SymPopUpWin.btnClose = wx.Button(canvas.tbMain.SymPopUpWin, wx.NewIdRef(), "Close")
 				canvas.tbMain.SymPopUpWin.Bind(wx.EVT_BUTTON, canvas.tbMain.SymPopUpWin.OnBtnClose, canvas.tbMain.SymPopUpWin.btnClose)
+				# spacer
+				canvas.tbMain.SymPopUpWin.stSpacer = wx.StaticText(canvas.tbMain.SymPopUpWin, -1, "")
 				# dynamic ctrls
 				canvas.tbMain.SymPopUpWin.colctrls = []
+				canvas.tbMain.SymPopUpWin.symctrls = []
 				for each in output:
+					# here
 					exec("canvas.tbMain.SymPopUpWin.st" + str(count) + " = wx.StaticText(canvas.tbMain.SymPopUpWin, -1," + "each[0])")
+					exec("canvas.tbMain.SymPopUpWin.btn" + str(count) + " = wx.BitmapButton(canvas.tbMain.SymPopUpWin, " + 'bitmap=wx.Bitmap(os.path.join("bmp","' + each[1] + '.bmp"), wx.BITMAP_TYPE_BMP), id=-1)')
+					exec("canvas.tbMain.SymPopUpWin.btn" + str(count) + '.symname = "' + each[1] + '"')
+					exec("canvas.tbMain.SymPopUpWin.btn" + str(count) + ".Bind(wx.EVT_BUTTON, canvas.tbMain.SymPopUpWin.OnBtnSymbol" + ")")
 					exec("canvas.tbMain.SymPopUpWin.cp" + str(count) + " = wx.ColourPickerCtrl(canvas.tbMain.SymPopUpWin," + "-1, col=" + str(each[2]) + ", style=wx.CLRP_DEFAULT_STYLE)")
 					# output ctrl names to use later
 					canvas.tbMain.SymPopUpWin.colctrls.append("cp" + str(count))
+					canvas.tbMain.SymPopUpWin.symctrls.append("btn" + str(count))
 					count += 1
 				# create sizer
-				canvas.tbMain.SymPopUpWin.grsSelect = wx.GridSizer(cols=2, hgap=2, rows=count + 1, vgap=2)
+				canvas.tbMain.SymPopUpWin.grsSelect = wx.GridSizer(cols=3, hgap=2, rows=count + 1, vgap=2)
 				# add standard ctrls
 				canvas.tbMain.SymPopUpWin.grsSelect.AddWindow(canvas.tbMain.SymPopUpWin.btnClose, 0, border=0, flag=wx.EXPAND)
 				canvas.tbMain.SymPopUpWin.grsSelect.AddWindow(canvas.tbMain.SymPopUpWin.btnApply, 0, border=0, flag=wx.EXPAND)
+				canvas.tbMain.SymPopUpWin.grsSelect.AddWindow(canvas.tbMain.SymPopUpWin.stSpacer, 0, border=0, flag=wx.EXPAND)
 				# add dynamic ctrls to sizer
 				for nwin in range(count):
 					canvas.tbMain.SymPopUpWin.grsSelect.AddWindow(getByPath(canvas.tbMain.SymPopUpWin, "st" + str(nwin)), 0, border=0, flag=wx.EXPAND)
+					canvas.tbMain.SymPopUpWin.grsSelect.AddWindow(getByPath(canvas.tbMain.SymPopUpWin, "btn" + str(nwin)), 0, border=0, flag=wx.EXPAND)
 					canvas.tbMain.SymPopUpWin.grsSelect.AddWindow(getByPath(canvas.tbMain.SymPopUpWin, "cp" + str(nwin)), 0, border=0, flag=wx.EXPAND)
 
 				# set sizer and resize
 				canvas.tbMain.SymPopUpWin.SetSizer(canvas.tbMain.SymPopUpWin.grsSelect)
-				canvas.tbMain.SymPopUpWin.SetSize(wx.Size(canvas.tbMain.SymPopUpWin.GetSize()[0], count * 21))
+				canvas.tbMain.SymPopUpWin.SetSize(wx.Size(canvas.tbMain.SymPopUpWin.GetSize()[0], count * 35))
 
 				for each in symPlot:
 					plot.append(each)
@@ -560,7 +567,7 @@ def plotScores(canvas, scores, **_attr):
 				cTa = cTb
 			nSc = nSc[1 : len(nSc)]
 			# plot symbols
-			symPlot, output = plotSymbols(None, nSc, mask=validation, cLass=nCs, text=nTx, usemask=xval, col1=0, col2=1, tit="", xL="", yL="", usecols=usecol)
+			symPlot, output = plotSymbols(None, nSc, mask=validation, cLass=nCs, text=nTx, usemask=xval, col1=0, col2=1, tit="", xL="", yL="", usecol=usecol)
 			for each in symPlot:
 				plot.append(each)
 
@@ -573,10 +580,10 @@ def plotScores(canvas, scores, **_attr):
 		canvas.enableLegend = True
 
 
-class SymColSelectTool(wx.Frame):
+class SymColSelectTool(wx.Dialog):
 	def __init__(self, prnt):
-		wx.Frame.__init__(self, parent=prnt, style=0)
-		self.SetSize(wx.Size(200, 0))
+		wx.Dialog.__init__(self, parent=prnt, style=0)
+		self.SetSize(wx.Size(300, 0))
 		self.SetAutoLayout(True)
 		self.prnt = prnt
 
@@ -591,6 +598,93 @@ class SymColSelectTool(wx.Frame):
 		# plot loadings
 		self.prnt.doPlot(loadType=3, symcolours=list)
 		self.prnt.loadIdx = 3
+
+	def OnBtnSymbol(self, evt):
+		# symbol select dialog
+		btn = evt.GetEventObject()
+		dlg = SymDialog(self, btn.symname)
+		pos = btn.ClientToScreen((0, 0))
+		sz = btn.GetSize()
+		dlg.SetPosition(wx.Point(pos[0] - 155, pos[1] + sz[1]))
+		dlg.ShowModal()
+
+
+class SymDialog(wx.Dialog):
+	def _init_sizers(self):
+		# generated method, don't edit
+		self.grsSymDialog = wx.GridSizer(cols=2, hgap=2, rows=3, vgap=2)
+
+		self._init_coll_grsSymDialog_Items(self.grsSymDialog)
+
+		self.SetSizer(self.grsSymDialog)
+
+	def _init_coll_grsSymDialog_Items(self, parent):
+		# generated method, don't edit
+
+		parent.AddWindow(self.tbSquare, 0, border=0, flag=wx.EXPAND)
+		parent.AddWindow(self.tbCircle, 0, border=0, flag=wx.EXPAND)
+		parent.AddWindow(self.tbPlus, 0, border=0, flag=wx.EXPAND)
+		parent.AddWindow(self.tbTriangleUp, 0, border=0, flag=wx.EXPAND)
+		parent.AddWindow(self.tbTriangleDown, 0, border=0, flag=wx.EXPAND)
+		parent.AddWindow(self.tbCross, 0, border=0, flag=wx.EXPAND)
+
+	def _init_ctrls(self, prnt):
+		# generated method, don't edit
+		wx.Dialog.__init__(self, id=-1, name="SymDialog", parent=prnt, pos=wx.Point(589, 316), size=wx.Size(156, 155), style=wx.DEFAULT_DIALOG_STYLE, title="Select Symbol")
+		self.SetClientSize(wx.Size(140, 119))
+		self.SetToolTip("")
+
+		self.tbSquare = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "square.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbSquare", parent=self, pos=wx.Point(0, 0), size=wx.Size(69, 38), style=0)
+		self.tbSquare.Bind(wx.EVT_BUTTON, self.OnTbSquareButton)
+
+		self.tbCircle = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "circle.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbCircle", parent=self, pos=wx.Point(71, 0), size=wx.Size(69, 38), style=0)
+		self.tbCircle.Bind(wx.EVT_BUTTON, self.OnTbCircleButton)
+
+		self.tbPlus = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "plus.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbPlus", parent=self, pos=wx.Point(0, 40), size=wx.Size(69, 38), style=0)
+		self.tbPlus.Bind(wx.EVT_BUTTON, self.OnTbPlusButton)
+
+		self.tbTriangleUp = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "triangle.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbTriangleUp", parent=self, pos=wx.Point(71, 40), size=wx.Size(69, 38), style=0)
+		self.tbTriangleUp.Bind(wx.EVT_BUTTON, self.OnTbTriangleUpButton)
+
+		self.tbTriangleDown = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "triangle_down.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbTriangleDown", parent=self, pos=wx.Point(0, 80), size=wx.Size(69, 38), style=0)
+		self.tbTriangleDown.Bind(wx.EVT_BUTTON, self.OnTbTriangleDownButton)
+
+		self.tbCross = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "cross.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbCross", parent=self, pos=wx.Point(71, 80), size=wx.Size(69, 38), style=0)
+		self.tbCross.Bind(wx.EVT_BUTTON, self.OnTbCrossButton)
+
+		self._init_sizers()
+
+	def __init__(self, parent, symbol):
+		self._init_ctrls(parent)
+
+		self.Symbol = symbol
+
+	def GetSymbol(self):
+		return self.Symbol
+
+	def OnTbSquareButton(self, event):
+		self.Symbol = "square"
+		self.Destroy()
+
+	def OnTbCircleButton(self, event):
+		self.Symbol = "circle"
+		self.Destroy()
+
+	def OnTbPlusButton(self, event):
+		self.Symbol = "plus"
+		self.Destroy()
+
+	def OnTbTriangleUpButton(self, event):
+		self.Symbol = "triangle"
+		self.Destroy()
+
+	def OnTbTriangleDownButton(self, event):
+		self.Symbol = "triangle_down"
+		self.Destroy()
+
+	def OnTbCrossButton(self, event):
+		self.Symbol = "cross"
+		self.Destroy()
 
 
 class MyPlotCanvas(wx.lib.plot.PlotCanvas):
@@ -1028,7 +1122,7 @@ class TitleBar(bp.ButtonPanel):
 
 		yL = "PC " + str(self.spnNumPcs2.GetValue()) + " (" + "%.2f" % (self.data["pcpervar"][self.spnNumPcs2.GetValue()] - self.data["pcpervar"][self.spnNumPcs2.GetValue() - 1]) + "%)"
 
-		plotScores(self.parent.plcPCAscore, self.data["pcscores"], cl=self.data["class"], labels=self.data["label"], validation=self.data["validation"], col1=self.spnNumPcs1.GetValue() - 1, col2=self.spnNumPcs2.GetValue() - 1, title="PCA Scores", xLabel=xL, yLabel=yL, xval=False, pconf=False, symb=self.parent.parent.parent.tbMain.tbSymbols.GetValue(), text=self.parent.parent.parent.tbMain.tbPoints.GetValue())
+		plotScores(self.parent.plcPCAscore, self.data["pcscores"], cl=self.data["class"], labels=self.data["label"], validation=self.data["validation"], col1=self.spnNumPcs1.GetValue() - 1, col2=self.spnNumPcs2.GetValue() - 1, title="PCA Scores", xLabel=xL, yLabel=yL, xval=False, pconf=False, symb=self.parent.parent.parent.tbMain.tbSymbols.GetValue(), text=self.parent.parent.parent.tbMain.tbPoints.GetValue(), usecol=[])
 
 		# Plot loadings
 		if self.spnNumPcs1.GetValue() != self.spnNumPcs2.GetValue():

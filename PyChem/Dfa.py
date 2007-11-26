@@ -365,7 +365,7 @@ class TitleBar(bp.ButtonPanel):
 
 	def plotDfa(self):
 		# plot scores
-		plotScores(self.parent.plcDFAscores, self.data["dfscores"], cl=self.data["class"], labels=self.data["label"], validation=self.data["validation"], col1=self.spnDfaScore1.GetValue() - 1, col2=self.spnDfaScore2.GetValue() - 1, title="DFA Scores", xLabel="Discriminant Function " + str(self.spnDfaScore1.GetValue()), yLabel="Discriminant Function " + str(self.spnDfaScore2.GetValue()), xval=self.cbDfaXval.GetValue(), symb=self.parent.parent.parent.tbMain.tbSymbols.GetValue(), text=self.parent.parent.parent.tbMain.tbPoints.GetValue(), pconf=self.parent.parent.parent.tbMain.tbConf.GetValue())
+		plotScores(self.parent.plcDFAscores, self.data["dfscores"], cl=self.data["class"], labels=self.data["label"], validation=self.data["validation"], col1=self.spnDfaScore1.GetValue() - 1, col2=self.spnDfaScore2.GetValue() - 1, title="DFA Scores", xLabel="Discriminant Function " + str(self.spnDfaScore1.GetValue()), yLabel="Discriminant Function " + str(self.spnDfaScore2.GetValue()), xval=self.cbDfaXval.GetValue(), symb=self.parent.parent.parent.tbMain.tbSymbols.GetValue(), text=self.parent.parent.parent.tbMain.tbPoints.GetValue(), pconf=self.parent.parent.parent.tbMain.tbConf.GetValue(), usecol=[])
 
 		# plot loadings
 		if self.cbxData.GetSelection() == 0:
@@ -374,7 +374,7 @@ class TitleBar(bp.ButtonPanel):
 			label = "DFA loading "
 
 		if self.spnDfaScore1.GetValue() != self.spnDfaScore2.GetValue():
-			plotLoads(self.parent.plcDfaLoadsV, self.data["dfloads"], xaxis=self.data["indlabels"], col1=self.spnDfaScore1.GetValue() - 1, col2=self.spnDfaScore2.GetValue() - 1, title="DFA Loadings", xLabel=label + str(self.spnDfaScore1.GetValue()), yLabel=label + str(self.spnDfaScore2.GetValue()), type=self.parent.parent.parent.tbMain.GetLoadPlotIdx())
+			plotLoads(self.parent.plcDfaLoadsV, self.data["dfloads"], xaxis=self.data["indlabels"], col1=self.spnDfaScore1.GetValue() - 1, col2=self.spnDfaScore2.GetValue() - 1, title="DFA Loadings", xLabel=label + str(self.spnDfaScore1.GetValue()), yLabel=label + str(self.spnDfaScore2.GetValue()), type=self.parent.parent.parent.tbMain.GetLoadPlotIdx(), usecol=[])
 
 		else:
 			idx = self.spnDfaScore1.GetValue() - 1
