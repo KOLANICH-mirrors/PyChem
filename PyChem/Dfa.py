@@ -121,6 +121,7 @@ class Dfa(wx.Panel):
 		self.plcDFAscores.fontSizeTitle = 10
 		self.plcDFAscores.fontSizeAxis = 8
 		self.plcDFAscores.enableZoom = True
+		self.plcDFAscores.enableLegend = True
 		self.plcDFAscores.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "MS Sans Serif"))
 		self.plcDFAscores.SetToolTip("")
 		self.plcDFAscores.SetAutoLayout(True)
@@ -131,6 +132,7 @@ class Dfa(wx.Panel):
 		self.plcDfaLoadsV.fontSizeAxis = 8
 		self.plcDfaLoadsV.fontSizeTitle = 10
 		self.plcDfaLoadsV.enableZoom = True
+		self.plcDfaLoadsV.enableLegend = True
 		self.plcDfaLoadsV.SetToolTip("")
 		self.plcDfaLoadsV.SetAutoLayout(True)
 		self.plcDfaLoadsV.SetConstraints(LayoutAnchors(self.plcDfaLoadsV, True, True, True, True))
@@ -186,8 +188,9 @@ class TitleBar(bp.ButtonPanel):
 	def _init_btnpanel_ctrls(self, prnt):
 		bp.ButtonPanel.__init__(self, parent=prnt, id=-1, text="Discriminant Function Analysis", agwStyle=bp.BP_USE_GRADIENT, alignment=bp.BP_ALIGN_LEFT)
 
-		self.cbxData = wx.Choice(choices=["PC Scores", "Raw spectra", "Processed spectra"], id=-1, name="cbxData", parent=self, pos=wx.Point(118, 21), size=wx.Size(100, 23), style=0)
+		self.cbxData = wx.Choice(choices=["PC Scores", "PLS Scores", "Raw spectra", "Processed spectra"], id=-1, name="cbxData", parent=self, pos=wx.Point(118, 21), size=wx.Size(100, 23), style=0)
 		self.cbxData.SetSelection(0)
+		self.Bind(wx.EVT_CHOICE, self.OnCbxData, id=self.cbxData.GetId())
 
 		self.btnRunDfa = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "run.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Run DFA", longHelp="Run Discriminant Function Analysis")
 		self.btnRunDfa.Enable(False)
@@ -236,7 +239,7 @@ class TitleBar(bp.ButtonPanel):
 		self.SetProperties()
 
 		self.AddControl(self.cbxData)
-		self.AddControl(wx.lib.stattext.GenStaticText(self, -1, "No. PCs", style=wx.TRANSPARENT_WINDOW))
+		self.AddControl(wx.lib.stattext.GenStaticText(self, -1, "No. LVs", style=wx.TRANSPARENT_WINDOW))
 		self.AddControl(self.spnDfaPcs)
 		self.AddControl(wx.lib.stattext.GenStaticText(self, -1, "No. DFs", style=wx.TRANSPARENT_WINDOW))
 		self.AddControl(self.spnDfaDfs)
@@ -276,15 +279,30 @@ class TitleBar(bp.ButtonPanel):
 	def getData(self, data):
 		self.data = data
 
+	def OnCbxData(self, event):
+		if self.cbxData.GetSelection() == 0:
+			if self.data["pcscores"] is not None:
+				self.spnDfaPcs.SetRange(1, self.data["pcscores"].shape[1])
+				if self.data["pcscores"].shape[1] < self.spnDfaPcs.GetValue():
+					self.spnDfaPcs.SetValue(self.data["pcscores"].shape[1])
+		elif self.cbxData.GetSelection() == 1:
+			if self.data["plst"] is not None:
+				self.spnDfaPcs.SetRange(1, self.data["plst"].shape[1])
+				if self.data["plst"].shape[1] < self.spnDfaPcs.GetValue():
+					self.spnDfaPcs.SetValue(self.data["plst"].shape[1])
+
 	def OnBtnRunDfaButton(self, event):
 		try:
 			# run discriminant function analysis
 			if self.cbxData.GetSelection() == 0:
-				xdata = self.data["pcscores"]
-				xdata = xdata[:, 0 : self.spnDfaPcs.GetValue()]
+				xdata = self.data["pcscores"][:, 0 : self.spnDfaPcs.GetValue()]
+				loads = self.data["pcloads"]
 			elif self.cbxData.GetSelection() == 1:
-				xdata = self.data["rawtrunc"]
+				xdata = self.data["plst"][:, 0 : self.spnDfaPcs.GetValue()]
+				loads = scipy.transpose(self.data["plsloads"])
 			elif self.cbxData.GetSelection() == 2:
+				xdata = self.data["rawtrunc"]
+			elif self.cbxData.GetSelection() == 3:
 				xdata = self.data["proctrunc"]
 
 			# if using xval
@@ -293,6 +311,7 @@ class TitleBar(bp.ButtonPanel):
 				xvaldata = self.data["rawtrunc"]
 			elif self.parent.parent.parent.plPca.titleBar.cbxData.GetSelection() == 1:
 				xvaldata = self.data["proctrunc"]
+
 			# select pca method
 			if self.parent.parent.parent.plPca.titleBar.cbxPcaType.GetSelection() == 0:
 				self.data["niporsvd"] = "nip"
@@ -320,28 +339,35 @@ class TitleBar(bp.ButtonPanel):
 
 			if self.cbDfaXval.GetValue() is False:
 				# just a fix to recover original loadings when using PC-DFA
-				if self.cbxData.GetSelection() > 0:
-					self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"], dummy = mva.chemometrics.DFA(xdata, self.data["class"], self.spnDfaDfs.GetValue())
+				if self.cbxData.GetSelection() > 1:
+					self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"], dummy = mva.chemometrics.DFA(xdata, self.data["class"][:, 0], self.spnDfaDfs.GetValue())
 				else:
-					self.data["dfscores"], dummy, self.data["dfeigs"], self.data["dfloads"] = mva.chemometrics.DFA(xdata, self.data["class"], self.spnDfaDfs.GetValue(), self.data["pcloads"][0 : self.spnDfaPcs.GetValue(), :])
+					self.data["dfscores"], dummy, self.data["dfeigs"], self.data["dfloads"] = mva.chemometrics.DFA(xdata, self.data["class"][:, 0], self.spnDfaDfs.GetValue(), loads[0 : self.spnDfaPcs.GetValue(), :])
 
 			elif self.cbDfaXval.GetValue() is True:
-				if self.cbxData.GetSelection() > 0:
-					self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"] = mva.chemometrics.DFA_XVALRAW(xdata, self.data["class"], self.data["validation"], self.spnDfaDfs.GetValue())
+				if self.cbxData.GetSelection() > 1:
+					# run dfa
+					self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"] = mva.chemometrics.DFA_XVALRAW(xdata, self.data["class"][:, 0], self.data["validation"], self.spnDfaDfs.GetValue())
 
-				else:
+				elif self.cbxData.GetSelection() == 0:
 					# run pc-dfa
 					if self.data["niporsvd"] in ["nip"]:
-						self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"] = mva.chemometrics.DFA_XVAL(xvaldata, "NIPALS", self.spnDfaPcs.GetValue(), self.data["class"], self.data["validation"], self.spnDfaDfs.GetValue(), ptype=self.data["pcatype"])
+						self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"] = mva.chemometrics.DFA_XVAL_PCA(xvaldata, "NIPALS", self.spnDfaPcs.GetValue(), self.data["class"][:, 0], self.data["validation"], self.spnDfaDfs.GetValue(), ptype=self.data["pcatype"])
 
 					elif self.data["niporsvd"] in ["svd"]:
-						self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"] = mva.chemometrics.DFA_XVAL(xvaldata, "SVD", self.spnDfaPcs.GetValue(), self.data["class"], self.data["validation"], self.spnDfaDfs.GetValue(), ptype=self.data["pcatype"])
+						self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"] = mva.chemometrics.DFA_XVAL_PCA(xvaldata, "SVD", self.spnDfaPcs.GetValue(), self.data["class"][:, 0], self.data["validation"], self.spnDfaDfs.GetValue(), ptype=self.data["pcatype"])
+
+				elif self.cbxData.GetSelection() == 1:
+					# run pls-dfa
+					self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"] = mva.chemometrics.DFA_XVAL_PLS(self.data["plst"], self.data["plsloads"], self.spnDfaPcs.GetValue(), self.data["class"][:, 0], self.data["validation"], self.spnDfaDfs.GetValue())
 
 			# plot dfa results
 			self.plotDfa()
 
 		except Exception as error:
 			errorBox(self, "%s" % str(error))
+
+	##			  raise
 
 	def OnBtnExpDfaButton(self, event):
 		dlg = wx.FileDialog(self, "Choose a file", ".", "", "Any files (*.*)|*.*", wx.FD_SAVE)
@@ -365,27 +391,27 @@ class TitleBar(bp.ButtonPanel):
 
 	def plotDfa(self):
 		# plot scores
-		plotScores(self.parent.plcDFAscores, self.data["dfscores"], cl=self.data["class"], labels=self.data["label"], validation=self.data["validation"], col1=self.spnDfaScore1.GetValue() - 1, col2=self.spnDfaScore2.GetValue() - 1, title="DFA Scores", xLabel="Discriminant Function " + str(self.spnDfaScore1.GetValue()), yLabel="Discriminant Function " + str(self.spnDfaScore2.GetValue()), xval=self.cbDfaXval.GetValue(), symb=self.parent.parent.parent.tbMain.tbSymbols.GetValue(), text=self.parent.parent.parent.tbMain.tbPoints.GetValue(), pconf=self.parent.parent.parent.tbMain.tbConf.GetValue(), usecol=[])
+		plotScores(self.parent.plcDFAscores, self.data["dfscores"], cl=self.data["class"][:, 0], labels=self.data["label"], validation=self.data["validation"], col1=self.spnDfaScore1.GetValue() - 1, col2=self.spnDfaScore2.GetValue() - 1, title="DFA Scores", xLabel="t[" + str(self.spnDfaScore1.GetValue()) + "]", yLabel="t[" + str(self.spnDfaScore2.GetValue()) + "]", xval=self.cbDfaXval.GetValue(), symb=self.parent.parent.parent.tbMain.tbSymbols.GetValue(), text=self.parent.parent.parent.tbMain.tbPoints.GetValue(), pconf=self.parent.parent.parent.tbMain.tbConf.GetValue(), usecol=[], usesym=[])
 
 		# plot loadings
 		if self.cbxData.GetSelection() == 0:
-			label = "PC-DFA loading "
+			label = "PC-DFA Loadings"
 		else:
-			label = "DFA loading "
+			label = "DFA Loadings"
 
 		if self.spnDfaScore1.GetValue() != self.spnDfaScore2.GetValue():
-			plotLoads(self.parent.plcDfaLoadsV, self.data["dfloads"], xaxis=self.data["indlabels"], col1=self.spnDfaScore1.GetValue() - 1, col2=self.spnDfaScore2.GetValue() - 1, title="DFA Loadings", xLabel=label + str(self.spnDfaScore1.GetValue()), yLabel=label + str(self.spnDfaScore2.GetValue()), type=self.parent.parent.parent.tbMain.GetLoadPlotIdx(), usecol=[])
+			plotLoads(self.parent.plcDfaLoadsV, self.data["dfloads"], xaxis=self.data["indlabels"], col1=self.spnDfaScore1.GetValue() - 1, col2=self.spnDfaScore2.GetValue() - 1, title=label, xLabel="w[" + str(self.spnDfaScore1.GetValue()) + "]", yLabel="w[" + str(self.spnDfaScore2.GetValue()) + "]", type=self.parent.parent.parent.tbMain.GetLoadPlotIdx(), usecol=[], usesym=[])
 
 		else:
 			idx = self.spnDfaScore1.GetValue() - 1
-			plotLine(self.parent.plcDfaLoadsV, scipy.transpose(self.data["dfloads"]), xaxis=self.data["xaxis"], tit="DFA Loadings", rownum=idx, xLabel="Variable", yLabel=label + str(idx + 1), wdth=1, ledge=[], type="single")
+			plotLine(self.parent.plcDfaLoadsV, scipy.transpose(self.data["dfloads"]), xaxis=self.data["xaxis"], tit=label, rownum=idx, xLabel="Variable", yLabel="w[" + str(idx + 1) + "]", wdth=1, ledge=[], type="single")
 
 		# calculate and plot hierarchical clustering using euclidean distance
 		# get average df scores for each class
 		mS, mSn = [], []
-		for each in scipy.unique(self.data["class"]):
-			mS.append(scipy.mean(self.data["dfscores"][self.data["class"] == each, :], 0))
-			mSn.append(self.data["label"][_index(self.data["class"], each)[0]])
+		for each in scipy.unique(self.data["class"][:, 0]):
+			mS.append(scipy.mean(self.data["dfscores"][self.data["class"][:, 0] == each, :], 0))
+			mSn.append(self.data["label"][_index(self.data["class"][:, 0], each)[0]])
 
 		tree = treecluster(data=mS, method="m", dist="e")
 		tree, order = self.parent.parent.parent.plCluster.titleBar.treestructure(tree, scipy.arange(len(tree) + 1))

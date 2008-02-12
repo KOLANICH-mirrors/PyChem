@@ -257,10 +257,10 @@ class TitleBar(bp.ButtonPanel):
 			# run clustering
 			if self.parent.optDlg.rbKmeans.GetValue() is True:
 				if self.parent.optDlg.spnNoPass.GetValue() == 1:
-					stid = (np.array(self.data["class"], "i") - 1).tolist()
+					stid = (np.array(self.data["class"][:, 0], "i") - 1).tolist()
 					self.clusterid, error, nfound = kcluster(xdata, nclusters=len(scipy.unique(self.data["class"])), transpose=0, npass=1, method="a", dist=seldist, initialid=stid)
 				else:
-					self.clusterid, error, nfound = kcluster(xdata, nclusters=len(scipy.unique(self.data["class"])), transpose=0, npass=self.parent.optDlg.spnNoPass.GetValue(), method="a", dist=seldist)
+					self.clusterid, error, nfound = kcluster(xdata, nclusters=len(scipy.unique(self.data["class"][:, 0])), transpose=0, npass=self.parent.optDlg.spnNoPass.GetValue(), method="a", dist=seldist)
 
 				self.parent.plcCluster.Show(False)
 				self.parent.txtCluster.Show(True)
@@ -271,10 +271,10 @@ class TitleBar(bp.ButtonPanel):
 
 			elif self.parent.optDlg.rbKmedian.GetValue() is True:
 				if self.parent.optDlg.spnNoPass.GetValue() == 1:
-					stid = (np.array(self.data["class"], "i") - 1).tolist()
-					self.clusterid, error, nfound = kcluster(xdata, nclusters=len(scipy.unique(self.data["class"])), npass=1, method="m", dist=seldist, initialid=stid)
+					stid = (np.array(self.data["class"][:, 0], "i") - 1).tolist()
+					self.clusterid, error, nfound = kcluster(xdata, nclusters=len(scipy.unique(self.data["class"][:, 0])), npass=1, method="m", dist=seldist, initialid=stid)
 				else:
-					self.clusterid, error, nfound = kcluster(xdata, nclusters=len(scipy.unique(self.data["class"])), npass=self.parent.optDlg.spnNoPass.GetValue(), method="m", dist=seldist)
+					self.clusterid, error, nfound = kcluster(xdata, nclusters=len(scipy.unique(self.data["class"][:, 0])), npass=self.parent.optDlg.spnNoPass.GetValue(), method="m", dist=seldist)
 
 				self.parent.plcCluster.Show(False)
 				self.parent.txtCluster.Show(True)
@@ -288,14 +288,14 @@ class TitleBar(bp.ButtonPanel):
 				distance = cluster.distancematrix(xdata, transpose=0, dist=seldist)
 
 				if self.parent.optDlg.spnNoPass.GetValue() == 1:
-					stid = (np.array(self.data["class"], "i") - 1).tolist()
-					self.clusterid, error, nfound = cluster.kmedoids(distance, nclusters=len(scipy.unique(self.data["class"])), npass=1, initialid=stid)
+					stid = (np.array(self.data["class"][:, 0], "i") - 1).tolist()
+					self.clusterid, error, nfound = cluster.kmedoids(distance, nclusters=len(scipy.unique(self.data["class"][:, 0])), npass=1, initialid=stid)
 				else:
-					self.clusterid, error, nfound = cluster.kmedoids(distance, nclusters=len(scipy.unique(self.data["class"])), npass=self.parent.optDlg.spnNoPass.GetValue())
+					self.clusterid, error, nfound = cluster.kmedoids(distance, nclusters=len(scipy.unique(self.data["class"][:, 0])), npass=self.parent.optDlg.spnNoPass.GetValue())
 
 				# rename cluster ids
 				for i in range(len(self.clusterid)):
-					self.clusterid[i] = self.data["class"][self.clusterid[i]] - 1
+					self.clusterid[i] = self.data["class"][:, 0][self.clusterid[i]] - 1
 
 				self.parent.plcCluster.Show(False)
 				self.parent.txtCluster.Show(True)
@@ -320,7 +320,7 @@ class TitleBar(bp.ButtonPanel):
 				tree.scale()
 
 				# divide into clusters
-				##				  tree.cut(len(scipy.unique(self.data['class'])))
+				##				  tree.cut(len(scipy.unique(self.data['class'][:,0])))
 
 				# determine tree structure
 				self.data["tree"], self.data["order"] = self.treestructure(tree, scipy.arange(len(tree) + 1))
@@ -338,6 +338,7 @@ class TitleBar(bp.ButtonPanel):
 		##				  self.btnExportCluster.Enable(0)
 		except Exception as error:
 			errorBox(self, "%s" % str(error))
+			raise
 
 	def treestructure(self, tree, order):
 		# determine hierarchical tree structure
@@ -479,8 +480,8 @@ class TitleBar(bp.ButtonPanel):
 		##		  #do level 1
 		##		  List,Cols,ccount = [],[],0
 		##		  for i in range(len(tree)):
-		##			  if self.data['class'][i] not in List:
-		##				  List.append(self.data['class'][i])
+		##			  if self.data['class'][:,0][i] not in List:
+		##				  List.append(self.data['class'][:,0][i])
 		####				Cols.append(colourList[ccount])
 		##				  ccount += 1
 		##				  if ccount == len(colourList):
@@ -492,13 +493,13 @@ class TitleBar(bp.ButtonPanel):
 		##			  Line,List,Nlist,Store = [],[],[],{}
 		##			  count = 0
 		##			  for i in range(len(order)):
-		##				  idn = int(self.data['class'][order[i]])
+		##				  idn = int(self.data['class'][:,0][order[i]])
 		##				  #plot names
 		##				  if idn in List:
 		##					  Store[str(idn)] = scipy.concatenate((Store[str(idn)],[[0,count]]),0)
 		##				  else:
 		##					  Store[str(idn)] = [[0,count]]
-		##					  List.append(self.data['class'][order[i]])
+		##					  List.append(self.data['class'][:,0][order[i]])
 		##					  Nlist.append(self.data['label'][order[i]])
 		##				  count += 2
 		##
@@ -641,16 +642,16 @@ class TitleBar(bp.ButtonPanel):
 
 		# confusion matrix
 		confmat = "\n\nResults confusion matrix\n--------------------------------\n\nExp./Pred."
-		for i in range(int(max(self.data["class"]))):
+		for i in range(int(max(self.data["class"][:, 0]))):
 			confmat = "".join((confmat, "\t", str(i + 1)))
 		confmat = "".join((confmat, "\n"))
 
-		confarr = scipy.zeros((int(max(self.data["class"])), int(max(self.data["class"]))))
-		for row in range(len(self.data["class"])):
-			if self.data["class"][row] == self.clusterid[row] + 1:
+		confarr = scipy.zeros((int(max(self.data["class"][:, 0])), int(max(self.data["class"][:, 0]))))
+		for row in range(len(self.data["class"][:, 0])):
+			if self.data["class"][:, 0][row] == self.clusterid[row] + 1:
 				confarr[self.clusterid[row], self.clusterid[row]] = confarr[self.clusterid[row], self.clusterid[row]] + 1
 			else:
-				confarr[int(self.data["class"][row]) - 1, self.clusterid[row]] = confarr[int(self.data["class"][row]) - 1, self.clusterid[row]] + 1
+				confarr[int(self.data["class"][:, 0][row]) - 1, self.clusterid[row]] = confarr[int(self.data["class"][:, 0][row]) - 1, self.clusterid[row]] + 1
 
 		for i in range(confarr.shape[0]):
 			for j in range(confarr.shape[1]):

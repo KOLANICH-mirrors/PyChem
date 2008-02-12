@@ -26,7 +26,7 @@ from wx.lib.anchors import LayoutAnchors
 
 from . import Cluster, Dfa, Ga, Pca, Plsr, expSetup, mva, plotSpectra
 from .mva.chemometrics import _index
-from .Pca import SymColSelectTool, plotLine, plotLoads, plotScores, plotStem, plotText
+from .Pca import PlotPlsModel, SymColSelectTool, plotLine, plotLoads, plotScores, plotStem, plotText
 from .utils import getByPath
 from .utils.io import str_array
 
@@ -275,13 +275,15 @@ class PlotToolBar(wx.ToolBar):
 
 	def OnTbSymbolsRightClick(self, event):
 		# symbol/colour options for scores plots
+		self.tbSymbols.SetValue(True)
+		self.doPlot()
 		btn = event.GetEventObject()
 		pos = btn.ClientToScreen((0, 0))
 		sz = btn.GetSize()
 		self.SymPopUpWin.SetPosition(wx.Point(pos[0] - 200, pos[1] + sz[1]))
 
 		# show plot options
-		self.SymPopUpWin.Show()
+		self.SymPopUpWin.ShowModal()
 
 	def OnTbLoadLabelsButton(self, event):
 		# plot loadings
@@ -308,30 +310,23 @@ class PlotToolBar(wx.ToolBar):
 
 	def OnTbLoadLabStd1Button(self, event):
 		# plot loadings
-		try:
-			self.doPlot(loadType=1)
-			self.loadIdx = 1
-		except:
-			pass
+		self.doPlot(loadType=1)
+		self.loadIdx = 1
 
 	def OnTbLoadLabStd2Button(self, event):
 		# plot loadings
-		try:
-			self.doPlot(loadType=2)
-			self.loadIdx = 2
-		except:
-			pass
+		self.doPlot(loadType=2)
+		self.loadIdx = 2
 
 	def OnTbLoadSymStd2Button(self, event):
 		# plot loadings
-		try:
-			self.doPlot(loadType=3)
-			self.loadIdx = 3
-		except:
-			pass
+		self.doPlot(loadType=3)
+		self.loadIdx = 3
 
 	def OnTbLoadSymStd2RightClick(self, event):
 		# invoke loadings plot sym/col selector
+		self.doPlot(loadType=3)
+		self.loadIdx = 3
 		btn = event.GetEventObject()
 		pos = btn.ClientToScreen((0, 0))
 		sz = btn.GetSize()
@@ -355,48 +350,53 @@ class PlotToolBar(wx.ToolBar):
 			# plot scores
 			self.doPlot()
 
-	def doPlot(self, loadType=0, symcolours=[]):
+	def doPlot(self, loadType=0, symcolours=[], symsymbols=[]):
 		if self.canvas.GetName() in ["plcDFAscores"]:
 			if self.canvas.prnt.titleBar.data["dfscores"] is not None:
-				plotScores(self.canvas, self.canvas.prnt.titleBar.data["dfscores"], cl=self.canvas.prnt.titleBar.data["class"], labels=self.canvas.prnt.titleBar.data["label"], validation=self.canvas.prnt.titleBar.data["validation"], col1=self.canvas.prnt.titleBar.spnDfaScore1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnDfaScore2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=self.canvas.prnt.titleBar.cbDfaXval.GetValue(), text=self.tbPoints.GetValue(), pconf=self.tbConf.GetValue(), symb=self.tbSymbols.GetValue(), usecol=symcolours)
+				plotScores(self.canvas, self.canvas.prnt.titleBar.data["dfscores"], cl=self.canvas.prnt.titleBar.data["class"][:, 0], labels=self.canvas.prnt.titleBar.data["label"], validation=self.canvas.prnt.titleBar.data["validation"], col1=self.canvas.prnt.titleBar.spnDfaScore1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnDfaScore2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=self.canvas.prnt.titleBar.cbDfaXval.GetValue(), text=self.tbPoints.GetValue(), pconf=self.tbConf.GetValue(), symb=self.tbSymbols.GetValue(), usecol=symcolours, usesym=symsymbols)
 
 		elif self.canvas.GetName() in ["plcPCAscore"]:
 			if self.canvas.prnt.titleBar.data["pcscores"] is not None:
-				plotScores(self.canvas, self.canvas.prnt.titleBar.data["pcscores"], cl=self.canvas.prnt.titleBar.data["class"], labels=self.canvas.prnt.titleBar.data["label"], validation=self.canvas.prnt.titleBar.data["validation"], col1=self.canvas.prnt.titleBar.spnNumPcs1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnNumPcs2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=False, text=self.tbPoints.GetValue(), pconf=False, symb=self.tbSymbols.GetValue(), usecol=symcolours)
+				plotScores(self.canvas, self.canvas.prnt.titleBar.data["pcscores"], cl=self.canvas.prnt.titleBar.data["class"][:, 0], labels=self.canvas.prnt.titleBar.data["label"], validation=self.canvas.prnt.titleBar.data["validation"], col1=self.canvas.prnt.titleBar.spnNumPcs1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnNumPcs2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=False, text=self.tbPoints.GetValue(), pconf=False, symb=self.tbSymbols.GetValue(), usecol=symcolours, usesym=symsymbols)
+
+		elif len(self.canvas.GetName().split("plcPredPls")) > 1:
+			self.canvas = PlotPlsModel(self.canvas, model="full", tbar=self.canvas.prnt.prnt.prnt.parent.tbMain, cL=self.canvas.prnt.prnt.titleBar.data["class"], scores=self.canvas.prnt.prnt.titleBar.data["plst"], label=self.canvas.prnt.prnt.titleBar.data["label"], predictions=self.canvas.prnt.prnt.titleBar.data["plspred"], validation=self.canvas.prnt.prnt.titleBar.data["validation"], RMSEPT=self.canvas.prnt.prnt.titleBar.data["RMSEPT"], factors=self.canvas.prnt.prnt.titleBar.data["plsfactors"], type=self.canvas.prnt.prnt.titleBar.data["plstype"], col1=self.canvas.prnt.prnt.titleBar.spnPLSfactor1.GetValue() - 1, col2=self.canvas.prnt.prnt.titleBar.spnPLSfactor2.GetValue() - 1, symbols=self.tbSymbols.GetValue(), usetxt=self.tbPoints.GetValue(), usecol=symcolours, usesym=symsymbols, errplot=self.tbSymbols.GetValue())
 
 		elif self.canvas.GetName() in ["plcGaFeatPlot"]:
-			plotScores(self.canvas, self.canvas.prnt.prnt.splitPrnt.titleBar.data["gavarcoords"], cl=self.canvas.prnt.prnt.splitPrnt.titleBar.data["class"], labels=self.canvas.prnt.prnt.splitPrnt.titleBar.data["label"], validation=self.canvas.prnt.prnt.splitPrnt.titleBar.data["validation"], col1=0, col2=1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=True, text=self.tbPoints.GetValue(), pconf=False, symb=self.tbSymbols.GetValue(), usecol=symcolours)
+			plotScores(self.canvas, self.canvas.prnt.prnt.splitPrnt.titleBar.data["gavarcoords"], cl=self.canvas.prnt.prnt.splitPrnt.titleBar.data["class"][:, 0], labels=self.canvas.prnt.prnt.splitPrnt.titleBar.data["label"], validation=self.canvas.prnt.prnt.splitPrnt.titleBar.data["validation"], col1=0, col2=1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=True, text=self.tbPoints.GetValue(), pconf=False, symb=self.tbSymbols.GetValue(), usecol=symcolours, usesym=symsymbols)
 
-		elif self.canvas.GetName() in ["plcGaPlot"]:
-			if self.canvas.prnt.prnt.splitPrnt.type in ["DFA"]:
-				if self.canvas.prnt.prnt.splitPrnt.titleBar.data["gadfadfscores"] is not None:
-					plotScores(self.canvas, self.canvas.prnt.prnt.splitPrnt.titleBar.data["gadfadfscores"], cl=self.canvas.prnt.prnt.splitPrnt.titleBar.data["class"], labels=self.canvas.prnt.prnt.splitPrnt.titleBar.data["label"], validation=self.canvas.prnt.prnt.splitPrnt.titleBar.data["validation"], col1=self.canvas.prnt.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue() - 1, col2=self.canvas.prnt.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=True, text=self.tbPoints.GetValue(), pconf=self.tbConf.GetValue(), symb=self.tbSymbols.GetValue(), usecol=symcolours)
+		elif len(self.canvas.GetName().split("plcGaModelPlot")) > 1:
+			if self.canvas.prnt.prnt.prnt.splitPrnt.type in ["DFA"]:
+				if self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gadfadfscores"] is not None:
+					plotScores(self.canvas, self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gadfadfscores"], cl=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["class"][:, 0], labels=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["label"], validation=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["validation"], col1=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue() - 1, col2=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=True, text=self.tbPoints.GetValue(), pconf=self.tbConf.GetValue(), symb=self.tbSymbols.GetValue(), usecol=symcolours, usesym=symsymbols)
+			else:
+				self.canvas = PlotPlsModel(self.canvas, model="ga", tbar=self.canvas.prnt.prnt.prnt.splitPrnt.prnt.parent.tbMain, cL=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["class"], scores=None, label=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["label"], predictions=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gaplsscores"], validation=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["validation"], RMSEPT=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gaplsrmsept"], factors=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gaplsfactors"], type=0, col1=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue() - 1, col2=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue() - 1, symbols=self.tbSymbols.GetValue(), usetxt=self.tbPoints.GetValue(), usecol=symcolours, usesym=symsymbols)
 
 		elif self.canvas.GetName() in ["plcPcaLoadsV"]:
 			if self.canvas.prnt.titleBar.data["pcloads"] is not None:
-				plotLoads(self.canvas, scipy.transpose(self.canvas.prnt.titleBar.data["pcloads"]), xaxis=self.canvas.prnt.titleBar.data["indlabels"], col1=self.canvas.prnt.titleBar.spnNumPcs1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnNumPcs2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType, usecol=symcolours)
+				plotLoads(self.canvas, scipy.transpose(self.canvas.prnt.titleBar.data["pcloads"]), xaxis=self.canvas.prnt.titleBar.data["indlabels"], col1=self.canvas.prnt.titleBar.spnNumPcs1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnNumPcs2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType, usecol=symcolours, usesym=symsymbols)
 
 		elif self.canvas.GetName() in ["plcPLSloading"]:
 			if self.canvas.prnt.titleBar.data["plsloads"] is not None:
-				plotLoads(self.canvas, self.canvas.prnt.titleBar.data["plsloads"], xaxis=self.canvas.prnt.titleBar.data["indlabels"], col1=self.canvas.prnt.titleBar.spnPLSfactor1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnPLSfactor2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType, usecol=symcolours)
+				plotLoads(self.canvas, self.canvas.prnt.titleBar.data["plsloads"], xaxis=self.canvas.prnt.titleBar.data["indlabels"], col1=self.canvas.prnt.titleBar.spnPLSfactor1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnPLSfactor2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType, usecol=symcolours, usesym=symsymbols)
 
 		elif self.canvas.GetName() in ["plcDfaLoadsV"]:
 			if self.canvas.prnt.titleBar.data["dfloads"] is not None:
-				plotLoads(self.canvas, self.canvas.prnt.titleBar.data["dfloads"], xaxis=self.canvas.prnt.titleBar.data["indlabels"], col1=self.canvas.prnt.titleBar.spnDfaScore1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnDfaScore2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType, usecol=symcolours)
+				plotLoads(self.canvas, self.canvas.prnt.titleBar.data["dfloads"], xaxis=self.canvas.prnt.titleBar.data["indlabels"], col1=self.canvas.prnt.titleBar.spnDfaScore1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnDfaScore2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType, usecol=symcolours, usesym=symsymbols)
 
 		elif self.canvas.GetName() in ["plcGaSpecLoad"]:
 			if self.canvas.prnt.prnt.prnt.splitPrnt.type in ["DFA"]:
 				labels = []
 				for each in self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gacurrentchrom"]:
 					labels.append(self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["indlabels"][int(each)])
-				plotLoads(self.canvas, self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gadfadfaloads"], xaxis=labels, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType, usecol=symcolours)
+				plotLoads(self.canvas, self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gadfadfaloads"], xaxis=labels, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType, usecol=symcolours, usesym=symsymbols)
 
 		elif self.canvas.GetName() in ["plcGaSpecLoad"]:
 			if self.canvas.prnt.prnt.splitPrnt.type in ["PLS"]:
 				labels = []
 				for each in self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gacurrentchrom"]:
 					labels.append(self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["indlabels"][int(each)])
-				plotLoads(self.canvas, self.canvas.prnt.prnt.splitPrnt.titleBar.data["gaplsplsloads"], xaxis=labels, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType, usecol=symcolours)
+				plotLoads(self.canvas, self.canvas.prnt.prnt.splitPrnt.titleBar.data["gaplsplsloads"], xaxis=labels, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType, usecol=symcolours, usesym=symsymbols)
 
 	def OnTxtTitle(self, event):
 		self.graph.setTitle(self.txtTitle.GetValue())
@@ -617,6 +617,7 @@ class PyChemMain(wx.Frame):
 
 		self.tbMain = PlotToolBar(self)
 		self.tbMain.Enable(False)
+		self.tbMain.Bind(wx.EVT_SIZE, self.OnTbMainSize)
 		self.SetToolBar(self.tbMain)
 
 		self.plExpset = expSetup.expSetup(id=wxID_PYCHEMMAINPLEXPSET, name="plExpset", parent=self.nbMain, pos=wx.Point(0, 0), size=wx.Size(1008, 635), style=wx.TAB_TRAVERSAL)
@@ -638,12 +639,15 @@ class PyChemMain(wx.Frame):
 
 		self.plPls = Plsr.Plsr(id=wxID_PYCHEMMAINPLPLS, name="plPls", parent=self.nbMain, pos=wx.Point(0, 0), size=wx.Size(1008, 635), style=wx.TAB_TRAVERSAL)
 		self.plPls.SetToolTip("")
+		self.plPls.parent = self
 
 		self.plGadfa = Ga.Ga(id=wxID_PYCHEMMAINPLGADFA, name="plGadfa", parent=self.nbMain, pos=wx.Point(0, 0), size=wx.Size(1008, 635), style=wx.TAB_TRAVERSAL, type="DFA")
 		self.plGadfa.SetToolTip("")
+		self.plGadfa.parent = self
 
 		self.plGapls = Ga.Ga(id=wxID_PYCHEMMAINPLGAPLSC, name="plGaplsc", parent=self.nbMain, pos=wx.Point(0, 0), size=wx.Size(1008, 635), style=wx.TAB_TRAVERSAL, type="PLS")
 		self.plGapls.SetToolTip("")
+		self.plGapls.parent = self
 
 		self._init_coll_nbMain_Pages(self.nbMain)
 
@@ -655,6 +659,12 @@ class PyChemMain(wx.Frame):
 
 	def OnMainFrameSize(self, event):
 		event.Skip()
+
+	##		  wx.PyEventBinder(wx.EVT_SIZE)
+	##		  self.tbMain.Refresh()
+
+	def OnTbMainSize(self, event):
+		self.tbMain.Refresh()
 
 	def OnMnuHelpContentsMenu(self, event):
 		from wx.tools import helpviewer
@@ -776,13 +786,15 @@ class PyChemMain(wx.Frame):
 				# Load arrays
 				wx.BeginBusyCursor()
 
-				f = file(dlg.getFile(), "r")
 				if dlg.Transpose() == 0:
-					self.data["raw"] = scipy.io.read_array(f)
+					self.data["raw"] = scipy.io.read_array(dlg.getFile())
 				else:
-					self.data["raw"] = scipy.transpose(scipy.io.read_array(f))
-				f.close()
+					self.data["raw"] = scipy.transpose(scipy.io.read_array(dlg.getFile()))
+
+				# create additional arrays of experimental data
+				self.data["rawtrunc"] = self.data["raw"]
 				self.data["processed"] = self.data["raw"]
+				self.data["proctrunc"] = self.data["raw"]
 
 				# Resize grids
 				expSetup.ResizeGrids(self.plExpset.grdNames, self.data["raw"].shape[0], 3, 2)
@@ -827,7 +839,7 @@ class PyChemMain(wx.Frame):
 			wx.EndBusyCursor()
 			self.Reset()
 			dlg.Destroy()
-			errorBox(self, "Unable to load array.\nPlease check file format\nand delimiter selection.")
+			errorBox(self, "Unable to load array.\nPlease check file format.")
 
 	def OnMnuFileAppexitMenu(self, event):
 		self.Close()
@@ -966,7 +978,7 @@ class PyChemMain(wx.Frame):
 		wx.TheClipboard.Close()
 
 	def Reset(self, case=0):
-		varList = "'proc':None,'class':None,'label':None," + "'split':None,'processlist':[],'xaxis':None," + "'class':None,'label':None,'validation':None," + "'pcscores':None,'pcloads':None,'pcpervar':None," + "'pceigs':None,'pcadata':None,'niporsvd':None," + "'indlabels':None,'plsloads':None,'pcatype':None," + "'dfscores':None,'dfloads':None,'dfeigs':None," + "'sampleidx':None,'variableidx':None," + "'rawtrunc':None,'proctrunc':None," + "'gadfachroms':None,'gadfascores':None," + "'gadfacurves':None,'gaplschroms':None," + "'gaplsscores':None,'gaplscurves':None," + "'gadfadfscores':None,'gadfadfaloads':None," + "'gaplsplsloads':None,'gridsel':None,'plotsel':None," + "'tree':None,'order':None,'plstrnpred':None," + "'plscvpred':None,'plststpred':None,'plsfactors':None," + "'rmsec':None,'rmsepc':None,'rmsept':None," + "'gacurrentchrom':None,'plspred':None,'pcaloadsym':None," + "'dfaloadsym':None,'plsloadsym':None"
+		varList = "'proc':None,'class':None,'label':None," + "'split':None,'processlist':[],'xaxis':[]," + "'class':None,'label':None,'validation':None," + "'pcscores':None,'pcloads':None,'pcpervar':None," + "'pceigs':None,'pcadata':None,'niporsvd':None," + "'indlabels':None,'plsloads':None,'pcatype':None," + "'dfscores':None,'dfloads':None,'dfeigs':None," + "'sampleidx':None,'variableidx':None," + "'rawtrunc':None,'proctrunc':None," + "'gadfachroms':None,'gadfascores':None," + "'gadfacurves':None,'gaplschroms':None," + "'gaplsscores':None,'gaplscurves':None," + "'gadfadfscores':None,'gadfadfaloads':None," + "'gaplsplsloads':None,'gridsel':None,'plotsel':None," + "'tree':None,'order':None,'plsfactors':None," + "'rmsec':None,'rmsepc':None,'rmsept':None," + "'gacurrentchrom':None,'plspred':None,'pcaloadsym':None," + "'dfaloadsym':None,'plsloadsym':None,'plst':None," + "'plstype':0"
 
 		if case == 0:
 			exec('self.data = {"raw":None,"exppath":None,' + varList + "}")
@@ -1020,7 +1032,7 @@ class PyChemMain(wx.Frame):
 
 			# add workspace subelement
 			Workspaces = ET.SubElement(root, "Workspaces")
-
+			nws = 1
 		else:
 			tree = ET.ElementTree(file=type)
 			root = tree.getroot()
@@ -1031,6 +1043,7 @@ class PyChemMain(wx.Frame):
 					Workspaces = each
 			# check that workspace name is not currently used
 			cWs = Workspaces
+			nws = len(Workspaces)
 			for each in cWs:
 				if each.tag == workspace:
 					dlg = wx.MessageDialog(self, "The workspace name provided is currently used\n" " for this experiment, please try again", "Error!", wx.OK | wx.ICON_ERROR)
@@ -1043,6 +1056,7 @@ class PyChemMain(wx.Frame):
 		# add new workspace
 		if proceed == 1:
 			try:
+				##				  workspace = '0'[0:-(len(str(nws+1))-2)] + str(nws+1) + '_' + workspace
 				locals()[workspace] = ET.SubElement(Workspaces, workspace)
 
 				# get preprocessing options
@@ -1055,7 +1069,7 @@ class PyChemMain(wx.Frame):
 
 				# save choice options
 				Choices = ET.SubElement(locals()[workspace], "Choices")
-				choiceCtrls = ["plPls.titleBar.cbxData", "plPca.titleBar.cbxPcaType", "plPca.titleBar.cbxPreprocType", "plPca.titleBar.cbxData", "plDfa.titleBar.cbxData", "plCluster.titleBar.cbxData", "plGadfa.titleBar.cbxFeature1", "plGadfa.titleBar.cbxFeature2", "plGapls.titleBar.cbxFeature1", "plGapls.titleBar.cbxFeature2", "plGadfa.titleBar.cbxData", "plGapls.titleBar.cbxData"]
+				choiceCtrls = ["plPls.titleBar.cbxData", "plPca.titleBar.cbxPcaType", "plPca.titleBar.cbxPreprocType", "plPca.titleBar.cbxData", "plDfa.titleBar.cbxData", "plCluster.titleBar.cbxData", "plGadfa.titleBar.cbxFeature1", "plGadfa.titleBar.cbxFeature2", "plGapls.titleBar.cbxFeature1", "plGapls.titleBar.cbxFeature2", "plGadfa.titleBar.cbxData", "plGapls.titleBar.cbxData", "plPls.titleBar.cbxType", "plPls.titleBar.cbxPreprocType"]
 
 				for each in choiceCtrls:
 					name = each.split(".")[len(each.split(".")) - 1]
@@ -1066,7 +1080,7 @@ class PyChemMain(wx.Frame):
 				# save spin, string and boolean ctrl values
 				Controls = ET.SubElement(locals()[workspace], "Controls")
 				# spin controls
-				spinCtrls = ["plGadfa.titleBar.spnGaScoreFrom", "plGadfa.titleBar.spnGaScoreTo", "plGadfa.optDlg.spnGaMaxFac", "plGadfa.optDlg.spnGaMaxGen", "plGadfa.optDlg.spnGaVarsFrom", "plGadfa.optDlg.spnGaVarsTo", "plGadfa.optDlg.spnGaNoInds", "plGadfa.optDlg.spnGaNoRuns", "plGadfa.optDlg.spnGaRepUntil", "plGadfa.optDlg.spnNfold", "plGapls.titleBar.spnGaScoreFrom", "plGapls.titleBar.spnGaScoreTo", "plGapls.optDlg.spnGaMaxFac", "plGapls.optDlg.spnGaMaxGen", "plGapls.optDlg.spnGaVarsFrom", "plGapls.optDlg.spnGaVarsTo", "plGapls.optDlg.spnGaNoInds", "plGapls.optDlg.spnGaNoRuns", "plGapls.optDlg.spnGaRepUntil", "plGapls.optDlg.spnNfold", "plPls.titleBar.spnPLSmaxfac", "plPls.titleBar.spnPLSfactor1", "plPls.titleBar.spnPLSfactor2", "plPca.titleBar.spnNumPcs1", "plPca.titleBar.spnNumPcs2", "plPca.titleBar.spnPCAnum", "plDfa.titleBar.spnDfaDfs", "plDfa.titleBar.spnDfaScore1", "plDfa.titleBar.spnDfaScore2", "plDfa.titleBar.spnDfaPcs"]
+				spinCtrls = ["plGadfa.titleBar.spnGaScoreFrom", "plGadfa.titleBar.spnGaScoreTo", "plGadfa.optDlg.spnGaMaxFac", "plGadfa.optDlg.spnGaMaxGen", "plGadfa.optDlg.spnGaVarsFrom", "plGadfa.optDlg.spnGaVarsTo", "plGadfa.optDlg.spnGaNoInds", "plGadfa.optDlg.spnGaNoRuns", "plGadfa.optDlg.spnGaRepUntil", "plGadfa.optDlg.spnResample", "plGapls.titleBar.spnGaScoreFrom", "plGapls.titleBar.spnGaScoreTo", "plGapls.optDlg.spnGaMaxFac", "plGapls.optDlg.spnGaMaxGen", "plGapls.optDlg.spnGaVarsFrom", "plGapls.optDlg.spnGaVarsTo", "plGapls.optDlg.spnGaNoInds", "plGapls.optDlg.spnGaNoRuns", "plGapls.optDlg.spnGaRepUntil", "plGapls.optDlg.spnResample", "plPls.titleBar.spnPLSmaxfac", "plPls.titleBar.spnPLSfactor1", "plPls.titleBar.spnPLSfactor2", "plPca.titleBar.spnNumPcs1", "plPca.titleBar.spnNumPcs2", "plPca.titleBar.spnPCAnum", "plDfa.titleBar.spnDfaDfs", "plDfa.titleBar.spnDfaScore1", "plDfa.titleBar.spnDfaScore2", "plDfa.titleBar.spnDfaPcs"]
 
 				for each in spinCtrls:
 					name = each.split(".")[len(each.split(".")) - 1]
@@ -1172,7 +1186,8 @@ class PyChemMain(wx.Frame):
 				self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEWS, True)
 				self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILELOADWS, True)
 
-			except:
+			except Exception as error:
+				raise
 				dlg = wx.MessageDialog(self, "Unable to save under current name.\n\nCharacters " + 'such as "%", "&", "-", "+" can not be used for the workspace name', "Error!", wx.OK | wx.ICON_ERROR)
 				try:
 					dlg.ShowModal()
@@ -1293,14 +1308,15 @@ class PyChemMain(wx.Frame):
 					for i in ["pc", "dfs", "gadfa", "gapls"]:
 						if len(array.tag.split(i)) > 1:
 							if i == "pc":
-								self.plPca.titleBar.PlotPca()
 								# set spn limits
 								self.plPca.titleBar.spnNumPcs1.SetRange(1, len(self.data["pceigs"]))
 								self.plPca.titleBar.spnNumPcs2.SetRange(1, len(self.data["pceigs"]))
 								# check for metadata & setup limits for dfa
-								if (sum(self.data["class"]) != 0) and (self.data["class"] is not None):
+								if (sum(self.data["class"][:, 0]) != 0) and (self.data["class"] is not None):
 									self.plDfa.titleBar.spnDfaPcs.SetRange(2, len(self.data["pceigs"]))
-									self.plDfa.titleBar.spnDfaDfs.SetRange(1, len(scipy.unique(self.data["class"])) - 1)
+									self.plDfa.titleBar.spnDfaDfs.SetRange(1, len(scipy.unique(self.data["class"][:, 0])) - 1)
+								# plot pca results
+								self.plPca.titleBar.PlotPca()
 							elif i == "dfs":
 								# set spn limits
 								self.plDfa.titleBar.spnDfaScore1.SetRange(1, self.data["dfeigs"].shape[1])
@@ -1355,78 +1371,94 @@ class PyChemMain(wx.Frame):
 		return gridout, gridcolhead
 
 	def GetExperimentDetails(self):
-		self.plExpset.grdNames.SetGridCursor(2, 0)
-		self.plExpset.grdIndLabels.SetGridCursor(1, 0)
-		# get col headings
-		colHeads = []
-		for i in range(1, self.plExpset.grdNames.GetNumberCols()):
-			colHeads.append(self.plExpset.grdNames.GetColLabelValue(i))
-			# get label vector
-			if (self.plExpset.grdNames.GetCellValue(0, i) == "Label") and (self.plExpset.grdNames.GetCellValue(1, i) == "1") is True:
-				self.data["label"] = []
-				self.data["sampleidx"] = []
-				for j in range(2, self.plExpset.grdNames.GetNumberRows()):
-					if self.plExpset.grdNames.GetCellValue(j, 0) == "1":
-						self.data["sampleidx"].append(j - 2)  # for removing samples from analysis
-						self.data["label"].append(self.plExpset.grdNames.GetCellValue(j, i))
+		if self.data["raw"] is not None:
+			self.plExpset.grdNames.SetGridCursor(2, 0)
+			self.plExpset.grdIndLabels.SetGridCursor(1, 0)
+			# count active samples
+			countActive = 0
+			for i in range(2, self.plExpset.grdNames.GetNumberRows()):
+				if self.plExpset.grdNames.GetCellValue(i, 0) == "1":
+					countActive += 1
+			# get col headings
+			colHeads, self.data["class"], classCols = [], [], 0
+			for i in range(1, self.plExpset.grdNames.GetNumberCols()):
+				colHeads.append(self.plExpset.grdNames.GetColLabelValue(i))
+				# get label vector
+				if (self.plExpset.grdNames.GetCellValue(0, i) == "Label") and (self.plExpset.grdNames.GetCellValue(1, i) == "1") is True:
 
-			# get class vector
-			if (self.plExpset.grdNames.GetCellValue(0, i) == "Class") and (self.plExpset.grdNames.GetCellValue(1, i) == "1") is True:
-				self.data["class"] = []
-				for j in range(2, self.plExpset.grdNames.GetNumberRows()):
-					if self.plExpset.grdNames.GetCellValue(j, 0) == "1":
-						try:
-							self.data["class"].append(float(self.plExpset.grdNames.GetCellValue(j, i)))
-						except:
-							pass
-				# set max dfs that can be calculated
-				self.plDfa.titleBar.spnDfaDfs.SetRange(1, len(scipy.unique(self.data["class"])) - 1)
-			##				  self.plCluster.titleBar.dlg.spnNumClass.SetValue(max(self.data['class']))
+					self.data["label"], self.data["sampleidx"] = [], []
 
-			# get validation vector
-			if (self.plExpset.grdNames.GetCellValue(0, i) == "Validation") and (self.plExpset.grdNames.GetCellValue(1, i) == "1") is True:
-				self.data["validation"] = []
-				for j in range(2, self.plExpset.grdNames.GetNumberRows()):
-					if self.plExpset.grdNames.GetCellValue(j, 0) == "1":
-						try:
-							if self.plExpset.grdNames.GetCellValue(j, i) == "Train":
-								self.data["validation"].append(0)
-							elif self.plExpset.grdNames.GetCellValue(j, i) == "Validation":
-								self.data["validation"].append(1)
-							elif self.plExpset.grdNames.GetCellValue(j, i) == "Test":
-								self.data["validation"].append(2)
-						except:
-							continue
-				self.data["validation"] = np.array(self.data["validation"])
+					for j in range(2, self.plExpset.grdNames.GetNumberRows()):
+						if self.plExpset.grdNames.GetCellValue(j, 0) == "1":
+							self.data["sampleidx"].append(j - 2)  # for removing samples from analysis
+							self.data["label"].append(self.plExpset.grdNames.GetCellValue(j, i))
 
-		# get x-axis labels/values
-		num = 1
-		xaxis = []
-		for j in range(1, self.plExpset.grdIndLabels.GetNumberCols()):
-			if self.plExpset.grdIndLabels.GetCellValue(0, j) == "1":
-				self.data["variableidx"] = []
-				for i in range(1, self.plExpset.grdIndLabels.GetNumberRows()):
-					if self.plExpset.grdIndLabels.GetCellValue(i, 0) == "1":
-						try:
-							self.data["variableidx"].append(i - 1)  # for removing variables from analysis
-							val = self.plExpset.grdIndLabels.GetCellValue(i, j)
+				# get class vector
+				if (self.plExpset.grdNames.GetCellValue(0, i) == "Class") and (self.plExpset.grdNames.GetCellValue(1, i) == "1") is True:
+
+					if self.data["class"] == []:
+						self.data["class"] = scipy.zeros((countActive, 1))
+					else:
+						self.data["class"] = scipy.concatenate((self.data["class"], scipy.zeros((countActive, 1))), 1)
+
+					countSample = 0
+					for j in range(2, self.plExpset.grdNames.GetNumberRows()):
+						if self.plExpset.grdNames.GetCellValue(j, 0) == "1":
 							try:
-								val = float(val)
-								xaxis.append(val)
+								self.data["class"][countSample, classCols] = float(self.plExpset.grdNames.GetCellValue(j, i))
 							except:
-								xaxis.append(val)
-								num = 0
+								pass
+							countSample += 1
+					classCols += 1
+
+					# set max dfs that can be calculated
+					self.plDfa.titleBar.spnDfaDfs.SetRange(1, len(scipy.unique(self.data["class"][:, 0])) - 1)
+				##				  self.plCluster.titleBar.dlg.spnNumClass.SetValue(max(self.data['class']))
+
+				# get validation vector
+				if (self.plExpset.grdNames.GetCellValue(0, i) == "Validation") and (self.plExpset.grdNames.GetCellValue(1, i) == "1") is True:
+					self.data["validation"] = []
+					for j in range(2, self.plExpset.grdNames.GetNumberRows()):
+						if self.plExpset.grdNames.GetCellValue(j, 0) == "1":
+							try:
+								if self.plExpset.grdNames.GetCellValue(j, i) == "Train":
+									self.data["validation"].append(0)
+								elif self.plExpset.grdNames.GetCellValue(j, i) == "Validation":
+									self.data["validation"].append(1)
+								elif self.plExpset.grdNames.GetCellValue(j, i) == "Test":
+									self.data["validation"].append(2)
+							except:
 								continue
+					self.data["validation"] = np.array(self.data["validation"])
+
+			# get x-axis labels/values
+			num = 1
+			self.data["xaxis"] = []
+			for j in range(1, self.plExpset.grdIndLabels.GetNumberCols()):
+				if self.plExpset.grdIndLabels.GetCellValue(0, j) == "1":
+					self.data["variableidx"] = []
+					self.data["indlabelsfull"] = []
+					for i in range(1, self.plExpset.grdIndLabels.GetNumberRows()):
+						val = self.plExpset.grdIndLabels.GetCellValue(i, j)
+						self.data["indlabelsfull"].append(val)
+						# for removing variables from analysis
+						if self.plExpset.grdIndLabels.GetCellValue(i, 0) == "1":
+							self.data["variableidx"].append(i - 1)
+						# check for float or txt
+						try:
+							val = float(val)
+							self.data["xaxis"].append(val)
 						except:
-							pass
+							num = 0
 
-		try:
 			if num == 1:
-				self.data["xaxis"] = np.array(xaxis)[:, nA]
+				self.data["xaxisfull"] = self.data["xaxis"]
+				self.data["xaxis"] = scipy.take(np.array(self.data["xaxis"]), self.data["variableidx"])[:, nA]
 			else:
-				self.data["xaxis"] = scipy.arange(1, self.data["raw"].shape[1] + 1)[:, nA]
+				self.data["xaxisfull"] = scipy.arange(1, self.data["raw"].shape[1] + 1)
+				self.data["xaxis"] = scipy.take(self.data["xaxisfull"], self.data["variableidx"])[:, nA]
 
-			self.data["indlabels"] = xaxis
+			self.data["indlabels"] = scipy.take(np.array(self.data["indlabelsfull"]), self.data["variableidx"]).tolist()
 
 			# remove any unwanted samples & variables, always following any preprocessing
 			self.data["rawtrunc"] = scipy.take(self.data["raw"], self.data["variableidx"], 1)
@@ -1435,26 +1467,24 @@ class PyChemMain(wx.Frame):
 			if self.data["proc"] is not None:
 				self.data["proctrunc"] = scipy.take(self.data["proc"], self.data["variableidx"], 1)
 				self.data["proctrunc"] = scipy.take(self.data["proctrunc"], self.data["sampleidx"], 0)
-		except:
-			pass
 
-		# change ga results lists
-		try:
-			self.plGapls.titleBar.CreateGaResultsTree(self.plGapls.optDlg.treGaResults, gacurves=self.data["gaplscurves"], chroms=self.data["gaplschroms"], varfrom=self.plGapls.optDlg.spnGaVarsFrom.GetValue(), varto=self.plGapls.optDlg.spnGaVarsTo.GetValue(), runs=self.plGapls.optDlg.spnGaNoRuns.GetValue() - 1)
-			self.plGapls.titleBar.btnExportGa.Enable(1)
-		except:
-			pass
+			# change ga results lists
+			try:
+				self.plGapls.titleBar.CreateGaResultsTree(self.plGapls.optDlg.treGaResults, gacurves=self.data["gaplscurves"], chroms=self.data["gaplschroms"], varfrom=self.plGapls.optDlg.spnGaVarsFrom.GetValue(), varto=self.plGapls.optDlg.spnGaVarsTo.GetValue(), runs=self.plGapls.optDlg.spnGaNoRuns.GetValue() - 1)
+				self.plGapls.titleBar.btnExportGa.Enable(1)
+			except:
+				pass
 
-		try:
-			self.plGadfa.titleBar.CreateGaResultsTree(self.plGadfa.optDlg.treGaResults, gacurves=self.data["gadfacurves"], chroms=self.data["gadfachroms"], varfrom=self.plGadfa.optDlg.spnGaVarsFrom.GetValue(), varto=self.plGadfa.optDlg.spnGaVarsTo.GetValue(), runs=self.plGadfa.optDlg.spnGaNoRuns.GetValue() - 1)
-			self.plGadfa.titleBar.btnExportGa.Enable(1)
-		except:
-			pass
+			try:
+				self.plGadfa.titleBar.CreateGaResultsTree(self.plGadfa.optDlg.treGaResults, gacurves=self.data["gadfacurves"], chroms=self.data["gadfachroms"], varfrom=self.plGadfa.optDlg.spnGaVarsFrom.GetValue(), varto=self.plGadfa.optDlg.spnGaVarsTo.GetValue(), runs=self.plGadfa.optDlg.spnGaNoRuns.GetValue() - 1)
+				self.plGadfa.titleBar.btnExportGa.Enable(1)
+			except:
+				pass
 
-		try:  # set number of centroids for cluster analysis based on class structure
-			self.plCluster.optDlg.spnNumClass.SetValue(max(self.data["class"]))
-		except:
-			pass
+			try:  # set number of centroids for cluster analysis based on class structure
+				self.plCluster.optDlg.spnNumClass.SetValue(len(scipy.unique(self.data["class"][:, 0])))
+			except:
+				pass
 
 	def EnableCtrls(self):
 		self.plExpset.grdNames.Enable(1)
@@ -1468,6 +1498,7 @@ class PyChemMain(wx.Frame):
 		self.plExpset.indTitleBar.btnInsertRange.Enable(1)
 
 		self.plPreproc.titleBar.btnPlotRaw.Enable(1)
+		self.plPreproc.titleBar.btnExportData.Enable(1)
 
 		self.plPca.titleBar.btnRunPCA.Enable(1)
 

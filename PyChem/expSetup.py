@@ -304,6 +304,7 @@ class expSetup(wx.Panel):
 		self.pnl = fpb.FoldPanelBar(self, -1, wx.DefaultPosition, wx.DefaultSize, fpb.FPB_DEFAULT_STYLE, fpb.FPB_EXCLUSIVE_FOLD)
 		self.pnl.SetConstraints(LayoutAnchors(self.pnl, True, True, True, True))
 		self.pnl.SetAutoLayout(True)
+		##		  self.pnl.Bind(wx.EVT_SIZE,self.OnPanelSize)
 
 		self.depTitleBar = DepTitleBar(self, id=-1, text="Experiment setup", style=bp.BP_USE_GRADIENT, alignment=bp.BP_ALIGN_LEFT)
 
@@ -316,6 +317,9 @@ class expSetup(wx.Panel):
 		self._init_ctrls(parent)
 
 		self.InitialiseFoldBar()
+
+	##	  def OnPanelSize(self, event):
+	##		  self.Refresh()
 
 	def Reset(self):
 		# create dependent variables grid
@@ -418,14 +422,16 @@ class expSetup(wx.Panel):
 
 	def SizeGrdNames(self):
 		self.depTitleBar.SetSize((self.pnl.GetSize()[0], 49))
-		self.grdNames.SetSize((self.grdNames.GetSize()[0], self.pnl.GetSize()[1] - 50))
+		self.grdNames.SetSize((self.grdNames.GetSize()[0], self.pnl.GetSize()[1] - 30))
+		self.pnl.Refresh()
 
 	def OnDepWinSize(self, event):
 		self.SizeGrdNames()
 
 	def SizeGrdIndLabels(self):
 		self.indTitleBar.SetSize((self.pnl.GetSize()[0], 49))
-		self.grdIndLabels.SetSize((self.grdIndLabels.GetSize()[0], self.pnl.GetSize()[1] - 50))
+		self.grdIndLabels.SetSize((self.grdIndLabels.GetSize()[0], self.pnl.GetSize()[1] - 30))
+		self.pnl.Refresh()
 
 	def OnIndWinSize(self, event):
 		self.SizeGrdIndLabels()
@@ -557,10 +563,13 @@ class DepTitleBar(bp.ButtonPanel):
 
 		# automatically split data
 		if (self.cbGenerateMask.GetValue() is True) & (type == "Validation") is True:
-			mask = valSplit(self.grid, self.data, self.spcGenMask.GetValue())
-			options = ["Train", "Validation", "Test"]
-			for i in range(len(mask)):
-				self.grid.SetCellValue(i + 2, last + 1, options[int(mask[i])])
+			try:
+				mask = valSplit(self.grid, self.data, self.spcGenMask.GetValue())
+				options = ["Train", "Validation", "Test"]
+				for i in range(len(mask)):
+					self.grid.SetCellValue(i + 2, last + 1, options[int(mask[i])])
+			except:
+				pass
 
 		self.grid.SetCellAlignment(0, last + 1, wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
 		self.grid.SetCellAlignment(1, last + 1, wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)

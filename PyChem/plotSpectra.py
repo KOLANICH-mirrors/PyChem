@@ -120,6 +120,10 @@ class TitleBar(bp.ButtonPanel):
 		self.btnPlotRaw.Enable(False)
 		self.Bind(wx.EVT_BUTTON, self.OnBtnPlotRawButton, id=self.btnPlotRaw.GetId())
 
+		self.btnExportData = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "export.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Export Data", longHelp="Export Data")
+		self.btnExportData.Enable(False)
+		self.Bind(wx.EVT_BUTTON, self.OnBtnExportDataButton, id=self.btnExportData.GetId())
+
 		self.spcPlotSpectra = wx.SpinCtrl(id=-1, initial=1, max=100, min=1, name="spcPlotSpectra", parent=self, pos=wx.Point(198, 554), size=wx.Size(64, 23), style=wx.SP_ARROW_KEYS)
 		self.spcPlotSpectra.SetToolTip("")
 		self.spcPlotSpectra.SetValue(1)
@@ -152,6 +156,8 @@ class TitleBar(bp.ButtonPanel):
 		self.AddButton(self.btnSetProc)
 		self.AddSeparator()
 		self.AddButton(self.btnPlotRaw)
+		self.AddSeparator()
+		self.AddButton(self.btnExportData)
 
 		self.Thaw()
 
@@ -194,6 +200,20 @@ class TitleBar(bp.ButtonPanel):
 			idx = self.spcPlotSpectra.GetValue() - 1
 			self.PlotSpectra(scipy.reshape(xdata[idx], (1, xdata.shape[1])), tit, self.data["xaxis"])
 		wx.EndBusyCursor()
+
+	def OnBtnExportDataButton(self, event):
+		# export data
+		dlg = wx.FileDialog(self, "Choose a file", ".", "", "Text files (*.txt)|*.txt", wx.FD_SAVE)
+		try:
+			if dlg.ShowModal() == wx.ID_OK:
+				##				  f = file(dlg.GetPath(),'w')
+				if self.cbxData.GetSelection() == 0:
+					scipy.io.write_array(dlg.GetPath(), self.data["raw"], "\t")
+				else:
+					scipy.io.write_array(dlg.GetPath(), self.data["proc"], "\t")
+		##				  f.close()
+		finally:
+			dlg.Destroy()
 
 	def RunProcessingSteps(self):
 		# Run pre-processing

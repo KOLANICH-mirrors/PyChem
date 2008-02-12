@@ -24,11 +24,24 @@ import wx.lib.stattext
 from scipy import newaxis as nA
 from wx.lib.anchors import LayoutAnchors
 
+from .expSetup import valSplit
 from .mva import chemometrics, fitfun, genetic, process
 from .mva.chemometrics import _index
-from .Pca import MyPlotCanvas, plotLine, plotLoads, plotScores, plotStem, plotText
-from .Plsr import PlotPlsModel
+from .Pca import MyPlotCanvas, PlotPlsModel, plotLine, plotLoads, plotScores, plotStem, plotText
 from .utils.io import str_array
+
+##import matplotlib
+
+# uncomment the following to use wx rather than wxagg
+# matplotlib.use('WX')
+# from matplotlib.backends.backend_wx import FigureCanvasWx as FigureCanvas
+
+# comment out the following to use wx rather than wxagg
+##matplotlib.use('WXAgg')
+##from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
+##from matplotlib.backends.backend_wx import NavigationToolbar2Wx
+##
+##from matplotlib.figure import Figure
 
 
 def errorBox(window, error):
@@ -55,10 +68,15 @@ class Ga(wx.Panel):
 	def _init_coll_grsGa_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.plcGaPlot, 0, border=0, flag=wx.EXPAND)
+		parent.AddWindow(self.nbGaPlsPreds, 0, border=0, flag=wx.EXPAND)
 		parent.AddWindow(self.plcGaFreqPlot, 0, border=0, flag=wx.EXPAND)
 		parent.AddWindow(self.plcGaFeatPlot, 0, border=0, flag=wx.EXPAND)
 		parent.AddWindow(self.nbGaModPlot, 0, border=0, flag=wx.EXPAND)
+
+	def _init_coll_nbGaPlsPreds_Pages(self, parent):
+		# generated method, don't edit
+
+		parent.AddPage(imageId=-1, page=self.plcGaModelPlot1, select=True, text="")
 
 	def _init_coll_nbGaModPlot_Pages(self, parent):
 		# generated method, don't edit
@@ -99,17 +117,32 @@ class Ga(wx.Panel):
 
 		self.optDlg = selParam(self.Splitter)
 
-		self.plcGaPlot = MyPlotCanvas(id=-1, name="plcGaPlot", parent=self.p1, pos=wx.Point(0, 0), size=wx.Size(310, 272), style=0, toolbar=self.prnt.parent.tbMain)
-		self.plcGaPlot.enableZoom = True
-		self.plcGaPlot.fontSizeAxis = 8
-		self.plcGaPlot.fontSizeLegend = 8
-		self.plcGaPlot.fontSizeTitle = 10
-		self.plcGaPlot.SetToolTip("")
-		self.plcGaPlot.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
+		self.nbGaPlsPreds = wx.Notebook(id=-1, name="nbGaPlsPreds", parent=self.p1, pos=wx.Point(176, 274), size=wx.Size(310, 272), style=wx.NB_BOTTOM)
+		self.nbGaPlsPreds.SetToolTip("")
+		self.nbGaPlsPreds.SetAutoLayout(True)
+		self.nbGaPlsPreds.SetConstraints(LayoutAnchors(self.nbGaPlsPreds, True, True, True, True))
+		self.nbGaPlsPreds.SetTabSize((0, 1))
+		self.nbGaPlsPreds.prnt = self.p1
+
+		self.plcGaModelPlot1 = MyPlotCanvas(id=-1, name="plcGaModelPlot1", parent=self.nbGaPlsPreds, pos=wx.Point(0, 0), size=wx.Size(310, 272), style=0, toolbar=self.nbGaPlsPreds.prnt.prnt.splitPrnt.prnt.parent.tbMain)
+		self.plcGaModelPlot1.enableZoom = True
+		self.plcGaModelPlot1.enableLegend = True
+		self.plcGaModelPlot1.fontSizeAxis = 8
+		self.plcGaModelPlot1.fontSizeLegend = 8
+		self.plcGaModelPlot1.fontSizeTitle = 10
+		self.plcGaModelPlot1.SetToolTip("")
+		self.plcGaModelPlot1.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
 		self.nbGaModPlot = wx.Notebook(id=-1, name="nbGaModPlot", parent=self.p1, pos=wx.Point(760, 326), size=wx.Size(310, 272), style=wx.NB_BOTTOM)
 		self.nbGaModPlot.prnt = self.p1
 		self.nbGaModPlot.SetToolTip("")
+
+		##		  self.plcGaEigsFigure = Figure(facecolor='w')
+		##		  self.plcGaEigs = FigureCanvas(self.nbGaModPlot, -1, self.plcGaEigsFigure)
+		##		  self.plcGaEigs.axes = self.plcGaEigsFigure.add_subplot(111,title='grrrrrrreat')
+		##		  self.plcGaEigs.axes.boxplot(scipy.rand(100))
+		##
+		##		  #here
 
 		self.plcGaEigs = MyPlotCanvas(id=-1, name="plcGaEigs", parent=self.nbGaModPlot, pos=wx.Point(0, 0), size=wx.Size(310, 272), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcGaEigs.enableZoom = True
@@ -138,6 +171,7 @@ class Ga(wx.Panel):
 		self.plcGaFeatPlot = MyPlotCanvas(id=-1, name="plcGaFeatPlot", parent=self.p1, pos=wx.Point(0, 24), size=wx.Size(310, 272), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcGaFeatPlot.SetToolTip("")
 		self.plcGaFeatPlot.enableZoom = True
+		self.plcGaFeatPlot.enableLegend = True
 		self.plcGaFeatPlot.fontSizeAxis = 8
 		self.plcGaFeatPlot.fontSizeLegend = 8
 		self.plcGaFeatPlot.fontSizeTitle = 10
@@ -167,6 +201,7 @@ class Ga(wx.Panel):
 		self.Splitter.SetMinimumPaneSize(1)
 
 		self._init_coll_nbGaModPlot_Pages(self.nbGaModPlot)
+		self._init_coll_nbGaPlsPreds_Pages(self.nbGaPlsPreds)
 
 		self._init_sizers()
 
@@ -185,7 +220,7 @@ class Ga(wx.Panel):
 		self.titleBar.cbxFeature2.Enable(False)
 
 		# clear plots
-		objects = {"plcGaPlot": ["Predictions", "Latent Variable 1", "Latent Variable 1"], "plcGaFeatPlot": ["Measured Variable Biplot", "Variable", "Variable"], "plcGaFreqPlot": ["Frequency of Variable Selection", "Independent Variable", "Frequency"], "plcGaOptPlot": ["Rate of GA Optimisation", "Generation", "Fitness Score"]}
+		objects = {"plcGaModelPlot1": ["Predictions", "Latent Variable 1", "Latent Variable 1"], "plcGaFeatPlot": ["Measured Variable Biplot", "Variable", "Variable"], "plcGaFreqPlot": ["Frequency of Variable Selection", "Independent Variable", "Frequency"], "plcGaOptPlot": ["Rate of GA Optimisation", "Generation", "Fitness Score"]}
 
 		curve = wx.lib.plot.PolyLine([[0, 0], [1, 1]], colour="white", width=1, style=wx.TRANSPARENT)
 
@@ -306,7 +341,7 @@ class TitleBar(bp.ButtonPanel):
 			self.parent.Splitter.SetSashPosition(1)
 
 	def OnBtnrungaButton(self, event):
-		self.runGa(varfrom=self.parent.optDlg.spnGaVarsFrom.GetValue(), varto=self.parent.optDlg.spnGaVarsTo.GetValue(), inds=self.parent.optDlg.spnGaNoInds.GetValue(), runs=self.parent.optDlg.spnGaNoRuns.GetValue(), xovr=float(self.parent.optDlg.stGaXoverRate.GetValue()), mutr=float(self.parent.optDlg.stGaMutRate.GetValue()), insr=float(self.parent.optDlg.stGaInsRate.GetValue()), maxf=self.parent.optDlg.spnGaMaxFac.GetValue(), mgen=self.parent.optDlg.spnGaMaxGen.GetValue(), rgen=self.parent.optDlg.spnGaRepUntil.GetValue(), nfold=self.parent.optDlg.spnNfold.GetValue())
+		self.runGa(varfrom=self.parent.optDlg.spnGaVarsFrom.GetValue(), varto=self.parent.optDlg.spnGaVarsTo.GetValue(), inds=self.parent.optDlg.spnGaNoInds.GetValue(), runs=self.parent.optDlg.spnGaNoRuns.GetValue(), xovr=float(self.parent.optDlg.stGaXoverRate.GetValue()), mutr=float(self.parent.optDlg.stGaMutRate.GetValue()), insr=float(self.parent.optDlg.stGaInsRate.GetValue()), maxf=self.parent.optDlg.spnGaMaxFac.GetValue(), mgen=self.parent.optDlg.spnGaMaxGen.GetValue(), rgen=self.parent.optDlg.spnGaRepUntil.GetValue(), resample=self.parent.optDlg.spnResample.GetValue())
 
 	def OnBtnexportgaButton(self, event):
 		dlg = wx.FileDialog(self, "Choose a file", ".", "", "Any files (*.*)|*.*", wx.FD_SAVE)
@@ -324,7 +359,7 @@ class TitleBar(bp.ButtonPanel):
 		# Set loadings plot options
 		####
 		# GA scores plot
-		plotScores(self.parent.plcGaPlot, self.data["gadfadfscores"], cl=self.data["class"], labels=self.data["label"], validation=self.data["validation"], col1=self.spnGaScoreFrom.GetValue() - 1, col2=self.spnGaScoreTo.GetValue() - 1, title="DF Scores", xLabel="Discriminant Function " + str(self.spnGaScoreFrom.GetValue()), yLabel="Discriminant Function " + str(self.spnGaScoreTo.GetValue()), xval=True, text=self.parent.parent.parent.tbMain.tbPoints.GetValue(), pconf=self.parent.parent.parent.tbMain.tbConf.GetValue(), symb=self.parent.parent.parent.tbMain.tbSymbols.GetValue(), usecol=[])
+		plotScores(self.parent.plcGaModelPlot1, self.data["gadfadfscores"], cl=self.data["class"][:, 0], labels=self.data["label"], validation=self.data["validation"], col1=self.spnGaScoreFrom.GetValue() - 1, col2=self.spnGaScoreTo.GetValue() - 1, title="DF Scores", xLabel="t[" + str(self.spnGaScoreFrom.GetValue()) + "]", yLabel="t[" + str(self.spnGaScoreTo.GetValue()) + "]", xval=True, text=self.parent.parent.parent.tbMain.tbPoints.GetValue(), pconf=self.parent.parent.parent.tbMain.tbConf.GetValue(), symb=self.parent.parent.parent.tbMain.tbSymbols.GetValue(), usecol=[], usesym=[])
 
 		# DF loadings
 		exec("self.parent.optDlg.plotGaLoads(self.parent.optDlg.currentChrom,self.data['ga" + self.type.lower() + self.type.lower() + "loads'],self.parent.plcGaSpecLoad,self.spnGaScoreFrom.GetValue()-1)")
@@ -333,7 +368,7 @@ class TitleBar(bp.ButtonPanel):
 		# Set loadings plot options
 		###
 		# GA scores plot
-		plotScores(self.parent.plcGaPlot, self.data["gadfadfscores"], cl=self.data["class"], labels=self.data["label"], validation=self.data["validation"], col1=self.spnGaScoreFrom.GetValue() - 1, col2=self.spnGaScoreTo.GetValue() - 1, title="DF Scores", xLabel="Discriminant Function " + str(self.spnGaScoreFrom.GetValue()), yLabel="Discriminant Function " + str(self.spnGaScoreTo.GetValue()), xval=True, text=self.parent.parent.parent.tbMain.tbPoints.GetValue(), pconf=self.parent.parent.parent.tbMain.tbConf.GetValue(), symb=self.parent.parent.parent.tbMain.tbSymbols.GetValue(), usecol=[])
+		plotScores(self.parent.plcGaModelPlot1, self.data["gadfadfscores"], cl=self.data["class"][:, 0], labels=self.data["label"], validation=self.data["validation"], col1=self.spnGaScoreFrom.GetValue() - 1, col2=self.spnGaScoreTo.GetValue() - 1, title="DF Scores", xLabel="t[" + str(self.spnGaScoreFrom.GetValue()) + "]", yLabel="t[" + str(self.spnGaScoreTo.GetValue()) + "]", xval=True, text=self.parent.parent.parent.tbMain.tbPoints.GetValue(), pconf=self.parent.parent.parent.tbMain.tbConf.GetValue(), symb=self.parent.parent.parent.tbMain.tbSymbols.GetValue(), usecol=[], usesym=[])
 
 		# DF loadings
 		exec("self.parent.optDlg.plotGaLoads(self.parent.optDlg.currentChrom,self.data['ga" + self.type.lower() + self.type.lower() + "loads'],self.parent.plcGaSpecLoad,self.spnGaScoreFrom.GetValue()-1)")
@@ -358,7 +393,7 @@ class TitleBar(bp.ButtonPanel):
 				'maxf'= 1,	   - Maximum no.of latent variables
 				'mgens'= 5,		 - Max. no. of generations
 				'rgens'= 5,		 - No. of repeat gens
-				'nfolds'= 1,	- No. of n-fold validation iterations
+				'resample'= 1,	  - No. of random resampling iterations
 		"""
 
 		dlg = wx.MessageDialog(self, "This can take a while, are you sure?", "Preparing to run GA", wx.OK | wx.CANCEL | wx.ICON_INFORMATION)
@@ -371,215 +406,223 @@ class TitleBar(bp.ButtonPanel):
 
 		if go == 1:
 			self.parent.Reset()
-			try:
-				# set busy cursor
-				wx.BeginBusyCursor()
+			##			  try:
+			# set busy cursor
+			wx.BeginBusyCursor()
 
-				# Set xdata
-				if self.cbxData.GetSelection() == 0:
-					xdata = self.data["rawtrunc"]
-				elif self.cbxData.GetSelection() == 1:
-					xdata = self.data["proctrunc"]
+			# Set xdata
+			if self.cbxData.GetSelection() == 0:
+				xdata = self.data["rawtrunc"]
+			elif self.cbxData.GetSelection() == 1:
+				xdata = self.data["proctrunc"]
 
-				# Run DFA - set containers
-				scoreList = []
-				chromList = []
-				cUrves = []
+			# Set validation samples for resampling
+			if resample == 1:
+				mask = np.array(self.data["validation"])[:, nA]
+			else:
+				mask = np.array(self.data["validation"])[:, nA]
+				for nF in range(2, resample):
+					# split in to training and test
+					mask = scipy.concatenate((mask, np.array(valSplit(self.grid, self.data, self.pcSplit))[:, nA]), 1)
 
-				varFrom = varfrom
-				varTo = varto
-				if varTo - varFrom == 0:
-					varRange = 1
-				else:
-					varRange = varTo - varFrom + 1
+			# Run DFA - set containers
+			scoreList = []
+			chromList = []
+			cUrves = []
 
-				for Vars in range(varRange):
-					# set num latent variables
-					for Runs in range(runs):
-						# run ga-dfa
+			varFrom = varfrom
+			varTo = varto
+			if varTo - varFrom == 0:
+				varRange = 1
+			else:
+				varRange = varTo - varFrom + 1
 
-						# create initial population
-						chrom = mva.genetic.crtpop(inds, Vars + varFrom, xdata.shape[1])
+			for Vars in range(varRange):
+				# set num latent variables
+				for Runs in range(runs):
+					# run ga-dfa
+					# create initial population
+					chrom = mva.genetic.crtpop(inds, Vars + varFrom, xdata.shape[1])
 
-						# evaluate initial population
+					# evaluate initial population
+					if self.type in ["DFA"]:
+						# check factors
+						if int(maxf) >= int(max(self.data["class"][:, 0])):
+							Lvs = int(max(self.data["class"][:, 0])) - 1
+						else:
+							Lvs = int(maxf)
+						# run dfa
+						scores = mva.fitfun.call_dfa(chrom, xdata, Lvs, mask, self.data)
+
+					elif self.type in ["PLS"]:
+						# set factors
+						Lvs = int(maxf)
+						# run pls
+						scores = mva.fitfun.call_pls(chrom, xdata, Lvs, mask, self.data)
+
+					# add additional methods here
+
+					count = 0
+
+					# set stopping criterion
+					if self.parent.optDlg.cbGaRepUntil.GetValue() is False:
+						stop = mgen
+					else:
+						stop = 1000
+						chromRecord = scipy.zeros((1, Vars + varFrom))
+
+					while count < stop:
+						# linear ranking
+						ranksc, chrom, scores = mva.genetic.rank(chrom, scores)
+
+						# select individuals from population
+						chromSel = mva.genetic.select(ranksc, chrom, insr)
+
+						# perform crossover
+						if self.parent.optDlg.cbGaXover.GetValue() is True:
+							chromSel = mva.genetic.xover(chromSel, xovr, xdata.shape[1])
+
+						# perform mutation
+						if self.parent.optDlg.cbGaMut.GetValue() is True:
+							chromSel = mva.genetic.mutate(chromSel, mutr, xdata.shape[1])
+
+						# evaluate chromSel
 						if self.type in ["DFA"]:
-							# check factors
-							if int(maxf) >= int(max(self.data["class"])):
-								Lvs = int(max(self.data["class"])) - 1
-							else:
-								Lvs = int(maxf)
-							# run dfa
-							scores = mva.fitfun.call_dfa(chrom, xdata, Lvs, nfold, self.data, self.grid, self.pcSplit)
+							scoresSel = mva.fitfun.call_dfa(chromSel, xdata, Lvs, mask, self.data)
 
 						elif self.type in ["PLS"]:
-							# set factors
-							Lvs = int(maxf)
-							# run pls
-							scores = mva.fitfun.call_pls(chrom, xdata, Lvs, self.data, nfold, self.grid, self.pcSplit)
-
+							scoresSel = mva.fitfun.call_pls(chromSel, xdata, Lvs, mask, self.data)
 						# add additional methods here
 
-						count = 0
+						# reinsert chromSel replacing worst parents in chrom
+						chrom, scores = mva.genetic.reinsert(chrom, chromSel, scores, scoresSel)
 
-						# set stopping criterion
-						if self.parent.optDlg.cbGaRepUntil.GetValue() is False:
-							stop = mgen
+						if count == 0:
+							scoresOut = [min(min(scores))]
 						else:
-							stop = 1000
-							chromRecord = scipy.zeros((1, Vars + varFrom))
+							scoresOut.append(min(min(scores)))
 
-						while count < stop:
-							# linear ranking
-							ranksc, chrom, scores = mva.genetic.rank(chrom, scores)
+						# Build history for second stopping criterion
+						if self.parent.optDlg.cbGaRepUntil.GetValue() is True:
+							Best = scores[0]
+							tChrom = chrom[0]
+							chromRecord = scipy.concatenate((chromRecord, tChrom[nA, :]), 0)
+							if count >= int(rgen):
+								chk = 0
+								for n in range(count + 1, count - rgen + 1, -1):
+									a = chromRecord[n - 1].tolist()
+									a.extend(chromRecord[n].tolist())
+									if len(scipy.unique(np.array(a))) == chromRecord.shape[1]:
+										chk += 1
+								if chk == rgen:
+									break
 
-							# select individuals from population
-							chromSel = mva.genetic.select(ranksc, chrom, insr)
+						count += 1
 
-							# perform crossover
-							if self.parent.optDlg.cbGaXover.GetValue() is True:
-								chromSel = mva.genetic.xover(chromSel, xovr, xdata.shape[1])
+						# report progress to status bar
+						self.parent.parent.sbMain.SetStatusText(" ".join(("Variable", str(Vars + varFrom))), 0)
+						self.parent.parent.sbMain.SetStatusText(" ".join(("Run", str(Runs + 1))), 1)
+						self.parent.parent.sbMain.SetStatusText(" ".join(("Generation", str(count))), 2)
 
-							# perform mutation
-							if self.parent.optDlg.cbGaMut.GetValue() is True:
-								chromSel = mva.genetic.mutate(chromSel, mutr, xdata.shape[1])
+					# Save GA optimisation curve
+					scoresOut = scipy.asarray(scoresOut)
 
-							# evaluate chromSel
-							if self.type in ["DFA"]:
-								scoresSel = mva.fitfun.call_dfa(chromSel, xdata, Lvs, nfold, self.data, self.grid, self.pcSplit)
-
-							elif self.type in ["PLS"]:
-								scoresSel = mva.fitfun.call_pls(chromSel, xdata, Lvs, self.data, nfold, self.grid, self.pcSplit)
-							# add additional methods here
-
-							# reinsert chromSel replacing worst parents in chrom
-							chrom, scores = mva.genetic.reinsert(chrom, chromSel, scores, scoresSel)
-
-							if count == 0:
-								scoresOut = [min(min(scores))]
+					# concatenate run result
+					if varRange == 1:
+						if Vars + Runs == 0:
+							# scores
+							if self.type in ["PLS"]:
+								scoreList = [float(scores[0])]
+								cUrves = scipy.reshape(scoresOut, (1, len(scoresOut)))
 							else:
-								scoresOut.append(min(min(scores)))
+								scoreList = [1 / float(scores[0])]
+								cUrves = scipy.reshape(1.0 / scoresOut, (1, len(scoresOut)))
+							# chromosomes
+							chromList = scipy.take(self.data["variableidx"], chrom[0, :].tolist())[nA, :]
+							chromList.sort()
+							# opt curves
 
-							# Build history for second stopping criterion
-							if self.parent.optDlg.cbGaRepUntil.GetValue() is True:
-								Best = scores[0]
-								tChrom = chrom[0]
-								chromRecord = scipy.concatenate((chromRecord, tChrom[nA, :]), 0)
-								if count >= int(rgen):
-									chk = 0
-									for n in range(count - rgen + 2, count + 2):
-										a = chromRecord[n - 1]
-										a.sort()
-										b = chromRecord[n]
-										b.sort()
-										chk = chk + scipy.sum(a - b)
-									if chk == 0:
-										count = 999
-
-							count += 1
-
-							# report progress to status bar
-							self.parent.parent.parent.sbMain.SetStatusText(" ".join(("Variable", str(Vars + varFrom))), 0)
-							self.parent.parent.parent.sbMain.SetStatusText(" ".join(("Run", str(Runs + 1))), 1)
-							self.parent.parent.parent.sbMain.SetStatusText(" ".join(("Generation", str(count))), 2)
-
-						# Save GA optimisation curve
-						scoresOut = scipy.asarray(scoresOut)
-
-						# concatenate run result
-						if varRange == 1:
-							if Vars + Runs == 0:
-								# scores
-								if self.type in ["PLS"]:
-									scoreList = [float(scores[0])]
-									cUrves = scipy.reshape(scoresOut, (1, len(scoresOut)))
-								else:
-									scoreList = [1 / float(scores[0])]
-									cUrves = scipy.reshape(1.0 / scoresOut, (1, len(scoresOut)))
-								# chromosomes
-								chromList = chrom[0, :][nA]
-								chromList.sort()
-								# opt curves
-
+						else:
+							# scores
+							if self.type in ["PLS"]:
+								scoreList.append(float(scores[0]))
 							else:
-								# scores
-								if self.type in ["PLS"]:
-									scoreList.append(float(scores[0]))
-								else:
-									scoreList.append(1 / float(scores[0]))
-									scoresOut = 1.0 / scoresOut
-								# chromosomes
-								ins = chrom[0, :][nA]
-								ins.sort()
-								chromList = scipy.concatenate((chromList, ins), 0)
-								# opt curves
-								length = cUrves.shape[1]
-								if length < len(scoresOut):
-									cUrves = scipy.concatenate((cUrves, scipy.zeros((len(cUrves), len(scoresOut) - length))), 1)
-								elif length > len(scoresOut):
-									scoresOut = scipy.concatenate((scipy.reshape(scoresOut, (1, len(scoresOut))), scipy.zeros((1, length - len(scoresOut)))), 1)
-									scoresOut = scipy.reshape(scoresOut, (scoresOut.shape[1],))
-								cUrves = scipy.concatenate((cUrves, scipy.reshape(scoresOut, (1, len(scoresOut)))), 0)
-						elif varRange > 1:
-							if Vars + Runs == 0:
-								# scores
-								if self.type in ["PLS"]:
-									scoreList = [float(scores[0])]
-									cUrves = scipy.reshape(scoresOut, (1, len(scoresOut)))
-								else:
-									scoreList = [1 / float(scores[0])]
-									cUrves = scipy.reshape(1.0 / scoresOut, (1, len(scoresOut)))
-								##								  scoreList = [1.0/float(scores[0])]
-								# chromosomes
-								ins = chrom[0, :][nA]
-								ins.sort()
-								chromList = scipy.concatenate((ins, scipy.zeros((1, varRange - Vars - 1), "d")), 1)
-								# opt curves
-							##								  cUrves = scipy.reshape(scoresOut,(1,len(scoresOut)))
+								scoreList.append(1 / float(scores[0]))
+								scoresOut = 1.0 / scoresOut
+							# chromosomes
+							ins = scipy.take(self.data["variableidx"], chrom[0, :].tolist())[nA, :]
+							ins.sort()
+							chromList = scipy.concatenate((chromList, ins), 0)
+							# opt curves
+							length = cUrves.shape[1]
+							if length < len(scoresOut):
+								cUrves = scipy.concatenate((cUrves, scipy.zeros((len(cUrves), len(scoresOut) - length))), 1)
+							elif length > len(scoresOut):
+								scoresOut = scipy.concatenate((scipy.reshape(scoresOut, (1, len(scoresOut))), scipy.zeros((1, length - len(scoresOut)))), 1)
+								scoresOut = scipy.reshape(scoresOut, (scoresOut.shape[1],))
+							cUrves = scipy.concatenate((cUrves, scipy.reshape(scoresOut, (1, len(scoresOut)))), 0)
+					elif varRange > 1:
+						if Vars + Runs == 0:
+							# scores
+							if self.type in ["PLS"]:
+								scoreList = [float(scores[0])]
+								cUrves = scipy.reshape(scoresOut, (1, len(scoresOut)))
 							else:
-								# scores
-								if self.type in ["PLS"]:
-									scoreList.append(float(scores[0]))
-								else:
-									scoreList.append(1 / float(scores[0]))
-									scoresOut = 1.0 / scoresOut
-								##								  scoreList.append(1.0/float(scores[0]))
-								# chromosomes
-								ins = chrom[0, :][nA]
-								ins.sort()
-								chromList = scipy.concatenate((chromList, scipy.concatenate((ins, scipy.zeros((1, varRange - Vars - 1), "d")), 1)), 0)
+								scoreList = [1 / float(scores[0])]
+								cUrves = scipy.reshape(1.0 / scoresOut, (1, len(scoresOut)))
+							##								  scoreList = [1.0/float(scores[0])]
+							# chromosomes
+							ins = scipy.take(self.data["variableidx"], chrom[0, :].tolist())[nA, :]
+							ins.sort()
+							chromList = scipy.concatenate((ins, scipy.zeros((1, varRange - Vars - 1), "d")), 1)
+							# opt curves
+						##							cUrves = scipy.reshape(scoresOut,(1,len(scoresOut)))
+						else:
+							# scores
+							if self.type in ["PLS"]:
+								scoreList.append(float(scores[0]))
+							else:
+								scoreList.append(1 / float(scores[0]))
+								scoresOut = 1.0 / scoresOut
+							##								  scoreList.append(1.0/float(scores[0]))
+							# chromosomes
+							ins = scipy.take(self.data["variableidx"], chrom[0, :].tolist())[nA, :]
+							ins.sort()
+							chromList = scipy.concatenate((chromList, scipy.concatenate((ins, scipy.zeros((1, varRange - Vars - 1), "d")), 1)), 0)
 
-								# opt curves
-								length = cUrves.shape[1]
-								if length < len(scoresOut):
-									cUrves = scipy.concatenate((cUrves, scipy.zeros((len(cUrves), len(scoresOut) - length))), 1)
-								elif length > len(scoresOut):
-									scoresOut = scipy.concatenate((scipy.reshape(scoresOut, (1, len(scoresOut))), scipy.zeros((1, length - len(scoresOut)))), 1)
-									scoresOut = scipy.reshape(scoresOut, (scoresOut.shape[1],))
-								cUrves = scipy.concatenate((cUrves, scipy.reshape(scoresOut, (1, len(scoresOut)))), 0)
+							# opt curves
+							length = cUrves.shape[1]
+							if length < len(scoresOut):
+								cUrves = scipy.concatenate((cUrves, scipy.zeros((len(cUrves), len(scoresOut) - length))), 1)
+							elif length > len(scoresOut):
+								scoresOut = scipy.concatenate((scipy.reshape(scoresOut, (1, len(scoresOut))), scipy.zeros((1, length - len(scoresOut)))), 1)
+								scoresOut = scipy.reshape(scoresOut, (scoresOut.shape[1],))
 
-				# add results to disctionary
-				exec("self.data['ga" + self.type.lower() + "chroms'] = chromList")
-				exec("self.data['ga" + self.type.lower() + "scores'] = scoreList")
-				exec("self.data['ga" + self.type.lower() + "curves'] = cUrves")
+							cUrves = scipy.concatenate((cUrves, scipy.reshape(scoresOut, (1, len(scoresOut)))), 0)
 
-				# Create results tree
-				self.CreateGaResultsTree(self.parent.optDlg.treGaResults, gacurves=cUrves, chroms=chromList, varfrom=varfrom, varto=varto, runs=runs - 1)
+			# add results to disctionary
+			exec("self.data['ga" + self.type.lower() + "chroms'] = chromList")
+			exec("self.data['ga" + self.type.lower() + "scores'] = scoreList")
+			exec("self.data['ga" + self.type.lower() + "curves'] = cUrves")
 
-				# enable export btn
-				self.btnExportGa.Enable(1)
+			# Create results tree
+			self.CreateGaResultsTree(self.parent.optDlg.treGaResults, gacurves=cUrves, chroms=chromList, varfrom=varfrom, varto=varto, runs=runs - 1)
 
-				# reset cursor
-				wx.EndBusyCursor()
+			# enable export btn
+			self.btnExportGa.Enable(1)
 
-			except Exception as error:
-				wx.EndBusyCursor()
-				errorBox(self, "%s" % str(error))
-				raise
+			# reset cursor
+			wx.EndBusyCursor()
+
+		##			  except Exception, error:
+		##				  wx.EndBusyCursor()
+		##				  errorBox(self, '%s' %str(error))
+		##				  raise
 
 		# clear status bar
-		self.parent.parent.parent.sbMain.SetStatusText("Status", 0)
-		self.parent.parent.parent.sbMain.SetStatusText("", 1)
-		self.parent.parent.parent.sbMain.SetStatusText("", 2)
+		self.parent.parent.sbMain.SetStatusText("Status", 0)
+		self.parent.parent.sbMain.SetStatusText("", 1)
+		self.parent.parent.sbMain.SetStatusText("", 2)
 
 	def CreateGaResultsTree(self, tree, **_attr):
 		"""Populates GA results tree ctrl
@@ -628,7 +671,7 @@ class TitleBar(bp.ButtonPanel):
 			for runs in range(runs + 1):
 				for mch in range(noSaveChroms):
 					RunLabel = scipy.sort(chroms[Count + mch, 0 : vars + varfrom]).tolist()
-					NewChrom = tree.AppendItem(NewVar, "".join(("#", str(IterCount + 1), " ", str(scipy.take(scipy.reshape(self.data["indlabels"], (len(self.data["indlabels"]),)), RunLabel)), " " "%.2f" % (gaScoreList[Count + mch]))))
+					NewChrom = tree.AppendItem(NewVar, "".join(("#", str(IterCount + 1), " ", str(scipy.take(scipy.reshape(self.data["indlabelsfull"], (len(self.data["indlabelsfull"]),)), RunLabel)), " ", "%.2f" % (gaScoreList[Count + mch]))))
 					TreeItemIdList.append(NewChrom)
 					IterCount += 1
 				Count += mch + 1
@@ -677,8 +720,8 @@ class selParam(fpb.FoldPanelBar):
 		parent.AddWindow(wx.StaticText(self.plParams, -1, "Repeat until", style=wx.ALIGN_RIGHT), (9, 0), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddWindow(self.spnGaRepUntil, (9, 1), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddWindow(self.cbGaRepUntil, (9, 2), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(wx.StaticText(self.plParams, -1, "N-fold", style=wx.ALIGN_RIGHT), (10, 0), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.spnNfold, (10, 1), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(wx.StaticText(self.plParams, -1, "Resample", style=wx.ALIGN_RIGHT), (10, 0), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.AddWindow(self.spnResample, (10, 1), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddSpacer(wx.Size(8, 8), (11, 2), border=10, flag=wx.EXPAND, span=(2, 3))
 
 	def _init_selparam_sizers(self):
@@ -759,8 +802,8 @@ class selParam(fpb.FoldPanelBar):
 		self.cbGaRepUntil.SetValue(False)
 		self.cbGaRepUntil.SetToolTip("")
 
-		self.spnNfold = wx.SpinCtrl(id=-1, initial=1, max=100, min=1, name="spnNfold", parent=self.plParams, pos=wx.Point(73, 92), size=wx.Size(15, 21), style=wx.SP_ARROW_KEYS)
-		self.spnNfold.SetToolTip("Number of n-fold validation steps")
+		self.spnResample = wx.SpinCtrl(id=-1, initial=1, max=100, min=1, name="spnResample", parent=self.plParams, pos=wx.Point(73, 92), size=wx.Size(15, 21), style=wx.SP_ARROW_KEYS)
+		self.spnResample.SetToolTip("Number of n-fold validation steps")
 
 		self.treGaResults = wx.TreeCtrl(id=-1, name="treGaResults", parent=self.fpResults, pos=wx.Point(0, 23), size=wx.Size(100, 100), style=wx.TR_DEFAULT_STYLE | wx.TR_HAS_BUTTONS, validator=wx.DefaultValidator)
 		self.treGaResults.SetToolTip("")
@@ -814,7 +857,6 @@ class selParam(fpb.FoldPanelBar):
 		chromId = chromId.split("[")[0]
 		chromId = int(chromId.split("#")[1]) - 1
 		currentChrom = self.chroms[chromId].tolist()
-		self.currentChrom = currentChrom
 
 		# Plot frequency of variable selection for no. vars
 		# Get chrom data and error data for each child
@@ -825,6 +867,7 @@ class selParam(fpb.FoldPanelBar):
 
 		# adjust chrom length if mutliple var subsets used
 		currentChrom = currentChrom[0:NoVars]
+		self.currentChrom = currentChrom
 
 		##		  if chkValid > 10.0**-5:
 		# Re-Running DFA
@@ -836,7 +879,7 @@ class selParam(fpb.FoldPanelBar):
 
 		# run dfa
 		if self.prnt.splitPrnt.type in ["DFA"]:
-			self.prnt.splitPrnt.titleBar.data["gadfadfscores"], self.prnt.splitPrnt.titleBar.data["gadfadfaloads"], gaError = mva.fitfun.rerun_dfa(currentChrom, xdata, self.prnt.splitPrnt.titleBar.data["validation"], self.prnt.splitPrnt.titleBar.data["class"], self.prnt.splitPrnt.titleBar.data["label"], Lvs)
+			self.prnt.splitPrnt.titleBar.data["gadfadfscores"], self.prnt.splitPrnt.titleBar.data["gadfadfaloads"], gaError = mva.fitfun.rerun_dfa(currentChrom, xdata, self.prnt.splitPrnt.titleBar.data["validation"], self.prnt.splitPrnt.titleBar.data["class"][:, 0], self.prnt.splitPrnt.titleBar.data["label"], Lvs)
 
 			# plot scores
 			self.prnt.splitPrnt.titleBar.spnGaScoreFrom.SetRange(1, self.prnt.splitPrnt.titleBar.data["gadfadfaloads"].shape[1])
@@ -846,20 +889,31 @@ class selParam(fpb.FoldPanelBar):
 			if self.prnt.splitPrnt.titleBar.data["gadfadfaloads"].shape[1] > 1:
 				self.prnt.splitPrnt.titleBar.spnGaScoreTo.SetValue(2)
 
-			plotScores(self.prnt.splitPrnt.plcGaPlot, self.prnt.splitPrnt.titleBar.data["gadfadfscores"], cl=self.prnt.splitPrnt.titleBar.data["class"], labels=self.prnt.splitPrnt.titleBar.data["label"], validation=self.prnt.splitPrnt.titleBar.data["validation"], col1=self.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue() - 1, col2=self.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue() - 1, title="DF Scores", xLabel="Discriminant Function " + str(self.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue()), yLabel="Discriminant Function " + str(self.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue()), xval=True, text=True, pconf=True, symb=False)
+			plotScores(self.prnt.splitPrnt.plcGaModelPlot1, self.prnt.splitPrnt.titleBar.data["gadfadfscores"], cl=self.prnt.splitPrnt.titleBar.data["class"][:, 0], labels=self.prnt.splitPrnt.titleBar.data["label"], validation=self.prnt.splitPrnt.titleBar.data["validation"], col1=self.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue() - 1, col2=self.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue() - 1, title="DF Scores", xLabel="t[" + str(self.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue()) + "]", yLabel="t[" + str(self.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue()) + "]", xval=True, text=True, pconf=True, symb=False, usecol=[], usesym=[])
 
 		if self.prnt.splitPrnt.type in ["PLS"]:
 			# select only chrom vars from x
-			self.prnt.splitPrnt.titleBar.data["gaplsplsloads"], T, P, Q, facs, predy, predyv, predyt, RMSEC, RMSEPC, rmsec, rmsepc, RMSEPT, b = mva.fitfun.rerun_pls(currentChrom, xdata, np.array(self.prnt.splitPrnt.titleBar.data["class"])[:, nA], self.prnt.splitPrnt.titleBar.data["validation"][:, nA], Lvs)
+			pls_output = mva.fitfun.rerun_pls(currentChrom, xdata, self.prnt.splitPrnt.titleBar.data["class"], self.prnt.splitPrnt.titleBar.data["validation"], Lvs)
 
-			gaError = scipy.concatenate((np.array(rmsec)[nA, :], np.array(rmsepc)[nA, :]), 0)
+			self.prnt.splitPrnt.titleBar.data["gaplsplsloads"] = pls_output["W"]
+			self.prnt.splitPrnt.titleBar.data["gaplsscores"] = pls_output["predictions"]
+			self.prnt.splitPrnt.titleBar.data["gaplsfactors"] = pls_output["facs"]
+			self.prnt.splitPrnt.titleBar.data["gaplsrmsept"] = pls_output["RMSEPT"]
+			##			  self.data['rmsec'] = pls_output['rmsec']
+			##			  self.data['rmsepc'] = pls_output['rmsepc']
+			##			  self.data['rmsept'] = pls_output['rmsept']
+			##			  self.data['RMSEC'] = pls_output['RMSEC']
+			##			  self.data['RMSEPC'] = pls_output['RMSEPC']
+			##			  self.data['RMSEPT'] = pls_output['RMSEPT']
+
+			gaError = scipy.concatenate((np.array(pls_output["rmsec"])[nA, :], np.array(pls_output["rmsepc"])[nA, :]), 0)
 
 			# set defaults
 			self.prnt.splitPrnt.titleBar.spnGaScoreFrom.SetValue(1)
 			self.prnt.splitPrnt.titleBar.spnGaScoreTo.SetValue(1)
 
 			# plot pls predictions
-			plsModel = PlotPlsModel(self, self.prnt.splitPrnt.plcGaPlot, np.array(self.prnt.splitPrnt.titleBar.data["class"])[:, nA], predy, predyv, predyt, self.prnt.splitPrnt.titleBar.data["validation"][:, nA], RMSEPT, Lvs)
+			self.prnt.splitPrnt.plcGaModelPlot1 = PlotPlsModel(self.prnt.splitPrnt.plcGaModelPlot1, model="ga", tbar=self.prnt.splitPrnt.prnt.parent.tbMain, cL=self.prnt.splitPrnt.titleBar.data["class"], scores=pls_output["plsscores"], predictions=pls_output["predictions"], validation=self.prnt.splitPrnt.titleBar.data["validation"], RMSEPT=pls_output["RMSEPT"], factors=pls_output["facs"], type=0, col1=0, col2=1, label=self.prnt.splitPrnt.titleBar.data["label"], symbols=self.prnt.splitPrnt.parent.tbMain.tbSymbols.GetValue(), usetxt=self.prnt.splitPrnt.parent.tbMain.tbPoints.GetValue(), errplot=False, usecol=[], usesym=[])
 
 		##			  if self.cbDfaSavePc.GetValue() is False:
 		NoRuns = int(self.spnGaNoRuns.GetValue())
@@ -901,34 +955,26 @@ class selParam(fpb.FoldPanelBar):
 		# plot variable frequencies
 		LineObj = []
 		for i in range(VarFreq.shape[0]):
-			Start = scipy.concatenate((scipy.reshape(self.prnt.splitPrnt.titleBar.data["xaxis"][int(VarFreq[i, 0])], (1, 1)), scipy.reshape(0.0, (1, 1))), 1)
-			FullVarFreq = scipy.concatenate((scipy.reshape(self.prnt.splitPrnt.titleBar.data["xaxis"][int(VarFreq[i, 0])], (1, 1)), scipy.reshape(VarFreq[i, 1], (1, 1))), 1)
+			Start = scipy.concatenate((scipy.reshape(self.prnt.splitPrnt.titleBar.data["xaxisfull"][int(VarFreq[i, 0])], (1, 1)), scipy.reshape(0.0, (1, 1))), 1)
+			FullVarFreq = scipy.concatenate((scipy.reshape(self.prnt.splitPrnt.titleBar.data["xaxisfull"][int(VarFreq[i, 0])], (1, 1)), scipy.reshape(VarFreq[i, 1], (1, 1))), 1)
 			FullVarFreq = scipy.concatenate((Start, FullVarFreq), 0)
 			if int(VarFreq[i, 0]) in currentChrom:
 				LineObj.append(wx.lib.plot.PolyLine(FullVarFreq, colour="red", width=2, style=wx.SOLID))
 			else:
 				LineObj.append(wx.lib.plot.PolyLine(FullVarFreq, colour="black", width=2, style=wx.SOLID))
 
-		meanSpec = scipy.concatenate((scipy.reshape(self.prnt.splitPrnt.titleBar.data["xaxis"], (len(self.prnt.splitPrnt.titleBar.data["xaxis"]), 1)), scipy.reshape(mva.process.norm01(scipy.reshape(scipy.mean(xdata, 0), (1, xdata.shape[1]))) * max(VarFreq[:, 1]), (xdata.shape[1], 1))), 1)
-
+		meanSpec = scipy.concatenate((scipy.reshape(self.prnt.splitPrnt.titleBar.data["xaxisfull"], (len(self.prnt.splitPrnt.titleBar.data["xaxisfull"]), 1)), scipy.reshape(mva.process.norm01(scipy.reshape(scipy.mean(xdata, 0), (1, xdata.shape[1]))) * max(VarFreq[:, 1]), (xdata.shape[1], 1))), 1)
 		meanSpec = wx.lib.plot.PolyLine(meanSpec, colour="black", width=0.75, style=wx.SOLID)
-
 		LineObj.append(meanSpec)
-
 		DfaPlotFreq = wx.lib.plot.PlotGraphics(LineObj, "Frequency of Variable Selection", "Variable ID", "Frequency (%)")
-
-		xAx = (self.prnt.splitPrnt.titleBar.data["xaxis"].min(), self.prnt.splitPrnt.titleBar.data["xaxis"].max())
-
+		xAx = (min(self.prnt.splitPrnt.titleBar.data["xaxisfull"]), max(self.prnt.splitPrnt.titleBar.data["xaxisfull"]))
 		yAx = (0, max(VarFreq[:, 1]) * 1.1)
-
 		self.prnt.splitPrnt.plcGaFreqPlot.Draw(DfaPlotFreq, xAxis=xAx, yAxis=yAx)
-
-		##			  self.DfaPlotFreq = [DfaPlotFreq,xAx,yAx]
 
 		# plot variables
 		list = []
 		for each in currentChrom:
-			list.append(str(self.prnt.splitPrnt.titleBar.data["indlabels"][int(each)]))
+			list.append(str(self.prnt.splitPrnt.titleBar.data["indlabelsfull"][int(each)]))
 
 		self.prnt.splitPrnt.titleBar.cbxFeature1.SetItems(list)
 		self.prnt.splitPrnt.titleBar.cbxFeature2.SetItems(list)
@@ -948,11 +994,11 @@ class selParam(fpb.FoldPanelBar):
 
 		# plot eigenvalues
 		if gaError.shape[0] == 1:
-			errorCurve = plotLine(self.prnt.splitPrnt.plcGaEigs, gaError, xaxis=scipy.arange(1, gaError.shape[0] + 1)[:, nA], rownum=0, xLabel="Eigenvalues", tit="", yLabel="Discriminant Function", wdth=3, type="single", ledge=[])
+			plotLine(self.prnt.splitPrnt.plcGaEigs, gaError, xaxis=scipy.arange(1, gaError.shape[1] + 1)[:, nA], rownum=0, xLabel="Discriminant Function", tit="", yLabel="Eigenvalues", wdth=3, type="single", ledge=[])
 		else:
-			errorCurve = plotLine(self.prnt.splitPrnt.plcGaEigs, gaError, xaxis=scipy.arange(1, gaError.shape[1] + 1)[:, nA], rownum=0, xLabel="PLS Factor", tit="", yLabel="RMS Error", type="multi", ledge=["Train err", "Test err"], wdth=3)
+			plotLine(self.prnt.splitPrnt.plcGaEigs, gaError, xaxis=scipy.arange(1, gaError.shape[1] + 1)[:, nA], xLabel="Latent Variable", tit="", yLabel="RMS Error", type="multi", ledge=["Train err", "Test err"], wdth=3)
 
-			self.prnt.splitPrnt.nbGaModPlot.SetPageText(1, "Model Error")
+			self.prnt.splitPrnt.nbGaModPlot.SetPageText(1, "RMS Error")
 
 		# plot variables vs. error for pairs
 		gaVarFrom = int(self.spnGaVarsFrom.GetValue())
@@ -982,13 +1028,9 @@ class selParam(fpb.FoldPanelBar):
 					RunsId = self.treGaResults.GetFirstChild(VarsId)[0]
 				else:
 					RunsId = self.treGaResults.GetNextSibling(RunsId)
-
 				Run = self.treGaResults.GetItemText(RunsId)
-
 				Run = Run.split(" ")
-
 				Run = Run[len(Run) - 1]
-
 				VarErr = scipy.concatenate((VarErr, scipy.reshape([float(Var), float(Run)], (1, 2))), 0)
 
 			VarErr = VarErr[1 : VarErr.shape[0], :]
@@ -1027,13 +1069,9 @@ class selParam(fpb.FoldPanelBar):
 					size=1.5,
 				)
 			)
-
 			gaPlotVarErr = wx.lib.plot.PlotGraphics(VarErrObj, "Fitness Summary	 ", "Total no. variables selected", "Fitness")
-
 			Xax = (gaVarFrom - 0.25, gaVarTo + 0.25)
-
 			Yax = (MinVarErr, MaxVarErr)
-
 			self.prnt.splitPrnt.plcGaGrpDistPlot.Draw(gaPlotVarErr, xAxis=Xax, yAxis=Yax)
 
 			# Enable ctrls
@@ -1042,39 +1080,28 @@ class selParam(fpb.FoldPanelBar):
 			self.prnt.splitPrnt.titleBar.cbxFeature1.Enable(1)
 			self.prnt.splitPrnt.titleBar.cbxFeature2.Enable(1)
 
-	##		  else:
-	##			  dlg = wx.MessageDialog(self, 'Model not valid - unable to calculate results',
-	##				'Error!', wx.OK | wx.ICON_ERROR)
-	##			  try:
-	##				  dlg.ShowModal()
-	##			  finally:
-	##				  dlg.Destroy()
-	##
-	##		  #reset busy cursor
-	##		  wx.EndBusyCursor()
-
 	def PlotGaVariables(self, canvas):
 		chrom = self.currentChrom
 
 		pos1 = int(self.prnt.splitPrnt.titleBar.cbxFeature1.GetSelection())
 		pos2 = int(self.prnt.splitPrnt.titleBar.cbxFeature2.GetSelection())
 
-		xdata = self.prnt.splitPrnt.titleBar.data["raw"]
-
-		if self.prnt.splitPrnt.titleBar.cbxData.GetSelection() == 1:
+		if self.prnt.splitPrnt.titleBar.cbxData.GetSelection() == 0:
+			xdata = self.prnt.splitPrnt.titleBar.data["raw"]
+		else:
 			xdata = self.prnt.splitPrnt.titleBar.data["proc"]
 
 		if pos1 == pos2:
 			coords = scipy.reshape(scipy.take(xdata, [int(chrom[pos1])], 1), (len(xdata), 1))
 			L1 = "Dummy"
-			L2 = str(self.prnt.splitPrnt.titleBar.data["indlabels"][int(chrom[pos1])])
-			plotScores(canvas, coords, cl=self.prnt.splitPrnt.titleBar.data["class"], labels=self.prnt.splitPrnt.titleBar.data["label"], validation=self.prnt.splitPrnt.titleBar.data["validation"], col1=0, col2=0, title=canvas.last_draw[0].title, xLabel=L1, yLabel=L2, xval=True, pconf=self.prnt.splitPrnt.parent.parent.tbMain.tbConf.GetValue(), text=self.prnt.splitPrnt.parent.parent.tbMain.tbPoints.GetValue(), symb=self.prnt.splitPrnt.parent.parent.tbMain.tbSymbols.GetValue())
+			L2 = str(self.prnt.splitPrnt.titleBar.data["indlabelsfull"][int(chrom[pos1])])
+			plotScores(canvas, coords, cl=self.prnt.splitPrnt.titleBar.data["class"][:, 0], labels=self.prnt.splitPrnt.titleBar.data["label"], validation=self.prnt.splitPrnt.titleBar.data["validation"], col1=0, col2=0, title=canvas.last_draw[0].title, xLabel=L1, yLabel=L2, xval=True, pconf=False, text=self.prnt.splitPrnt.parent.tbMain.tbPoints.GetValue(), symb=self.prnt.splitPrnt.parent.tbMain.tbSymbols.GetValue(), usecol=[], usesym=[])  # ,self.prnt.splitPrnt.parent.parent.tbMain.tbConf.GetValue(),
 
 		else:
 			coords = scipy.reshape(scipy.take(xdata, [int(chrom[pos1]), int(chrom[pos2])], 1), (len(xdata), 2))
-			L1 = str(self.prnt.splitPrnt.titleBar.data["indlabels"][int(chrom[pos1])])
-			L2 = str(self.prnt.splitPrnt.titleBar.data["indlabels"][int(chrom[pos2])])
-			plotScores(canvas, coords, cl=self.prnt.splitPrnt.titleBar.data["class"], labels=self.prnt.splitPrnt.titleBar.data["label"], validation=self.prnt.splitPrnt.titleBar.data["validation"], col1=0, col2=1, title=canvas.last_draw[0].title, xLabel=L1, yLabel=L2, xval=True, pconf=self.prnt.splitPrnt.parent.parent.tbMain.tbConf.GetValue(), text=self.prnt.splitPrnt.parent.parent.tbMain.tbPoints.GetValue(), symb=self.prnt.splitPrnt.parent.parent.tbMain.tbSymbols.GetValue())
+			L1 = str(self.prnt.splitPrnt.titleBar.data["indlabelsfull"][int(chrom[pos1])])
+			L2 = str(self.prnt.splitPrnt.titleBar.data["indlabelsfull"][int(chrom[pos2])])
+			plotScores(canvas, coords, cl=self.prnt.splitPrnt.titleBar.data["class"][:, 0], labels=self.prnt.splitPrnt.titleBar.data["label"], validation=self.prnt.splitPrnt.titleBar.data["validation"], col1=0, col2=1, title=canvas.last_draw[0].title, xLabel=L1, yLabel=L2, xval=True, pconf=False, text=self.prnt.splitPrnt.parent.parent.tbMain.tbPoints.GetValue(), symb=self.prnt.splitPrnt.parent.parent.tbMain.tbSymbols.GetValue(), usecol=[], usesym=[])  # self.prnt.splitPrnt.parent.parent.tbMain.tbConf.GetValue(),
 
 		self.prnt.splitPrnt.titleBar.data["gavarcoords"] = coords
 
@@ -1086,15 +1113,14 @@ class selParam(fpb.FoldPanelBar):
 		# Plot loadings
 		labels = []
 		for each in self.prnt.splitPrnt.titleBar.data["gacurrentchrom"]:
-			labels.append(self.prnt.splitPrnt.titleBar.data["indlabels"][int(each)])
+			labels.append(self.prnt.splitPrnt.titleBar.data["indlabelsfull"][int(each)])
+
+		# gather values
+		plotVals = scipy.concatenate((loads[:, col1][:, nA], loads[:, col2][:, nA]), 1)
 
 		if col1 != col2:
-			# gather values
-			plotVals = scipy.concatenate((loads[:, col1][:, nA], loads[:, col2][:, nA]), 1)
-
-			plotLoads(canvas, plotVals, xaxis=labels, title="DF Loadings", xLabel="Loading " + str(self.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue()), yLabel="Loading " + str(self.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue()), type=self.prnt.splitPrnt.parent.parent.tbMain.GetLoadPlotIdx(), col1=0, col2=1, usecol=[])
+			plotLoads(canvas, plotVals, xaxis=labels, title="DF Loadings", xLabel="w[" + str(self.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue()) + "]", yLabel="w[" + str(self.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue()) + "]", type=1, col1=0, col2=1, usecol=[], usesym=[])
 		else:
 			# plot loadings as line
 			xAx = scipy.take(self.prnt.splitPrnt.titleBar.data["xaxis"], chrom)[:, nA]
-
-			plotLine(canvas, plotVals, xAx, tit="", rownum=col1, xLabel="Variable", yLabel="", wdth=1, ledge=[], type="single")
+			plotLine(canvas, scipy.transpose(plotVals), xaxis=xAx, tit="", rownum=col1, xLabel="Variable", yLabel="w[" + str(self.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue()) + "]", wdth=1, ledge=[], type="single")
