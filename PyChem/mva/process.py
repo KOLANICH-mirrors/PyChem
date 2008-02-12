@@ -18,7 +18,7 @@
 import scipy
 
 
-def __padarray__(myarray, frame, type):
+def _padarray(myarray, frame, type):
 	"""Used in a number of funcs to pad out array cols at start and
 	end so that the original shape of the array is maintained
 	following processing"""
@@ -37,7 +37,7 @@ def __padarray__(myarray, frame, type):
 	return padarray, size
 
 
-def __slice__(x, index, axis=0):
+def _slice(x, index, axis=0):
 	"""for slicing arrays"""
 	if axis == 0:
 		slice = scipy.reshape(x[:, int(index[0])], (x.shape[0], 1))
@@ -126,7 +126,7 @@ def avgfilt(myarray, F, dim):
 	across axis == 1
 	"""
 	if dim == "c":
-		(padarray, origsize) = __padarray__(myarray, F, "av")
+		(padarray, origsize) = _padarray(myarray, F, "av")
 		a, b = 0, F
 		avarray = scipy.zeros((origsize[0], origsize[1]), "d")
 		while b < origsize[1] + F:  # average out across columns
@@ -134,7 +134,7 @@ def avgfilt(myarray, F, dim):
 			a, b = a + 1, b + 1
 		return avarray
 	elif dim == "r":
-		(padarray, origsize) = __padarray__(scipy.transpose(myarray, (1, 0)), F, "av")
+		(padarray, origsize) = _padarray(scipy.transpose(myarray, (1, 0)), F, "av")
 		padarray = scipy.transpose(padarray, (1, 0))
 		a, b = 0, F
 		avarray = scipy.zeros((origsize[1], origsize[0]), "d")
@@ -151,7 +151,7 @@ def avgclass(myarray, mrepclass):
 	avg = scipy.zeros((1, myarray.shape[1]))
 	idx = scipy.arange(0, mrepclass.shape[0], 1, "i", (mrepclass.shape[0], 1))
 	for x in scipy.arange(1, max(mrepclass) + 1, 1):
-		slice = __slice__(myarray, idx[mrepclass == x], 1)
+		slice = _slice(myarray, idx[mrepclass == x], 1)
 		avg = scipy.concatenate((avg, avgfilt(slice, len(idx[mrepclass == x]), "r")), 0)
 	return avg[1 : myarray.shape[0] + 2]
 
@@ -160,7 +160,7 @@ def derivlin(myarray, frame):
 	"""Derivatisation using crude linear fit over a
 	specified frame width
 	"""
-	(padarray, origsize) = __padarray__(myarray, frame, "av")
+	(padarray, origsize) = _padarray(myarray, frame, "av")
 	a, b = 0, frame - 1
 	deriv_array = scipy.zeros((origsize[0], origsize[1]), "d")
 	while b < origsize[1] + frame - 1:  # derivatise across columns

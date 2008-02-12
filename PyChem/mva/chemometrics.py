@@ -26,7 +26,7 @@ from scipy import newaxis as nA
 from .process import autoscale, meancent
 
 
-def __fdot__(a, b):
+def _fdot(a, b):
 	"""Dot product for large arrays, faster than numarrays dot
 	depending on the spec of the computer being used"""
 	product = scipy.zeros((a.shape[0], b.shape[1]), "d")
@@ -37,23 +37,23 @@ def __fdot__(a, b):
 	return product
 
 
-def __mean__(a, axis=0):
+def _mean(a, axis=0):
 	"""Find the mean of 2D array along axis = 0 or 1
 	default axis is 0
 	"""
 	return scipy.sum(a, axis) / a.shape[axis]
 
 
-def __std__(a):
+def _std(a):
 	"""Find the standard deviation of 2D array
 	along axis = 0
 	"""
-	m = __mean__(a, 0)
+	m = _mean(a, 0)
 	m = scipy.resize(m, (a.shape[0], a.shape[1]))
 	return scipy.sqrt(scipy.sum((a - m) ** 2, 0) / (a.shape[0] - 1))
 
 
-def __diag__(a):
+def _diag(a):
 	"""Transform vector to diagonal matrix"""
 	d = scipy.zeros((len(a), len(a)), "d")
 	for i in range(len(a)):
@@ -61,7 +61,7 @@ def __diag__(a):
 	return d
 
 
-def __flip__(a, axis=0):
+def _flip(a, axis=0):
 	"""Reverse order of array elements along axis 0 or 1"""
 	if axis == 0:
 		axa, axb = 0, 1
@@ -84,24 +84,24 @@ def __flip__(a, axis=0):
 	return b
 
 
-def __rms__(pred, act):
+def _rms(pred, act):
 	"""Calculate the root mean squared error of prediction"""
 	return scipy.reshape(scipy.sqrt(scipy.sum((act - pred) ** 2) / act.shape[0]), ())
 
 
-def __min__(x, axis=0):
+def _min(x, axis=0):
 	"""find min of 2d array x along axis 0 or 1"""
 	s = scipy.sort(x, axis)
 	return scipy.reshape(s[0], ())
 
 
-def __max__(x, axis=0):
+def _max(x, axis=0):
 	"""find min of 2d array x along axis 0 or 1"""
 	s = scipy.sort(x, axis)
 	return scipy.reshape(s[x.shape[0] - 1], ())
 
 
-def __slice__(x, index, axis=0):
+def _slice(x, index, axis=0):
 	"""for slicing arrays"""
 	if axis == 0:
 		slice = scipy.reshape(x[:, int(index[0])], (x.shape[0], 1))
@@ -114,7 +114,7 @@ def __slice__(x, index, axis=0):
 	return slice
 
 
-def __split__(xdata, ydata, mask, labels=None):
+def _split(xdata, ydata, mask, labels=None):
 	"""Splits x and y inputs into training, cross validation (and
 	independent test groups) for use with modelling algorithms.
 	If max(mask)==2 return x1,x2,x3,y1,y2,y3,n1,n2,n3 else if max(mask)==1
@@ -145,17 +145,16 @@ def __split__(xdata, ydata, mask, labels=None):
 		return x1, x2, x3, y1, y2, y3, n1, n2, n3
 
 
-def __BW__(X, group):
+def _BW(X, group):
 	"""Generate B and W matrices for CVA
 	Ref. Krzanowski
 	"""
-	T, W = scipy.zeros((X.shape[1], X.shape[1]), "d"), scipy.zeros((X.shape[1], X.shape[1]), "d")
 	mx = scipy.mean(X, 0)[nA, :]
-	tgrp = scipy.unique(scipy.reshape(group, (len(group),)))
+	tgrp = scipy.unique(group)
 	for x in range(len(tgrp)):
-		idx = _index(np.array(group, "i")[:, nA], tgrp[x])
+		idx = _index(group, tgrp[x])
 		L = len(idx)
-		meani = scipy.mean(scipy.take(X, idx, 0), 0)  # [nA,:]
+		meani = scipy.mean(scipy.take(X, idx, 0), 0)
 		meani = scipy.resize(meani, (len(idx), X.shape[1]))
 		A = scipy.mean(scipy.take(X, idx, 0), 0) - mx
 		C = scipy.take(X, idx, 0) - meani
@@ -172,7 +171,7 @@ def __BW__(X, group):
 	return B, W
 
 
-def __adj__(a):
+def _adj(a):
 	"""Adjoint of a"""
 	div, mod = divmod(a.shape[1], 2)
 	adj = scipy.zeros((a.shape), "d")
@@ -224,12 +223,12 @@ def __adj__(a):
 	return scipy.transpose(adj)
 
 
-def __inverse__(a):
+def _inverse(a):
 	"""Inverse of a"""
 	d = scipy.linalg.det(a)
 	if d == 0:
 		d = 0.001
-	return __adj__(a) / d
+	return _adj(a) / d
 
 
 def _index(y, num):
@@ -237,7 +236,7 @@ def _index(y, num):
 	idx = []
 	for i in range(len(y)):
 		if y[i] == num:
-			idx.append(i)
+			idx.append(int(i))
 	return tuple(idx)
 
 
@@ -366,7 +365,6 @@ def PCA_NIPALS(myarray, comps, type="covar", stb=None):
 		newarray = newarray - scipy.dot(scipy.resize(t1, (arr_size[0], 1)), scipy.resize(p1, (1, arr_size[1])))
 
 		i += 1
-		##		  print 'PC ',i
 		# report progress to status bar
 		if stb is not None:
 			stb.SetStatusText(" ".join(("Principal component", str(i))), 0)
@@ -394,7 +392,7 @@ def PCA_NIPALS(myarray, comps, type="covar", stb=None):
 	return tt, pp, pr[:, nA], eigs[:, nA]
 
 
-def DFA(X, group, nofac, pcLoads=None):
+def DFA(X, group, nodfs, pcloads=None):
 	"""Discriminant function analysis
 
 	Ref. Krzanowski
@@ -405,7 +403,7 @@ def DFA(X, group, nofac, pcLoads=None):
 	>>> import scipy
 	>>> X = np.array([[ 0.19343116,	0.49655245,	 0.72711322,  0.79482108,  0.13651874],[ 0.68222322,  0.89976918,  0.30929016,	0.95684345,	 0.01175669],[ 0.3027644 ,	0.82162916,	 0.83849604,  0.52259035,  0.89389797],[ 0.54167385,  0.64491038,  0.56807246,	0.88014221,	 0.19913807],[ 0.15087298,	0.81797434,	 0.37041356,  0.17295614,  0.29872301],[ 0.69789848,  0.66022756,  0.70273991,	0.9797469 ,	 0.66144258],[ 0.378373	 ,	0.34197062,	 0.54657115,  0.27144726,  0.28440859],[ 0.8600116 ,  0.2897259 ,  0.4448802 ,	0.25232935,	 0.46922429],[ 0.85365513,	0.34119357,	 0.69456724,  0.8757419 ,  0.06478112],[ 0.59356291,  0.53407902,  0.62131013,	0.73730599,	 0.98833494]])
 	>>> group = np.array([[1],[1],[1],[1],[2],[2],[2],[3],[3],[3]])
-	>>> B,W = __BW__(X,group)
+	>>> B,W = _BW(X,group)
 	>>> B
 	array([[ 0.12756749, -0.10061061,  0.00366132, -0.00615551,	 0.05378535],
 		   [-0.10061061,  0.09289765,  0.00469185,	0.03883801, -0.05465494],
@@ -436,7 +434,7 @@ def DFA(X, group, nofac, pcLoads=None):
 	"""
 
 	# Get B,W
-	B, W = __BW__(X, group)
+	B, W = _BW(X, group)
 
 	# produce a diagonal matrix L of generalized
 	# eigenvalues and a full matrix A whose columns are the
@@ -456,26 +454,24 @@ def DFA(X, group, nofac, pcLoads=None):
 	Aout = scipy.dot(A, scipy.linalg.inv(T))
 
 	# Sort eigenvectors w.r.t eigenvalues
-	order = __flip__(scipy.argsort(scipy.reshape(L.real, (len(L),))))
-	Ls = __flip__(scipy.sort(L.real))
+	order = _flip(scipy.argsort(scipy.reshape(L.real, (len(L),))))
+	Ls = _flip(scipy.sort(L.real))
 
 	# extract & reduce to required size
-	As_out = scipy.take(Aout, order[0:nofac].tolist(), 1)
-	Ls_out = Ls[0:nofac][nA, :]
+	As_out = scipy.take(Aout, order[0:nodfs].tolist(), 1)
+	Ls_out = Ls[0:nodfs][nA, :]
 
 	# Create Scores (canonical variates) is the matrix of scores ###
 	U = scipy.dot(X, As_out)
 
 	# convert pc-dfa loadings back to original variables if necessary
-	if pcLoads is not None:
-		loads2 = scipy.dot(scipy.transpose(pcLoads), As_out)
-	else:
-		loads2 = None
+	if pcloads is not None:
+		pcloads = scipy.dot(scipy.transpose(pcloads), As_out)
 
-	return U, As_out, Ls_out, loads2
+	return U, As_out, Ls_out, pcloads
 
 
-def PLS(xdata, ydata, mask, factors, stb=None):
+def PLS(xdata, ydata, mask, factors, stb=None, type=0):
 	"""PLS1 for modelling a single Y-variable and
 	PLS2 for several Y-variables
 
@@ -499,127 +495,129 @@ def PLS(xdata, ydata, mask, factors, stb=None):
 
 	"""
 
-	x1, x2, x3, y1, y2, y3, dummy1, dummy2, dummy3 = __split__(xdata, ydata, mask)  # raw data
-	Xm, Xmv = __mean__(x1), __mean__(x2)  # get column means
-	ym, ymv = __mean__(y1), __mean__(y2)
+	output = {}
+	x1, x2, x3, y1, y2, y3, dummy1, dummy2, dummy3 = _split(xdata, ydata, mask)  # raw data
+	Xm, Xmv = scipy.mean(x1, axis=0), scipy.mean(x2, axis=0)  # get column means
+	ym, ymv = scipy.mean(y1, axis=0), scipy.mean(y2, axis=0)
 
 	if max(mask) > 1:
-		Xmt, ymt = __mean__(x3), __mean__(y3)
+		Xmt, ymt = scipy.mean(x3, axis=0), scipy.mean(y3, axis=0)
 
-	x, y = meancent(xdata), meancent(ydata)  # centre the data
+	if type == 0:  # use matrix of covariances
+		x, y = meancent(xdata), meancent(ydata)
+	elif type == 1:  # use matrix of correlations
+		x, y = autoscale(xdata), autoscale(ydata)
 
 	# split into training, cross-validation & test
-	train_x, cval_x, test_x, train_y, cval_y, test_y, dummy1, dummy2, dummy3 = __split__(x, y, mask)
+	train_x, cval_x, test_x, train_y, cval_y, test_y, dummy1, dummy2, dummy3 = _split(x, y, mask)
 	X, Xv, Xt = train_x, cval_x, test_x
 	y, yv, yt = train_y, cval_y, test_y
 
-	rmsec, rmsepc, bout = [], [], []
+	output["rmsec"], output["rmsepc"], output["rmsept"] = [], [], []
 	NoY = ydata.shape[1]
 	u = y
-	for x in range(0, factors, 1):
+	for xi in range(factors):
 		t0, opt = 0, 0
-		if NoY > 1 and x == 0:  # PLS2
-			u = scipy.reshape(y[:, scipy.argsort(scipy.sum(y1**2))[0]], (y.shape[0], 1))
+
+		if NoY > 1:  # PLS2
+			u = u[:, scipy.argsort(scipy.sum(y1**2, axis=0))[0]][:, scipy.newaxis]
 
 		while opt == 0:
 			# for training
 			c = scipy.dot(scipy.dot(scipy.dot(scipy.transpose(u), X), scipy.transpose(X)), u) ** -0.5  # scaling factor
-			w = c * scipy.dot(scipy.transpose(X), u)  # vector of loading weights, w'w = 1
+			w = scipy.transpose(c * scipy.dot(scipy.transpose(u), X))  # vector of loading weights, w'w = 1
 			t = scipy.dot(X, w)  # spectral scores
-			p = scipy.dot(scipy.transpose(X), t) * scipy.linalg.inv(scipy.dot(scipy.transpose(t), t))  # spectral loadings
-			q = scipy.dot(scipy.transpose(u), t) * scipy.linalg.inv(scipy.dot(scipy.transpose(t), t))  # chemical loading
+			p = scipy.transpose(scipy.dot(scipy.transpose(X), t) * scipy.linalg.inv(scipy.dot(scipy.transpose(t), t)))  # spectral loadings
+			q = scipy.dot(scipy.transpose(t), y) * scipy.linalg.inv(scipy.dot(scipy.transpose(t), t))  # chemical loading
 
 			if NoY == 1:  # PLS1
 				opt = 1
 			elif float(scipy.reshape(scipy.sum(abs(t - t0)), ())) > 5 * 10**-5:  # PLS2 - check for convergence
-				u = scipy.dot(scipy.dot(u, q), scipy.linalg.inv(scipy.dot(scipy.transpose(q), q)))
+				u = scipy.dot(scipy.dot(y, scipy.transpose(q)), scipy.linalg.inv(scipy.dot(q, scipy.transpose(q))))
 				t0 = t
 			else:
 				opt = 1
 
-		X = X - scipy.dot(t, scipy.transpose(p))  # compute residuals of X which are also X for next iteration
-		u = u - scipy.dot(t, q)  # compute residuals of y which are also y for next iteration
+		X = X - scipy.dot(t, p)  # compute residuals of X which are also X for next iteration
+		u = y - scipy.dot(t, q)  # compute residuals of y which are also y for next iteration
 
-		if x == 0:
-			W, T, P, Q = w, t, p, q
+		if xi == 0:
+			output["W"], output["T"], output["P"], output["Q"] = w, t, p, q
 		else:
-			W = scipy.concatenate((W, w), 1)
-			T = scipy.concatenate((T, t), 1)
-			P = scipy.concatenate((P, p), 1)
-			Q = scipy.concatenate((Q, q), 0)
+			output["W"] = scipy.concatenate((output["W"], w), 1)
+			output["T"] = scipy.concatenate((output["T"], t), 1)
+			output["P"] = scipy.concatenate((output["P"], p), 0)
+			output["Q"] = scipy.concatenate((output["Q"], q), 0)
 
-		b = scipy.dot(scipy.dot(W, scipy.linalg.inv(scipy.dot(scipy.transpose(P), W))), Q)
+		b = scipy.dot(scipy.transpose(output["Q"]), scipy.transpose(scipy.dot(output["W"], scipy.linalg.inv(scipy.dot(output["P"], output["W"])))))
+
+		output["spec"] = b
 
 		# rms for training data - rmsec
-		if NoY == 1:
-			b0 = ym - scipy.dot(Xm, b)
-			predy = b0 + scipy.dot(x1, b)
-			rmsec.append(float(__rms__(predy, y1)))
-		elif NoY > 1:
-			predy = scipy.zeros(y1.shape)
-			avrmsec = 0
-			for eachy in range(0, NoY, 1):
-				b0 = __mean__(y1[:, eachy]) - scipy.dot(Xm, b)
-				predy[:, eachy] = scipy.reshape(b0 + scipy.dot(x1, b), (y1.shape[0],))
-				avrmsec = avrmsec + float(__rms__(predy[:, eachy], y1[:, eachy]))
-			rmsec.append(avrmsec / NoY)
+		b0 = ym - scipy.dot(Xm[scipy.newaxis, :], scipy.transpose(b))
+		predy = b0 + scipy.dot(x1, scipy.transpose(b))
+		output["rmsec"].append(float(_rms(predy, y1)))
 
 		# cross validation prediction
-		if NoY == 1:
-			b1 = ymv - scipy.dot(Xmv, b)
-			predyv = b1 + scipy.dot(x2, b)
-			rmsepc.append(float(__rms__(predyv, y2)))
-		elif NoY > 1:
-			predyv = scipy.zeros(y2.shape)
-			avrmsec = 0
-			for eachy in range(NoY):
-				b1 = __mean__(y2[:, eachy]) - scipy.dot(Xmv, b)
-				predyv[:, eachy] = scipy.reshape(b1 + scipy.dot(x2, b), (y2.shape[0],))
-				avrmsec = avrmsec + float(__rms__(predyv[:, eachy], y2[:, eachy]))
-			rmsepc.append(avrmsec / NoY)
+		b1 = ymv - scipy.dot(Xmv[scipy.newaxis, :], scipy.transpose(b))
+		predyv = b1 + scipy.dot(x2, scipy.transpose(b))
+		output["rmsepc"].append(float(_rms(predyv, y2)))
+
+		# independent test predictions
+		if max(mask) > 1:
+			b2 = ymt - scipy.dot(Xmt[scipy.newaxis, :], scipy.transpose(b))
+			predyt = b2 + scipy.dot(x3, scipy.transpose(b))
+			output["rmsept"].append(float(_rms(predyt, y3)))
 
 		# report progress to status bar
 		if stb is not None:
-			stb.SetStatusText(" ".join(("Extracting factor...", str(x + 1))), 0)
+			stb.SetStatusText(" ".join(("Extracting factor...", str(xi + 1))), 0)
 
 	# work out number of factors to use by finding the min of
 	# the rmsep cross validation - exception for use in GA
-	facs = ind = scipy.argsort(rmsepc)[0]
+	output["facs"] = ind = scipy.argsort(output["rmsepc"])[0]
 
 	# return final rms values
-	RMSEC, RMSEPC = rmsec[ind], rmsepc[ind]
-	b = scipy.dot(scipy.dot(W[:, 0 : ind + 1], scipy.linalg.inv(scipy.dot(scipy.transpose(P[:, 0 : ind + 1]), W[:, 0 : ind + 1]))), Q[0 : ind + 1])
+	output["RMSEC"], output["RMSEPC"] = output["rmsec"][ind], output["rmsepc"][ind]
 
-	if NoY == 1:
-		b0 = ym - scipy.dot(Xm, b)
-		predy = b0 + scipy.dot(x1, b)
-		b1 = ymv - scipy.dot(Xmv, b)
-		predyv = b1 + scipy.dot(x2, b)
-		if max(mask) > 1:
-			b2 = ymt - scipy.dot(Xmt, b)
-			predyt = b2 + scipy.dot(x3, b)
-			RMSEPT = float(__rms__(predyt, y3))
-		else:
-			predyt, RMSEPT = 0.0, 0.0
-	elif NoY > 1:
-		if max(mask) > 1:
-			predyt = scipy.zeros(y3.shape)
-			avrmsec = 0
-			for eachy in range(0, NoY, 1):
-				b2 = __mean__(y3[:, eachy]) - scipy.dot(Xmt, b)
-				predyt[:, eachy] = scipy.reshape(b2 + scipy.dot(x3, b), (y3.shape[0],))
-				avrmsec = avrmsec + float(__rms__(predyt[:, eachy], y3[:, eachy]))
-			RMSEPT = avrmsec / NoY
-		else:
-			predyt, RMSEPT = 0.0, 0.0
+	# claculate partial prediction based on optimal no. of factors
+	output["b"] = scipy.dot(scipy.transpose(output["Q"][0 : ind + 1, :]), scipy.transpose(scipy.dot(output["W"][:, 0 : ind + 1], scipy.linalg.inv(scipy.dot(output["P"][0 : ind + 1, :], output["W"][:, 0 : ind + 1])))))
+
+	# predictions based on optimal no. of factors
+	# training predictions
+	b0 = ym - scipy.dot(Xm[scipy.newaxis, :], scipy.transpose(output["b"]))
+	predy = b0 + scipy.dot(x1, scipy.transpose(output["b"]))
+	output["RMSEC"] = float(_rms(predy, y1))
+
+	# cross validation prediction
+	b1 = ymv - scipy.dot(Xmv[scipy.newaxis, :], scipy.transpose(output["b"]))
+	predyv = b1 + scipy.dot(x2, scipy.transpose(output["b"]))
+	output["RMSEPC"] = float(_rms(predyv, y2))
+
+	# independent test predictions
+	if max(mask) > 1:
+		b2 = ymt - scipy.dot(Xmt[scipy.newaxis, :], scipy.transpose(output["b"]))
+		predyt = b2 + scipy.dot(x3, scipy.transpose(output["b"]))
+		output["RMSEPT"] = float(_rms(predyt, y3))
+	else:
+		predyt, output["RMSEPT"] = 0.0, 0.0
 
 	if stb is not None:
 		stb.SetStatusText("Status", 0)
 
-	return W, T, P, Q, facs, predy, predyv, predyt, RMSEC, RMSEPC, rmsec, rmsepc, RMSEPT, b
+	# pull pls predictions back toegther
+	output["predictions"] = scipy.zeros(ydata.shape)
+	output["predictions"] = _put(output["predictions"], _index(mask, 0), predy[:, scipy.newaxis])
+	output["predictions"] = _put(output["predictions"], _index(mask, 1), predyv[:, scipy.newaxis])
+	output["predictions"] = _put(output["predictions"], _index(mask, 2), predyt[:, scipy.newaxis])
+
+	# recalculate spectral scores for all samples
+	output["plsscores"] = scipy.dot(x, output["W"][:, 0 : ind + 1])
+
+	return output
 
 
-def DFA_XVALRAW(X, group, mask, nofac):
+def DFA_XVALRAW(X, group, mask, nodfs):
 	"""Perform DFA with full cross validation
 
 	>>> import scipy
@@ -627,13 +625,9 @@ def DFA_XVALRAW(X, group, mask, nofac):
 	>>> group = np.array([[1],[1],[1],[1],[2],[2],[2],[3],[3],[3]])
 	>>> mask = np.array([[0],[1],[0],[0],[0],[0],[1],[0],[0],[1]])
 	>>> scores,loads,eigs = DFA_XVALRAW(X,group,mask,2)
-
-
 	"""
-	##	  if int(max(mask)) > 1:
-	x1, x2, x3, y1, y2, y3, dummy1, dummy2, dummy3 = __split__(X, np.array(group, "i"), mask)
-	##	  elif int(max(mask)) < 2:
-	##		  x1,x2,y1,y2,dummy1,dummy2=__split__(X,np.array(group,'i'),mask)
+
+	x1, x2, x3, y1, y2, y3, dummy1, dummy2, dummy3 = _split(X, np.array(group, "i"), mask)
 
 	# get indices
 	idxn = scipy.arange(X.shape[0])[:, nA]
@@ -641,7 +635,7 @@ def DFA_XVALRAW(X, group, mask, nofac):
 	cv_idx = scipy.take(idxn, _index(mask, 1), 0)
 
 	# train
-	trscores, loads, eigs, loads2 = DFA(x1, y1, nofac)
+	trscores, loads, eigs, loads2 = DFA(x1, y1, nodfs)
 
 	# cross validation
 	cvscores = scipy.dot(x2, loads)
@@ -651,7 +645,7 @@ def DFA_XVALRAW(X, group, mask, nofac):
 		ts_idx = scipy.take(idxn, _index(mask, 2), 0)
 		tstscores = scipy.dot(x3, loads)
 
-		scores = scipy.zeros((X.shape[0], nofac), "d")
+		scores = scipy.zeros((X.shape[0], nodfs), "d")
 
 		tr_idx = scipy.reshape(tr_idx, (len(tr_idx),)).tolist()
 		cv_idx = scipy.reshape(cv_idx, (len(cv_idx),)).tolist()
@@ -670,8 +664,8 @@ def DFA_XVALRAW(X, group, mask, nofac):
 	return scores, loads, eigs
 
 
-def DFA_XVAL(X, pca, noloads, group, mask, nofac, ptype="covar"):
-	"""Perform DFA with full cross validation
+def DFA_XVAL_PCA(X, pca, nopcs, group, mask, nodfs, ptype="covar"):
+	"""Perform PC-DFA with full cross validation
 
 	>>> import scipy
 	>>> X = np.array([[ 0.19343116,	0.49655245,	 0.72711322,  0.79482108,  0.13651874],[ 0.68222322,  0.89976918,  0.30929016,	0.95684345,	 0.01175669],[ 0.3027644 ,	0.82162916,	 0.83849604,  0.52259035,  0.89389797],[ 0.54167385,  0.64491038,  0.56807246,	0.88014221,	 0.19913807],[ 0.15087298,	0.81797434,	 0.37041356,  0.17295614,  0.29872301],[ 0.69789848,  0.66022756,  0.70273991,	0.9797469 ,	 0.66144258],[ 0.378373	 ,	0.34197062,	 0.54657115,  0.27144726,  0.28440859],[ 0.8600116 ,  0.2897259 ,  0.4448802 ,	0.25232935,	 0.46922429],[ 0.85365513,	0.34119357,	 0.69456724,  0.8757419 ,  0.06478112],[ 0.59356291,  0.53407902,  0.62131013,	0.73730599,	 0.98833494]])
@@ -680,12 +674,12 @@ def DFA_XVAL(X, pca, noloads, group, mask, nofac, ptype="covar"):
 	>>> scores,loads,eigs = DFA_XVAL(X,'NIPALS',3,group,mask,2,'covar')
 
 	"""
-	rx1, rx2, rx3, ry1, ry2, ry3, dummy1, dummy2, dummy3 = __split__(X, np.array(group, "i")[:, nA], mask[:, nA])
+	rx1, rx2, rx3, ry1, ry2, ry3, dummy1, dummy2, dummy3 = _split(X, np.array(group, "i")[:, nA], mask[:, nA])
 
 	if pca == "SVD":
 		pcscores, pp, pr, pceigs = PCA_SVD(rx1, type=ptype)
 	elif pca == "NIPALS":
-		pcscores, pp, pr, pceigs = PCA_NIPALS(rx1, noloads, type=ptype)
+		pcscores, pp, pr, pceigs = PCA_NIPALS(rx1, nopcs, type=ptype)
 
 	# get indices
 	idxn = scipy.arange(X.shape[0])[:, nA]
@@ -693,7 +687,7 @@ def DFA_XVAL(X, pca, noloads, group, mask, nofac, ptype="covar"):
 	cv_idx = scipy.take(idxn, _index(mask, 1), 0)
 
 	# train
-	trscores, loads, eigs, dummy = DFA(pcscores[:, 0:noloads], ry1, nofac)
+	trscores, loads, eigs, dummy = DFA(pcscores[:, 0:nopcs], ry1, nodfs)
 
 	# cross validation
 	# Get projected pc scores
@@ -704,7 +698,7 @@ def DFA_XVAL(X, pca, noloads, group, mask, nofac, ptype="covar"):
 
 	pcscores = scipy.dot(rx2, scipy.transpose(pp))
 
-	cvscores = scipy.dot(pcscores[:, 0:noloads], loads)
+	cvscores = scipy.dot(pcscores[:, 0:nopcs], loads)
 
 	# independent test
 	if max(mask) > 1:
@@ -714,9 +708,9 @@ def DFA_XVAL(X, pca, noloads, group, mask, nofac, ptype="covar"):
 		else:
 			rx3 = (rx3 - scipy.resize(scipy.mean(rx3, 0), (len(rx3), rx1.shape[1]))) / scipy.resize(scipy.std(rx3, 0), (len(rx3), rx1.shape[1]))
 		pcscores = scipy.dot(rx3, scipy.transpose(pp))
-		tstscores = scipy.dot(pcscores[:, 0:noloads], loads)
+		tstscores = scipy.dot(pcscores[:, 0:nopcs], loads)
 
-		scores = scipy.zeros((X.shape[0], nofac), "d")
+		scores = scipy.zeros((X.shape[0], nodfs), "d")
 
 		tr_idx = scipy.reshape(tr_idx, (len(tr_idx),)).tolist()
 		cv_idx = scipy.reshape(cv_idx, (len(cv_idx),)).tolist()
@@ -732,7 +726,50 @@ def DFA_XVAL(X, pca, noloads, group, mask, nofac, ptype="covar"):
 		_put(scores, cv_idx, cvscores)
 
 	# get loadings for original variables
-	loads = scipy.dot(scipy.transpose(pp[0:noloads, :]), loads)
+	loads = scipy.dot(scipy.transpose(pp[0:nopcs, :]), loads)
+
+	return scores, loads, eigs
+
+
+def DFA_XVAL_PLS(plsscores, plsloads, nolvs, group, mask, nodfs):
+	"""Perform PLS-DFA with full cross validation"""
+	rx1, rx2, rx3, ry1, ry2, ry3, dummy1, dummy2, dummy3 = _split(plsscores, np.array(group, "i")[:, nA], mask[:, nA])
+
+	# get indices
+	idxn = scipy.arange(plsscores.shape[0])[:, nA]
+	tr_idx = scipy.take(idxn, _index(mask, 0), 0)
+	cv_idx = scipy.take(idxn, _index(mask, 1), 0)
+
+	# train
+	cvas, loads, eigs, dummy = DFA(rx1[:, 0:nolvs], ry1, nodfs)
+
+	# cross validation
+	cvav = scipy.dot(rx2[:, 0:nolvs], loads)
+
+	# independent test
+	if max(mask) > 1:
+		cvat = scipy.dot(rx3[:, 0:nolvs], loads)
+
+		scores = scipy.zeros((plsscores.shape[0], nodfs), "d")
+
+		tr_idx = scipy.reshape(tr_idx, (len(tr_idx),)).tolist()
+		cv_idx = scipy.reshape(cv_idx, (len(cv_idx),)).tolist()
+		ts_idx = scipy.take(idxn, _index(mask, 2), 0)
+		ts_idx = scipy.reshape(ts_idx, (len(ts_idx),)).tolist()
+		_put(scores, tr_idx, cvas)
+		_put(scores, cv_idx, cvav)
+		_put(scores, ts_idx, cvat)
+
+	else:
+		scores = scipy.concatenate((cvas, cvav), 0)
+
+		tr_idx = scipy.reshape(tr_idx, (len(tr_idx),)).tolist()
+		cv_idx = scipy.reshape(cv_idx, (len(cv_idx),)).tolist()
+		_put(scores, tr_idx, cvas)
+		_put(scores, cv_idx, cvav)
+
+	# get loadings for original variables
+	loads = scipy.dot(plsloads[:, 0:nolvs], loads)
 
 	return scores, loads, eigs
 
@@ -740,13 +777,13 @@ def DFA_XVAL(X, pca, noloads, group, mask, nofac, ptype="covar"):
 def OLS(act, pred):
 	"""Ordinary least squares regression"""
 	act = scipy.reshape(act, (len(act), 1))
-	gradient = scipy.sum((act - __mean__(act)) * (pred - __mean__(pred))) / (sum((act - __mean__(act)) ** 2))
-	yintercept = __mean__(act) - (gradient * __mean__(act))
-	mserr = pred - __mean__(pred)
+	gradient = scipy.sum((act - _mean(act)) * (pred - _mean(pred))) / (sum((act - _mean(act)) ** 2))
+	yintercept = _mean(act) - (gradient * _mean(act))
+	mserr = pred - _mean(pred)
 
-	rmserr = __rms__(act, pred)
-	gerr = scipy.sqrt(rmserr**2 / scipy.sum((act - __mean__(act)) ** 2))
-	ierr = scipy.sqrt((rmserr**2) * ((1 / len(act)) + ((__mean__(act) ** 2) / scipy.sum((act - __mean__(act)) ** 2))))
+	rmserr = _rms(act, pred)
+	gerr = scipy.sqrt(rmserr**2 / scipy.sum((act - _mean(act)) ** 2))
+	ierr = scipy.sqrt((rmserr**2) * ((1 / len(act)) + ((_mean(act) ** 2) / scipy.sum((act - _mean(act)) ** 2))))
 
 	return gradient, yintercept, mserr, rmserr, gerr, ierr
 

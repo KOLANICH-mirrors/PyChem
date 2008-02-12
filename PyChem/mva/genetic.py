@@ -15,10 +15,10 @@ import copy
 
 import scipy
 
-from .chemometrics import __flip__, __slice__
+from .chemometrics import _flip, _slice
 
 
-def __sortrows__(a, i=0):
+def _sortrows(a, i=0):
 	"""Sort rows of "a" in ascending order by column i"""
 	keep = copy.deepcopy(a)
 	ind, add, c = [], max(a[:, i]) + 10, 0
@@ -68,12 +68,12 @@ def rank(chrom, score):
 	"""Linear ranking of individuals between
 	0 (worst) and 2 (best)
 	"""
-	order = __sortrows__(scipy.concatenate((score, chrom), 1))
+	order = _sortrows(scipy.concatenate((score, chrom), 1))
 
 	ranksc = scipy.zeros((chrom.shape[0], 1), "d")
 	for x in range(1, len(score), 1):
 		ranksc[x] = 2 * (float(x) / (chrom.shape[0] - 1))
-	ranksc = __flip__(ranksc)
+	ranksc = _flip(ranksc)
 
 	chrom = np.array(order[:, 1 : order.shape[1]])
 	scores = scipy.reshape(order[:, 0], (order.shape[0], 1))
@@ -197,23 +197,18 @@ def reinsert(ch, selch, chsc, selsc):
 	newScore = scipy.concatenate((chsc, selsc), 0)
 
 	# select only unique chroms - can be removed
-	uid = _unique(newScore)
+	uid = []
+	for i in range(len(newChrom)):
+		if len(scipy.unique(newChrom[i, :])) == ch.shape[1]:
+			uid.append(i)
 	newScore = scipy.take(newScore, uid, 0)
 	newChrom = scipy.take(newChrom, uid, 0)
-	##	  uid = scipy.unique1d(newScore,True)
-	##	  newScore = uid[1]
-	##	  newChrom = scipy.take(newChrom,uid[0].tolist(),0)
 
-	idx = scipy.reshape(scipy.argsort(newScore, 0), (len(newScore),)).tolist()
+	idx = scipy.argsort(newScore, 0)[:, 0].tolist()
+	idx = idx[0 : ch.shape[0]]
 
-	newChrom = scipy.take(newChrom, idx[0 : ch.shape[0]], 0)
-	newScore = scipy.take(newScore, idx[0 : ch.shape[0]], 0)
-
-	order = scipy.concatenate((newScore, newChrom), 1)
-	order = __sortrows__(order)
-
-	newChrom = order[:, 1 : order.shape[1]]
-	newScore = scipy.reshape(order[:, 0], (order.shape[0], 1))
+	newChrom = scipy.take(newChrom, idx, 0)
+	newScore = scipy.take(newScore, idx, 0)
 
 	return newChrom, newScore
 

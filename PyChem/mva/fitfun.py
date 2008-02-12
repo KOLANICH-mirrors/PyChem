@@ -19,12 +19,12 @@ from expSetup import valSplit
 from scipy import newaxis as nA
 
 from .chemometrics import *
-from .chemometrics import __BW__, __diag__, __flip__, __slice__, __split__, _index, _put
+from .chemometrics import _BW, _diag, _flip, _index, _put, _slice, _split
 from .genetic import _remdup
 from .process import *
 
 
-def __group__(x, mrep):
+def _group(x, mrep):
 	grp = []
 	for n in range(1, x.shape[0] / mrep + 1, 1):
 		for cnt in range(0, mrep, 1):
@@ -32,7 +32,7 @@ def __group__(x, mrep):
 	return scipy.reshape(scipy.asarray(grp, "i"), (len(grp), 1))
 
 
-def call_dfa(chrom, xdata, DFs, folds, data, grid, pc):
+def call_dfa(chrom, xdata, DFs, mask, data):
 	"""Runs DFA on subset of variables from "xdata" as
 	defined by "chrom" and returns a vector of fitness
 	scores to be fed back into the GA
@@ -41,25 +41,22 @@ def call_dfa(chrom, xdata, DFs, folds, data, grid, pc):
 	for x in range(len(chrom)):
 		if _remdup(chrom[x]) == 0:
 			# extract vars from xdata
-			slice = meancent(__slice__(xdata, chrom[x]))
+			slice = meancent(_slice(xdata, chrom[x]))
 			collate = 0
-			for nF in range(folds):
+			for nF in range(mask.shape[1]):
 				# split in to training and test
-				if nF == 0:
-					tr_slice, cv_slice, ts_slice, tr_grp, cv_grp, ts_grp, tr_nm, cv_nm, ts_nm = __split__(slice, data["class"], data["validation"], data["label"])
-				else:
-					fMask = valSplit(grid, data, pc)
-					tr_slice, cv_slice, ts_slice, tr_grp, cv_grp, ts_grp, tr_nm, cv_nm, ts_nm = __split__(slice, data["class"], fMask, data["label"])
+				tr_slice, cv_slice, ts_slice, tr_grp, cv_grp, ts_grp, tr_nm, cv_nm, ts_nm = _split(slice, data["class"], mask[:, nF].tolist(), data["label"])
+
 				try:
 					u, v, eigs, dummy = DFA(tr_slice, tr_grp, DFs)
 					projU = scipy.dot(cv_slice, v)
 					u = scipy.concatenate((u, projU), 0)
 					group2 = scipy.concatenate((tr_grp, cv_grp), 0)
 
-					B, W = __BW__(u, group2)
+					B, W = _BW(u, group2)
 					L, A = scipy.linalg.eig(B, W)
-					order = __flip__(scipy.argsort(scipy.reshape(L.real, (len(L),))))
-					Ls = __flip__(scipy.sort(L.real))
+					order = _flip(scipy.argsort(scipy.reshape(L.real, (len(L),))))
+					Ls = _flip(scipy.sort(L.real))
 					eigval = Ls[0:DFs]
 
 					collate += 1 / sum(eigval)
@@ -67,11 +64,11 @@ def call_dfa(chrom, xdata, DFs, folds, data, grid, pc):
 					continue
 
 			if collate != 0:
-				Y.append(collate / float(folds))
+				Y.append(collate / float(mask.shape[1]))
 			else:
 				Y.append(10**5)
 		else:
-			Y.append(10.0**5 / float(folds))
+			Y.append(10.0**5 / float(mask.shape[1]))
 
 	return np.array(Y)[:, nA]
 
@@ -79,10 +76,10 @@ def call_dfa(chrom, xdata, DFs, folds, data, grid, pc):
 def rerun_dfa(chrom, xdata, mask, groups, names, DFs):
 	"""Run DFA in min app"""
 	# extract vars from xdata
-	slice = meancent(__slice__(xdata, chrom))
+	slice = meancent(_slice(xdata, chrom))
 
 	# split in to training and test
-	tr_slice, cv_slice, ts_slice, tr_grp, cv_grp, ts_grp, tr_nm, cv_nm, ts_nm = __split__(slice, groups, mask, names)
+	tr_slice, cv_slice, ts_slice, tr_grp, cv_grp, ts_grp, tr_nm, cv_nm, ts_nm = _split(slice, groups, mask, names)
 
 	# get indexes
 	idx = scipy.arange(xdata.shape[0])[:, nA]
@@ -105,7 +102,7 @@ def rerun_dfa(chrom, xdata, mask, groups, names, DFs):
 	return uout, v, eigs
 
 
-def call_pls(chrom, xdata, factors, data, folds, grid, pc):
+def call_pls(chrom, xdata, factors, mask, data):
 	"""Runs pls on a subset of X-variables"""
 	scores = []
 
@@ -114,22 +111,17 @@ def call_pls(chrom, xdata, factors, data, folds, grid, pc):
 			# extract vars from xdata
 			slice = scipy.take(xdata, chrom[i, :].tolist(), 1)
 			collate = 0
-			for nF in range(folds):
+			for nF in range(mask.shape[1]):
 				# split in to training and test
-				if nF == 0:
-					mask = data["validation"]
-				else:
-					mask = valSplit(grid, data, pc)
+				pls_output = PLS(slice, data["class"], mask[:, nF].tolist(), factors)
 
-				W, T, P, Q, facs, predy, predyv, predyt, RMSEC, RMSEPC, rmsec, rmsepc, RMSEPT, b = PLS(slice, np.array(data["class"], "f")[:, nA], mask, factors)
-
-				if min(rmsec) <= min(rmsepc):
-					collate += RMSEPC
+				if min(pls_output["rmsec"]) <= min(pls_output["rmsepc"]):
+					collate += pls_output["RMSEPC"]
 				else:
 					collate += 10.0**5
 
 			if collate != 0:
-				scores.append(collate / float(folds))
+				scores.append(collate / float(mask.shape[1]))
 			else:
 				scores.append(10**5)
 		else:
