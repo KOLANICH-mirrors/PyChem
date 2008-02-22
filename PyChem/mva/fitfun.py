@@ -45,7 +45,7 @@ def call_dfa(chrom, xdata, DFs, mask, data):
 			collate = 0
 			for nF in range(mask.shape[1]):
 				# split in to training and test
-				tr_slice, cv_slice, ts_slice, tr_grp, cv_grp, ts_grp, tr_nm, cv_nm, ts_nm = _split(slice, data["class"], mask[:, nF].tolist(), data["label"])
+				tr_slice, cv_slice, ts_slice, tr_grp, cv_grp, ts_grp, tr_nm, cv_nm, ts_nm = _split(slice, data["class"][:, 0], mask[:, nF].tolist(), data["label"])
 
 				try:
 					u, v, eigs, dummy = DFA(tr_slice, tr_grp, DFs)
@@ -59,16 +59,16 @@ def call_dfa(chrom, xdata, DFs, mask, data):
 					Ls = _flip(scipy.sort(L.real))
 					eigval = Ls[0:DFs]
 
-					collate += 1 / sum(eigval)
+					collate += sum(eigval)
 				except:
 					continue
 
 			if collate != 0:
-				Y.append(collate / float(mask.shape[1]))
+				Y.append(float(mask.shape[1]) / collate)
 			else:
-				Y.append(10**5)
+				Y.append(10.0**5)
 		else:
-			Y.append(10.0**5 / float(mask.shape[1]))
+			Y.append(10.0**5)
 
 	return np.array(Y)[:, nA]
 
@@ -113,7 +113,7 @@ def call_pls(chrom, xdata, factors, mask, data):
 			collate = 0
 			for nF in range(mask.shape[1]):
 				# split in to training and test
-				pls_output = PLS(slice, data["class"], mask[:, nF].tolist(), factors)
+				pls_output = PLS(slice, data["class"][:, 0], mask[:, nF].tolist(), factors)
 
 				if min(pls_output["rmsec"]) <= min(pls_output["rmsepc"]):
 					collate += pls_output["RMSEPC"]
@@ -123,7 +123,7 @@ def call_pls(chrom, xdata, factors, mask, data):
 			if collate != 0:
 				scores.append(collate / float(mask.shape[1]))
 			else:
-				scores.append(10**5)
+				scores.append(10.0**5)
 		else:
 			scores.append(10.0**5)
 

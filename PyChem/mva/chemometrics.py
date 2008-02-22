@@ -609,7 +609,8 @@ def PLS(xdata, ydata, mask, factors, stb=None, type=0):
 	output["predictions"] = scipy.zeros(ydata.shape)
 	output["predictions"] = _put(output["predictions"], _index(mask, 0), predy[:, scipy.newaxis])
 	output["predictions"] = _put(output["predictions"], _index(mask, 1), predyv[:, scipy.newaxis])
-	output["predictions"] = _put(output["predictions"], _index(mask, 2), predyt[:, scipy.newaxis])
+	if max(mask) > 1:
+		output["predictions"] = _put(output["predictions"], _index(mask, 2), predyt[:, scipy.newaxis])
 
 	# recalculate spectral scores for all samples
 	output["plsscores"] = scipy.dot(x, output["W"][:, 0 : ind + 1])
