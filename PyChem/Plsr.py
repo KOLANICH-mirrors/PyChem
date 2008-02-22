@@ -120,6 +120,7 @@ class Plsr(wx.Panel):
 		self.nbFullPls.SetToolTip("")
 		self.nbFullPls.SetAutoLayout(True)
 		self.nbFullPls.SetConstraints(LayoutAnchors(self.nbFullPls, True, True, True, True))
+		self.nbFullPls.SetTabSize((40, 15))
 
 		self.nbPlsPreds = wx.Notebook(id=-1, name="nbPlsPreds", parent=self, pos=wx.Point(176, 274), size=wx.Size(310, 272), style=wx.NB_BOTTOM)
 		self.nbPlsPreds.SetToolTip("")
@@ -197,7 +198,14 @@ class Plsr(wx.Panel):
 		self.titleBar.spnPLSfactor1.SetValue(1)
 		self.titleBar.spnPLSfactor2.SetValue(2)
 
-		objects = {"plcPLSerror": ["Prediction Error", "PLS Factors", "RMS Error"], "plcPredPls1": ["PLS Predictions", "Actual", "Predicted"], "plcPlsHetero": ["Residuals vs. Predicted Values", "Predicted", "Residuals"], "plcPLSloading": ["PLS Loading", "Arbitrary", "Arbitrary"]}
+		# delete multiple scores plots
+		self.plcPredPls1.prnt.SetSelection(0)
+		self.plcPredPls1.prnt.SetPageText(0, "")
+		self.plcPredPls1.prnt.SetTabSize((0, 1))
+		for page in range(self.plcPredPls1.prnt.GetPageCount() - 1, 0, -1):
+			self.plcPredPls1.prnt.DeletePage(page)
+
+		objects = {"plcPLSerror": ["RMS Error", "Latent Variable", "RMS Error"], "plcPredPls1": ["PLS Predictions", "Actual", "Predicted"], "plcPlsHetero": ["Residuals vs. Predicted Values", "Predicted", "Residuals"], "plcPLSloading": ["PLS Loading", "w*c[1]", "w*c[2]"]}
 		curve = wx.lib.plot.PolyLine([[0, 0], [1, 1]], colour="white", width=1, style=wx.TRANSPARENT)
 
 		for each in list(objects.keys()):
@@ -319,19 +327,16 @@ class TitleBar(bp.ButtonPanel):
 			if dlg.ShowModal() == wx.ID_OK:
 				saveFile = dlg.GetPath()
 				# prepare prediction output
-				pred, c1, c2, c3 = [], 0, 0, 0
-				for i in range(len(self.data["validation"])):
-					if self.data["validation"][i] == 0:
-						pred.append([0, self.data["class"][i], float(self.data["plstrnpred"][c1, 0])])
-						c1 += 1
-					elif self.data["validation"][i] == 1:
-						pred.append([1, self.data["class"][i], float(self.data["plscvpred"][c2, 0])])
-						c2 += 1
-					else:
-						pred.append([2, self.data["class"][i], float(self.data["plststpred"][c3, 0])])
-						c3 += 1
+				pred = []
+				pred = scipy.concatenate((np.array(self.data["validation"])[:, nA], self.data["class"], self.data["plspred"]), 1)
 
-				out = "#PARTIAL_LEAST_SQUARES_PREDICTIONS\n" + str_array(np.array(pred), col_sep="\t") + "\n" + "#PARTIAL_LEAST_SQUARES_LOADINGS\n" + str_array(self.data["plsloads"], col_sep="\t") + "\n" + "#NUMBER_OF_PLS_FACTORS\n" + str(self.data["plsfactors"] + 1) + "\n" + "#ROOT_MEAN_SQUARED_ERROR_OF_CALIBRATION\n" + str(self.data["rmsec"]) + "\n" + "#ROOT_MEAN_SQUARED_ERROR_OF_CROSS_VALIDATION\n" + str(self.data["rmsepc"]) + "\n" + "#ROOT_MEAN_SQUARED_ERROR_FOR_INDEPENDENT_TEST_SAMPLES\n" + str(self.data["rmsept"]) + "\n" + "#PARTIAL_PREDICTION\n" + str_array(self.data["plspred"], col_sep="\t") + "\n" + "#SPECTRAL SCORES\n" + str_array(self.data["plst"], col_sep="\t")
+				out = "#PARTIAL_LEAST_SQUARES_PREDICTIONS\nValidation\t"
+				for i in range(self.data["class"].shape[1]):
+					out = out + "Y" + str(i) + "\t"
+				for i in range(self.data["class"].shape[1]):
+					out = out + "P" + str(i) + "\t"
+
+				out = out + "\n" + str_array(np.array(pred), col_sep="\t") + "\n" + "#PARTIAL_LEAST_SQUARES_LOADINGS\n" + str_array(self.data["plsloads"], col_sep="\t") + "\n" + "#NUMBER_OF_PLS_FACTORS\n" + str(self.data["plsfactors"] + 1) + "\n" + "#ROOT_MEAN_SQUARED_ERROR_OF_CALIBRATION\n" + str(self.data["rmsec"]) + "\n" + "#ROOT_MEAN_SQUARED_ERROR_OF_CROSS_VALIDATION\n" + str(self.data["rmsepc"]) + "\n" + "#ROOT_MEAN_SQUARED_ERROR_FOR_INDEPENDENT_TEST_SAMPLES\n" + str(self.data["rmsept"]) + "\n" + "#PARTIAL_PREDICTION\n" + str_array(self.data["partial_pred"], col_sep="\t") + "\n" + "#SPECTRAL SCORES\n" + str_array(self.data["plst"], col_sep="\t")
 				f = file(saveFile, "w")
 				f.write(out)
 				f.close()
@@ -354,18 +359,18 @@ class TitleBar(bp.ButtonPanel):
 
 			# create false pls2 constituent array for pls-da classification
 			if self.cbxType.GetSelection() == 1:
-				pls_class = -scipy.ones((len(self.data["class"][:, 0]), len(scipy.unique(self.data["class"][:, 0]))))
+				self.data["pls_class"] = -scipy.ones((len(self.data["class"][:, 0]), len(scipy.unique(self.data["class"][:, 0]))))
 				uCnt = 0
 				for each in scipy.unique(self.data["class"][:, 0]):
 					idx = _index(self.data["class"][:, 0], each)
-					pls_class[idx, uCnt] = scipy.ones((len(idx),))
+					self.data["pls_class"][idx, uCnt] = scipy.ones((len(idx),))
 					uCnt += 1
 
 			else:
-				pls_class = self.data["class"]
+				self.data["pls_class"] = self.data["class"]
 
 			# Run PLS
-			pls_output = mva.chemometrics.PLS(xdata, pls_class, self.data["validation"], self.spnPLSmaxfac.GetValue(), stb=self.parent.prnt.parent.sbMain, type=self.cbxPreprocType.GetSelection())
+			pls_output = mva.chemometrics.PLS(xdata, self.data["pls_class"], self.data["validation"], self.spnPLSmaxfac.GetValue(), stb=self.parent.prnt.parent.sbMain, type=self.cbxPreprocType.GetSelection())
 
 			self.data["plsloads"] = pls_output["W"]
 			self.data["plst"] = pls_output["plsscores"]
@@ -377,6 +382,7 @@ class TitleBar(bp.ButtonPanel):
 			self.data["RMSEC"] = pls_output["RMSEC"]
 			self.data["RMSEPC"] = pls_output["RMSEPC"]
 			self.data["RMSEPT"] = pls_output["RMSEPT"]
+			self.data["partial_pred"] = scipy.transpose(pls_output["b"])
 
 			# plot pls error
 			plotLine(self.parent.plcPLSerror, scipy.concatenate((np.array(self.data["rmsec"])[nA, :], np.array(self.data["rmsepc"])[nA, :]), 0), xaxis=scipy.arange(1, len(self.data["rmsec"]) + 1)[:, nA], rownum=0, tit="Root Mean Squared Error", xLabel="Latent variable", yLabel="RMS Error", type="multi", ledge=["Trn Err", "Tst Err"], wdth=3)
@@ -409,7 +415,7 @@ class TitleBar(bp.ButtonPanel):
 			self.spnPLSfactor2.SetValue(2)
 
 			# plot pls model
-			self.parent.plcPredPls1 = PlotPlsModel(self.parent.plcPredPls1, model="full", tbar=self.parent.prnt.parent.tbMain, cL=self.data["class"], scores=self.data["plst"], predictions=self.data["plspred"], validation=self.data["validation"], RMSEPT=self.data["RMSEPT"], factors=self.data["plsfactors"], type=self.data["plstype"], col1=0, col2=1, label=self.data["label"], symbols=self.parent.prnt.parent.tbMain.tbSymbols.GetValue(), usetxt=self.parent.prnt.parent.tbMain.tbPoints.GetValue(), usecol=[], usesym=[], errplot=False)
+			self.parent.plcPredPls1 = PlotPlsModel(self.parent.plcPredPls1, model="full", tbar=self.parent.prnt.parent.tbMain, cL=self.data["class"], scores=self.data["plst"], predictions=self.data["plspred"], validation=self.data["validation"], RMSEPT=self.data["RMSEPT"], factors=self.data["plsfactors"], type=self.data["plstype"], col1=0, col2=1, label=self.data["label"], symbols=self.parent.prnt.parent.tbMain.tbSymbols.GetValue(), usetxt=self.parent.prnt.parent.tbMain.tbPoints.GetValue(), usecol=[], usesym=[], errplot=False, plScL=self.data["pls_class"])
 
 			# Draw PLS loadings
 			self.plotPlsLoads()
@@ -520,4 +526,4 @@ class TitleBar(bp.ButtonPanel):
 	def plotPlsScores(self):
 		# Plot scores for pls-da
 		if self.data["plstype"] == 1:
-			self.parent.plcPredPls1 = PlotPlsModel(self.parent.plcPredPls1, model="full", tbar=self.parent.prnt.parent.tbMain, cL=self.data["class"], scores=self.data["plst"], predictions=None, label=self.data["label"], validation=self.data["validation"], RMSEPT=None, factors=None, type=1, col1=self.spnPLSfactor1.GetValue() - 1, col2=self.spnPLSfactor2.GetValue() - 1, symbols=self.parent.prnt.parent.tbMain.tbSymbols.GetValue(), usetxt=self.parent.prnt.parent.tbMain.tbPoints.GetValue(), usecol=[], usesym=[])
+			self.parent.plcPredPls1 = PlotPlsModel(self.parent.plcPredPls1, model="full", tbar=self.parent.prnt.parent.tbMain, cL=self.data["class"], scores=self.data["plst"], predictions=None, label=self.data["label"], validation=self.data["validation"], RMSEPT=None, factors=None, type=1, col1=self.spnPLSfactor1.GetValue() - 1, col2=self.spnPLSfactor2.GetValue() - 1, symbols=self.parent.prnt.parent.tbMain.tbSymbols.GetValue(), usetxt=self.parent.prnt.parent.tbMain.tbPoints.GetValue(), usecol=[], usesym=[], plScL=self.data["pls_class"])

@@ -206,12 +206,10 @@ class TitleBar(bp.ButtonPanel):
 		dlg = wx.FileDialog(self, "Choose a file", ".", "", "Text files (*.txt)|*.txt", wx.FD_SAVE)
 		try:
 			if dlg.ShowModal() == wx.ID_OK:
-				##				  f = file(dlg.GetPath(),'w')
 				if self.cbxData.GetSelection() == 0:
-					scipy.io.write_array(dlg.GetPath(), self.data["raw"], "\t")
+					scipy.io.write_array(dlg.GetPath(), scipy.transpose(self.data["raw"]), "\t")
 				else:
-					scipy.io.write_array(dlg.GetPath(), self.data["proc"], "\t")
-		##				  f.close()
+					scipy.io.write_array(dlg.GetPath(), scipy.transpose(self.data["proc"]), "\t")
 		finally:
 			dlg.Destroy()
 

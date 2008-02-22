@@ -136,6 +136,7 @@ class Ga(wx.Panel):
 		self.nbGaModPlot = wx.Notebook(id=-1, name="nbGaModPlot", parent=self.p1, pos=wx.Point(760, 326), size=wx.Size(310, 272), style=wx.NB_BOTTOM)
 		self.nbGaModPlot.prnt = self.p1
 		self.nbGaModPlot.SetToolTip("")
+		self.nbGaModPlot.SetTabSize((40, 15))
 
 		##		  self.plcGaEigsFigure = Figure(facecolor='w')
 		##		  self.plcGaEigs = FigureCanvas(self.nbGaModPlot, -1, self.plcGaEigsFigure)
@@ -219,8 +220,15 @@ class Ga(wx.Panel):
 		self.titleBar.cbxFeature1.Enable(False)
 		self.titleBar.cbxFeature2.Enable(False)
 
+		# delete multiple scores plots
+		self.plcGaModelPlot1.prnt.SetSelection(0)
+		self.plcGaModelPlot1.prnt.SetPageText(0, "")
+		self.plcGaModelPlot1.prnt.SetTabSize((0, 1))
+		for page in range(self.plcGaModelPlot1.prnt.GetPageCount() - 1, 0, -1):
+			self.plcGaModelPlot1.prnt.DeletePage(page)
+
 		# clear plots
-		objects = {"plcGaModelPlot1": ["Predictions", "Latent Variable 1", "Latent Variable 1"], "plcGaFeatPlot": ["Measured Variable Biplot", "Variable", "Variable"], "plcGaFreqPlot": ["Frequency of Variable Selection", "Independent Variable", "Frequency"], "plcGaOptPlot": ["Rate of GA Optimisation", "Generation", "Fitness Score"]}
+		objects = {"plcGaModelPlot1": ["Predictions", "t[1]", "t[2]"], "plcGaFeatPlot": ["Measured Variable Biplot", "Variable", "Variable"], "plcGaFreqPlot": ["Frequency of Variable Selection", "Independent Variable", "Frequency"], "plcGaOptPlot": ["Rate of GA Optimisation", "Generation", "Fitness Score"]}
 
 		curve = wx.lib.plot.PolyLine([[0, 0], [1, 1]], colour="white", width=1, style=wx.TRANSPARENT)
 
@@ -359,7 +367,7 @@ class TitleBar(bp.ButtonPanel):
 		# Set loadings plot options
 		####
 		# GA scores plot
-		plotScores(self.parent.plcGaModelPlot1, self.data["gadfadfscores"], cl=self.data["class"][:, 0], labels=self.data["label"], validation=self.data["validation"], col1=self.spnGaScoreFrom.GetValue() - 1, col2=self.spnGaScoreTo.GetValue() - 1, title="DF Scores", xLabel="t[" + str(self.spnGaScoreFrom.GetValue()) + "]", yLabel="t[" + str(self.spnGaScoreTo.GetValue()) + "]", xval=True, text=self.parent.parent.parent.tbMain.tbPoints.GetValue(), pconf=self.parent.parent.parent.tbMain.tbConf.GetValue(), symb=self.parent.parent.parent.tbMain.tbSymbols.GetValue(), usecol=[], usesym=[])
+		plotScores(self.parent.plcGaModelPlot1, self.data["gadfadfscores"], cl=self.data["class"][:, 0], labels=self.data["label"], validation=self.data["validation"], col1=self.spnGaScoreFrom.GetValue() - 1, col2=self.spnGaScoreTo.GetValue() - 1, title="DF Scores", xLabel="t[" + str(self.spnGaScoreFrom.GetValue()) + "]", yLabel="t[" + str(self.spnGaScoreTo.GetValue()) + "]", xval=True, text=self.parent.parent.tbMain.tbPoints.GetValue(), pconf=self.parent.parent.tbMain.tbConf.GetValue(), symb=self.parent.parent.tbMain.tbSymbols.GetValue(), usecol=[], usesym=[])
 
 		# DF loadings
 		exec("self.parent.optDlg.plotGaLoads(self.parent.optDlg.currentChrom,self.data['ga" + self.type.lower() + self.type.lower() + "loads'],self.parent.plcGaSpecLoad,self.spnGaScoreFrom.GetValue()-1)")
@@ -368,7 +376,7 @@ class TitleBar(bp.ButtonPanel):
 		# Set loadings plot options
 		###
 		# GA scores plot
-		plotScores(self.parent.plcGaModelPlot1, self.data["gadfadfscores"], cl=self.data["class"][:, 0], labels=self.data["label"], validation=self.data["validation"], col1=self.spnGaScoreFrom.GetValue() - 1, col2=self.spnGaScoreTo.GetValue() - 1, title="DF Scores", xLabel="t[" + str(self.spnGaScoreFrom.GetValue()) + "]", yLabel="t[" + str(self.spnGaScoreTo.GetValue()) + "]", xval=True, text=self.parent.parent.parent.tbMain.tbPoints.GetValue(), pconf=self.parent.parent.parent.tbMain.tbConf.GetValue(), symb=self.parent.parent.parent.tbMain.tbSymbols.GetValue(), usecol=[], usesym=[])
+		plotScores(self.parent.plcGaModelPlot1, self.data["gadfadfscores"], cl=self.data["class"][:, 0], labels=self.data["label"], validation=self.data["validation"], col1=self.spnGaScoreFrom.GetValue() - 1, col2=self.spnGaScoreTo.GetValue() - 1, title="DF Scores", xLabel="t[" + str(self.spnGaScoreFrom.GetValue()) + "]", yLabel="t[" + str(self.spnGaScoreTo.GetValue()) + "]", xval=True, text=self.parent.parent.tbMain.tbPoints.GetValue(), pconf=self.parent.parent.tbMain.tbConf.GetValue(), symb=self.parent.parent.tbMain.tbSymbols.GetValue(), usecol=[], usesym=[])
 
 		# DF loadings
 		exec("self.parent.optDlg.plotGaLoads(self.parent.optDlg.currentChrom,self.data['ga" + self.type.lower() + self.type.lower() + "loads'],self.parent.plcGaSpecLoad,self.spnGaScoreFrom.GetValue()-1)")
@@ -421,7 +429,7 @@ class TitleBar(bp.ButtonPanel):
 				mask = np.array(self.data["validation"])[:, nA]
 			else:
 				mask = np.array(self.data["validation"])[:, nA]
-				for nF in range(2, resample):
+				for nF in range(1, resample):
 					# split in to training and test
 					mask = scipy.concatenate((mask, np.array(valSplit(self.grid, self.data, self.pcSplit))[:, nA]), 1)
 
@@ -654,6 +662,11 @@ class TitleBar(bp.ButtonPanel):
 			)
 			gaScoreList.append(gacurves[x, t - 1])
 
+		idx = []
+		for vars in range(varto - varfrom + 1):
+			idx.extend((scipy.argsort(np.array(gaScoreList[vars * (runs + 1) : (vars * (runs + 1)) + runs + 1])) + (vars * (runs + 1))).tolist())
+		exec("self.data['ga" + self.type.lower() + "treeorder'] = idx")
+
 		tree.DeleteAllItems()
 		tree.AddRoot("Root")
 		dfaRoot = tree.GetRootItem()
@@ -669,12 +682,21 @@ class TitleBar(bp.ButtonPanel):
 			NewVar = tree.AppendItem(dfaRoot, "".join((str(vars + varfrom), " variables")))
 			TreeItemIdList.append(NewVar)
 			for runs in range(runs + 1):
-				for mch in range(noSaveChroms):
-					RunLabel = scipy.sort(chroms[Count + mch, 0 : vars + varfrom]).tolist()
-					NewChrom = tree.AppendItem(NewVar, "".join(("#", str(IterCount + 1), " ", str(scipy.take(scipy.reshape(self.data["indlabelsfull"], (len(self.data["indlabelsfull"]),)), RunLabel)), " ", "%.2f" % (gaScoreList[Count + mch]))))
-					TreeItemIdList.append(NewChrom)
-					IterCount += 1
-				Count += mch + 1
+				##				  for mch in range(noSaveChroms):
+				##					  RunLabel = scipy.sort(chroms[Count+mch,0:vars+varfrom]).tolist()
+				##					  NewChrom = tree.AppendItem(NewVar,''.join(('#',str(IterCount+1),' ',
+				##							str(scipy.take(scipy.reshape(self.data['indlabelsfull'],
+				##							(len(self.data['indlabelsfull']),)),RunLabel)),' ',
+				##							'%.2f' %(gaScoreList[Count+mch]))))
+				##					  TreeItemIdList.append(NewChrom)
+				##					  IterCount += 1
+				##				  Count += (mch+1)
+
+				RunLabel = scipy.sort(chroms[idx[(vars * (runs + 1)) + runs], 0 : vars + varfrom]).tolist()
+				NewChrom = tree.AppendItem(NewVar, "".join(("#", str(IterCount + 1), " ", str(scipy.take(scipy.reshape(self.data["indlabelsfull"], (len(self.data["indlabelsfull"]),)), RunLabel)), " ", "%.2f" % (gaScoreList[idx[(vars * (runs + 1)) + runs]]))))
+				TreeItemIdList.append(NewChrom)
+				IterCount += 1
+		##				  Count += (mch+1)
 
 		tree.Expand(dfaRoot)
 		for i in range(len(TreeItemIdList)):
@@ -745,7 +767,6 @@ class selParam(fpb.FoldPanelBar):
 
 		self.fpParams = self.AddFoldPanel("Parameters", collapsed=True, foldIcons=icons)
 		self.fpParams.SetAutoLayout(True)
-		##		  self.fpParams.Bind(wx.EVT_SIZE, self.OnFpbResize)
 
 		self.fpResults = self.AddFoldPanel("Results", collapsed=True, foldIcons=icons)
 		self.fpResults.SetAutoLayout(True)
@@ -838,6 +859,7 @@ class selParam(fpb.FoldPanelBar):
 		exec("self.chroms = self.prnt.splitPrnt.titleBar.data['ga" + self.prnt.splitPrnt.type.lower() + "chroms']")
 		exec("self.scores = self.prnt.splitPrnt.titleBar.data['ga" + self.prnt.splitPrnt.type.lower() + "scores']")
 		exec("self.curves = self.prnt.splitPrnt.titleBar.data['ga" + self.prnt.splitPrnt.type.lower() + "curves']")
+		exec("self.treeorder = self.prnt.splitPrnt.titleBar.data['ga" + self.prnt.splitPrnt.type.lower() + "treeorder']")
 
 		# colours and markers for plotting
 		markerList = ["circle", "square", "cross", "plus"]
@@ -856,7 +878,7 @@ class selParam(fpb.FoldPanelBar):
 		chkValid = float(chromId.split("]")[1])
 		chromId = chromId.split("[")[0]
 		chromId = int(chromId.split("#")[1]) - 1
-		currentChrom = self.chroms[chromId].tolist()
+		currentChrom = self.chroms[self.treeorder[chromId]].tolist()
 
 		# Plot frequency of variable selection for no. vars
 		# Get chrom data and error data for each child
@@ -1101,7 +1123,7 @@ class selParam(fpb.FoldPanelBar):
 			coords = scipy.reshape(scipy.take(xdata, [int(chrom[pos1]), int(chrom[pos2])], 1), (len(xdata), 2))
 			L1 = str(self.prnt.splitPrnt.titleBar.data["indlabelsfull"][int(chrom[pos1])])
 			L2 = str(self.prnt.splitPrnt.titleBar.data["indlabelsfull"][int(chrom[pos2])])
-			plotScores(canvas, coords, cl=self.prnt.splitPrnt.titleBar.data["class"][:, 0], labels=self.prnt.splitPrnt.titleBar.data["label"], validation=self.prnt.splitPrnt.titleBar.data["validation"], col1=0, col2=1, title=canvas.last_draw[0].title, xLabel=L1, yLabel=L2, xval=True, pconf=False, text=self.prnt.splitPrnt.parent.parent.tbMain.tbPoints.GetValue(), symb=self.prnt.splitPrnt.parent.parent.tbMain.tbSymbols.GetValue(), usecol=[], usesym=[])  # self.prnt.splitPrnt.parent.parent.tbMain.tbConf.GetValue(),
+			plotScores(canvas, coords, cl=self.prnt.splitPrnt.titleBar.data["class"][:, 0], labels=self.prnt.splitPrnt.titleBar.data["label"], validation=self.prnt.splitPrnt.titleBar.data["validation"], col1=0, col2=1, title=canvas.last_draw[0].title, xLabel=L1, yLabel=L2, xval=True, pconf=False, text=self.prnt.splitPrnt.parent.tbMain.tbPoints.GetValue(), symb=self.prnt.splitPrnt.parent.tbMain.tbSymbols.GetValue(), usecol=[], usesym=[])  # self.prnt.splitPrnt.parent.parent.tbMain.tbConf.GetValue(),
 
 		self.prnt.splitPrnt.titleBar.data["gavarcoords"] = coords
 

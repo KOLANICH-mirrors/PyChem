@@ -1,7 +1,7 @@
 
 [Setup]
 AppName=PyChem
-AppVerName=PyChem 3.0.2 Beta
+AppVerName=PyChem 3.0.3 Beta
 DefaultDirName={pf}\PyChem
 DefaultGroupName=PyChem
 UninstallDisplayIcon={app}\Uninstall PyChem
@@ -28,6 +28,19 @@ Source: "bmp/params.png"; DestDir: "{app}/bmp"
 Source: "bmp/pychemsplash.png"; DestDir: "{app}/bmp"
 Source: "bmp/run.png"; DestDir: "{app}/bmp"
 Source: "bmp/addclass.png"; DestDir: "{app}/bmp"
+Source: "bmp/cross.bmp"; DestDir: "{app}/bmp"
+Source: "bmp/triangle_down.bmp"; DestDir: "{app}/bmp"
+Source: "bmp/triangle.bmp"; DestDir: "{app}/bmp"
+Source: "bmp/plus.bmp"; DestDir: "{app}/bmp"
+Source: "bmp/circle.bmp"; DestDir: "{app}/bmp"
+Source: "bmp/square.bmp"; DestDir: "{app}/bmp"
+Source: "bmp/conf_0.bmp"; DestDir: "{app}/bmp"
+Source: "bmp/conf_1.bmp"; DestDir: "{app}/bmp"
+Source: "bmp/conf_2.bmp"; DestDir: "{app}/bmp"
+Source: "bmp/conf_2_sym.bmp"; DestDir: "{app}/bmp"
+Source: "bmp/conf_int.bmp"; DestDir: "{app}/bmp"
+Source: "bmp/plot_symbol.bmp"; DestDir: "{app}/bmp"
+Source: "bmp/plot_text.bmp"; DestDir: "{app}/bmp"
 Source: "examples/ftir-ga3-raw-data.txt"; DestDir: "{app}/examples"
 Source: "examples/ftir-ga3-bioprocess-indvars-import.csv"; DestDir: "{app}/examples"
 Source: "examples/ftir-ga3-bioprocess-expsetup-import.csv"; DestDir: "{app}/examples"

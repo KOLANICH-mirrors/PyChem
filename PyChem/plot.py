@@ -407,7 +407,7 @@ class PlotGraphics:
 	- All methods except __init__ are private.
 	"""
 
-	def __init__(self, objects, title="", xLabel="", yLabel=""):
+	def __init__(self, objects, title="", xLabel="", yLabel="", xTickLabels=None):
 		"""Creates PlotGraphics object
 		objects - list of PolyXXX objects to make graph
 		title - title shown at top of graph
@@ -420,6 +420,7 @@ class PlotGraphics:
 		self.title = title
 		self.xLabel = xLabel
 		self.yLabel = yLabel
+		self.xTickLabels = xTickLabels
 
 	def setLogScale(self, logscale):
 		if type(logscale) != tuple:
@@ -468,6 +469,10 @@ class PlotGraphics:
 	def getTitle(self, title=""):
 		"""Get the title at the top of graph"""
 		return self.title
+
+	def getXTickLabel(self):
+		"""Get x axis tick label list"""
+		return self.xTickLabels
 
 	def draw(self, dc):
 		for o in self.objects:
@@ -928,6 +933,7 @@ class PlotCanvas(wx.Panel):
 			'none' - shows no axis or tick mark values
 			'min' - shows min bounding box values
 			'auto' - rounds axis range to sensible values
+			'udef' - user defined - added by RJ
 		"""
 		self._xSpec = type
 
@@ -1061,12 +1067,19 @@ class PlotCanvas(wx.Panel):
 		self.last_draw = (graphics, _Numeric.array(xAxis), _Numeric.array(yAxis))  # saves most recient values
 
 		# Get ticks and textExtents for axis if required
-		if self._xSpec is not "none":
+		if self._xSpec in ["auto", "min"]:
 			xticks = self._xticks(xAxis[0], xAxis[1])
 			xTextExtent = dc.GetTextExtent(xticks[-1][1])  # w h of x axis text last number on axis
-		else:
+		elif self._xSpec is "none":
 			xticks = None
 			xTextExtent = (0, 0)  # No text for ticks
+		elif self._xSpec is "udef":
+			# added by RJ to set xticklabels for boxplot
+			tickLabels, xticks = graphics.getXTickLabel(), []
+			for xti in range(1, len(tickLabels) + 1):
+				xticks.append((xti, tickLabels[xti - 1]))
+			xTextExtent = dc.GetTextExtent(xticks[-1][1])
+
 		if self._ySpec is not "none":
 			yticks = self._yticks(yAxis[0], yAxis[1])
 			if self.getLogScale()[1]:
@@ -1496,11 +1509,13 @@ class PlotCanvas(wx.Panel):
 
 	def _axisInterval(self, spec, lower, upper):
 		"""Returns sensible axis range for given spec"""
-		if spec == "none" or spec == "min":
+		if spec in ["none", "min"]:
 			if lower == upper:
 				return lower - 0.5, upper + 0.5
 			else:
 				return lower, upper
+		elif spec in ["udef"]:
+			return lower - 0.5, upper + 0.5
 		elif spec == "auto":
 			range = upper - lower
 			if range == 0.0:

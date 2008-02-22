@@ -56,7 +56,7 @@ def errorBox(window, error):
 		dlg.Destroy()
 
 
-def valSplit(grid, data, pc):
+def valSplit(grid, data, pc, trunc="yes"):
 	# get class col(s)
 	cL1, cL2, currClass = [], [], []
 	for i in range(grid.GetNumberCols()):
@@ -68,7 +68,7 @@ def valSplit(grid, data, pc):
 	# no class structure therefore random split
 	if currClass == []:
 		PerSplit = pc / 100.0
-		NoX = data["rawtrunc"].shape[0]
+		NoX = data["raw"].shape[0]
 		Idx = _sample(NoX - 1, int(scipy.around(NoX * PerSplit)))
 		Ntest = Idx[0 : int(scipy.around(len(Idx) / 2))]
 		Nval = Idx[int(scipy.around(len(Idx) / 2)) + 1 : len(Idx)]
@@ -80,7 +80,7 @@ def valSplit(grid, data, pc):
 
 	# split based upon class structure
 	else:
-		for i in range(data["rawtrunc"].shape[0]):
+		for i in range(data["raw"].shape[0]):
 			cL1.append(int(grid.GetCellValue(i + 2, currClass[len(currClass) - 1])))
 			cL, subCl = cL1, cL1
 			if len(currClass) > 1:
@@ -145,10 +145,12 @@ def valSplit(grid, data, pc):
 							vId = _index(np.array(subCl), scipy.unique(thisSubCl)[seL])
 							for item in vId:
 								mask[int(item)] = i
-	##	  if trunc in ['yes']:
-	##		  for i in range(data['raw'].shape[0]):
-	##			  if grid.GetCellValue(i+2,0) == '0':
-	##				  del mask[i]
+
+	# remove for samples ot selected in grid
+	if trunc in ["yes"]:
+		for i in range(data["raw"].shape[0]):
+			if grid.GetCellValue(i + 2, 0) == "0":
+				del mask[i]
 
 	return mask
 
@@ -564,7 +566,7 @@ class DepTitleBar(bp.ButtonPanel):
 		# automatically split data
 		if (self.cbGenerateMask.GetValue() is True) & (type == "Validation") is True:
 			try:
-				mask = valSplit(self.grid, self.data, self.spcGenMask.GetValue())
+				mask = valSplit(self.grid, self.data, self.spcGenMask.GetValue(), trunc="no")
 				options = ["Train", "Validation", "Test"]
 				for i in range(len(mask)):
 					self.grid.SetCellValue(i + 2, last + 1, options[int(mask[i])])

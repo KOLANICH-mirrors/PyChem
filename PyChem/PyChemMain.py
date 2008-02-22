@@ -17,6 +17,7 @@ import sys
 from xml.etree import cElementTree as ET
 
 import scipy
+import Univariate
 import wx
 import wx.adv
 import wx.lib.filebrowsebutton
@@ -40,20 +41,7 @@ def create(parent):
 	return PyChemMain(parent)
 
 
-[
-	wxID_PYCHEMMAIN,
-	wxID_PYCHEMMAINNBMAIN,
-	wxID_PYCHEMMAINPLCLUSTER,
-	wxID_PYCHEMMAINPLDFA,
-	wxID_PYCHEMMAINPLEXPSET,
-	wxID_PYCHEMMAINPLGADFA,
-	wxID_PYCHEMMAINPLGADPLS,
-	wxID_PYCHEMMAINPLGAPLSC,
-	wxID_PYCHEMMAINPLPCA,
-	wxID_PYCHEMMAINPLPLS,
-	wxID_PYCHEMMAINPLPREPROC,
-	wxID_PYCHEMMAINSBMAIN,
-] = [wx.NewIdRef() for _init_ctrls in range(12)]
+[wxID_PYCHEMMAIN, wxID_PYCHEMMAINNBMAIN, wxID_PYCHEMMAINPLCLUSTER, wxID_PYCHEMMAINPLDFA, wxID_PYCHEMMAINPLEXPSET, wxID_PYCHEMMAINPLGADFA, wxID_PYCHEMMAINPLGADPLS, wxID_PYCHEMMAINPLGAPLSC, wxID_PYCHEMMAINPLPCA, wxID_PYCHEMMAINPLPLS, wxID_PYCHEMMAINPLPREPROC, wxID_PYCHEMMAINSBMAIN, wxID_PYCHEMMAINPLUNIVARIATE] = [wx.NewIdRef() for _init_ctrls in range(13)]
 
 [
 	wxID_PYCHEMMAINMNUFILEAPPEXIT,
@@ -360,7 +348,7 @@ class PlotToolBar(wx.ToolBar):
 				plotScores(self.canvas, self.canvas.prnt.titleBar.data["pcscores"], cl=self.canvas.prnt.titleBar.data["class"][:, 0], labels=self.canvas.prnt.titleBar.data["label"], validation=self.canvas.prnt.titleBar.data["validation"], col1=self.canvas.prnt.titleBar.spnNumPcs1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnNumPcs2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=False, text=self.tbPoints.GetValue(), pconf=False, symb=self.tbSymbols.GetValue(), usecol=symcolours, usesym=symsymbols)
 
 		elif len(self.canvas.GetName().split("plcPredPls")) > 1:
-			self.canvas = PlotPlsModel(self.canvas, model="full", tbar=self.canvas.prnt.prnt.prnt.parent.tbMain, cL=self.canvas.prnt.prnt.titleBar.data["class"], scores=self.canvas.prnt.prnt.titleBar.data["plst"], label=self.canvas.prnt.prnt.titleBar.data["label"], predictions=self.canvas.prnt.prnt.titleBar.data["plspred"], validation=self.canvas.prnt.prnt.titleBar.data["validation"], RMSEPT=self.canvas.prnt.prnt.titleBar.data["RMSEPT"], factors=self.canvas.prnt.prnt.titleBar.data["plsfactors"], type=self.canvas.prnt.prnt.titleBar.data["plstype"], col1=self.canvas.prnt.prnt.titleBar.spnPLSfactor1.GetValue() - 1, col2=self.canvas.prnt.prnt.titleBar.spnPLSfactor2.GetValue() - 1, symbols=self.tbSymbols.GetValue(), usetxt=self.tbPoints.GetValue(), usecol=symcolours, usesym=symsymbols, errplot=self.tbSymbols.GetValue())
+			self.canvas = PlotPlsModel(self.canvas, model="full", tbar=self.canvas.prnt.prnt.prnt.parent.tbMain, cL=self.canvas.prnt.prnt.titleBar.data["class"], scores=self.canvas.prnt.prnt.titleBar.data["plst"], label=self.canvas.prnt.prnt.titleBar.data["label"], predictions=self.canvas.prnt.prnt.titleBar.data["plspred"], validation=self.canvas.prnt.prnt.titleBar.data["validation"], RMSEPT=self.canvas.prnt.prnt.titleBar.data["RMSEPT"], factors=self.canvas.prnt.prnt.titleBar.data["plsfactors"], type=self.canvas.prnt.prnt.titleBar.data["plstype"], col1=self.canvas.prnt.prnt.titleBar.spnPLSfactor1.GetValue() - 1, col2=self.canvas.prnt.prnt.titleBar.spnPLSfactor2.GetValue() - 1, symbols=self.tbSymbols.GetValue(), usetxt=self.tbPoints.GetValue(), usecol=symcolours, usesym=symsymbols, errplot=self.tbSymbols.GetValue(), plScL=self.canvas.prnt.prnt.titleBar.data["pls_class"])
 
 		elif self.canvas.GetName() in ["plcGaFeatPlot"]:
 			plotScores(self.canvas, self.canvas.prnt.prnt.splitPrnt.titleBar.data["gavarcoords"], cl=self.canvas.prnt.prnt.splitPrnt.titleBar.data["class"][:, 0], labels=self.canvas.prnt.prnt.splitPrnt.titleBar.data["label"], validation=self.canvas.prnt.prnt.splitPrnt.titleBar.data["validation"], col1=0, col2=1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=True, text=self.tbPoints.GetValue(), pconf=False, symb=self.tbSymbols.GetValue(), usecol=symcolours, usesym=symsymbols)
@@ -370,7 +358,7 @@ class PlotToolBar(wx.ToolBar):
 				if self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gadfadfscores"] is not None:
 					plotScores(self.canvas, self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gadfadfscores"], cl=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["class"][:, 0], labels=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["label"], validation=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["validation"], col1=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue() - 1, col2=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=True, text=self.tbPoints.GetValue(), pconf=self.tbConf.GetValue(), symb=self.tbSymbols.GetValue(), usecol=symcolours, usesym=symsymbols)
 			else:
-				self.canvas = PlotPlsModel(self.canvas, model="ga", tbar=self.canvas.prnt.prnt.prnt.splitPrnt.prnt.parent.tbMain, cL=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["class"], scores=None, label=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["label"], predictions=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gaplsscores"], validation=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["validation"], RMSEPT=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gaplsrmsept"], factors=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gaplsfactors"], type=0, col1=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue() - 1, col2=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue() - 1, symbols=self.tbSymbols.GetValue(), usetxt=self.tbPoints.GetValue(), usecol=symcolours, usesym=symsymbols)
+				self.canvas = PlotPlsModel(self.canvas, model="ga", tbar=self.canvas.prnt.prnt.prnt.splitPrnt.prnt.parent.tbMain, cL=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["class"], scores=None, label=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["label"], predictions=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gaplsscores"], validation=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["validation"], RMSEPT=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gaplsrmsept"], factors=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["gaplsfactors"], type=0, col1=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue() - 1, col2=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue() - 1, symbols=self.tbSymbols.GetValue(), usetxt=self.tbPoints.GetValue(), usecol=symcolours, usesym=symsymbols, plScL=self.canvas.prnt.prnt.prnt.splitPrnt.titleBar.data["pls_class"])
 
 		elif self.canvas.GetName() in ["plcPcaLoadsV"]:
 			if self.canvas.prnt.titleBar.data["pcloads"] is not None:
@@ -484,13 +472,14 @@ class PlotToolBar(wx.ToolBar):
 
 
 class PyChemMain(wx.Frame):
-	_custom_classes = {"wx.Panel": ["expSetup", "plotSpectra", "Pca", "Cluster", "Dfa", "Plsr", "Ga"]}
+	_custom_classes = {"wx.Panel": ["expSetup", "plotSpectra", "Pca", "Cluster", "Dfa", "Plsr", "Ga", "Univariate"]}
 
 	def _init_coll_mnuTools_Items(self, parent):
 		# generated method, don't edit
 
 		parent.Append(help="", id=wxID_PYCHEMMAINMNUTOOLSEXPSET, kind=wx.ITEM_NORMAL, text="Experiment Setup")
 		parent.Append(help="", id=wxID_PYCHEMMAINMNUTOOLSPREPROC, kind=wx.ITEM_NORMAL, text="Spectral Pre-processing")
+		parent.Append(help="", id=wxID_PYCHEMMAINPLUNIVARIATE, kind=wx.ITEM_NORMAL, text="Univariate Tests")
 		parent.Append(help="", id=wxID_PYCHEMMAINMNUTOOLSMNUPCA, kind=wx.ITEM_NORMAL, text="Principal Component Analysis (PCA)")
 		parent.Append(help="", id=wxID_PYCHEMMAINMNUTOOLSMNUCLUSTER, kind=wx.ITEM_NORMAL, text="Cluster Analysis")
 		parent.Append(help="", id=wxID_PYCHEMMAINMNUTOOLSMNUDFA, kind=wx.ITEM_NORMAL, text="Discriminant Function Analysis (DFA)")
@@ -499,6 +488,7 @@ class PyChemMain(wx.Frame):
 		parent.Append(help="", id=wxID_PYCHEMMAINMNUTOOLSMNUGAPLSC, kind=wx.ITEM_NORMAL, text="GA-Partial Least Squares Calibration")
 		self.Bind(wx.EVT_MENU, self.OnMnuToolsExpsetMenu, id=wxID_PYCHEMMAINMNUTOOLSEXPSET)
 		self.Bind(wx.EVT_MENU, self.OnMnuToolsPreprocMenu, id=wxID_PYCHEMMAINMNUTOOLSPREPROC)
+		self.Bind(wx.EVT_MENU, self.OnMnuToolsMnuunivariateMenu, id=wxID_PYCHEMMAINPLUNIVARIATE)
 		self.Bind(wx.EVT_MENU, self.OnMnuToolsMnupcaMenu, id=wxID_PYCHEMMAINMNUTOOLSMNUPCA)
 		self.Bind(wx.EVT_MENU, self.OnMnuToolsMnuclusterMenu, id=wxID_PYCHEMMAINMNUTOOLSMNUCLUSTER)
 		self.Bind(wx.EVT_MENU, self.OnMnuToolsMnuplsrMenu, id=wxID_PYCHEMMAINMNUTOOLSMNUPLSR)
@@ -554,6 +544,7 @@ class PyChemMain(wx.Frame):
 
 		parent.AddPage(imageId=-1, page=self.plExpset, select=True, text="Experiment Setup")
 		parent.AddPage(imageId=-1, page=self.plPreproc, select=False, text="Spectral Pre-processing")
+		parent.AddPage(imageId=-1, page=self.plUnivariate, select=False, text="Univariate Tests")
 		parent.AddPage(imageId=-1, page=self.plPca, select=False, text="Principal Component Analysis")
 		parent.AddPage(imageId=-1, page=self.plCluster, select=False, text="Cluster Analysis")
 		parent.AddPage(imageId=-1, page=self.plDfa, select=False, text="Discriminant Function Analysis")
@@ -593,7 +584,7 @@ class PyChemMain(wx.Frame):
 
 	def _init_ctrls(self, prnt):
 		# generated method, don't edit
-		wx.Frame.__init__(self, id=wxID_PYCHEMMAIN, name="PyChemMain", parent=prnt, pos=wx.Point(0, 0), size=wx.Size(1024, 738), style=wx.DEFAULT_FRAME_STYLE, title="PyChem 3.0.3 Beta")
+		wx.Frame.__init__(self, id=wxID_PYCHEMMAIN, name="PyChemMain", parent=prnt, pos=wx.Point(0, 0), size=wx.Size(1024, 738), style=wx.DEFAULT_FRAME_STYLE, title="PyChem 3.0.5 Beta")
 		self._init_utils()
 		self.SetClientSize(wx.Size(1016, 704))
 		self.SetToolTip("")
@@ -649,6 +640,10 @@ class PyChemMain(wx.Frame):
 		self.plGapls.SetToolTip("")
 		self.plGapls.parent = self
 
+		self.plUnivariate = Univariate.Univariate(id=wxID_PYCHEMMAINPLUNIVARIATE, name="plUnivariate", parent=self.nbMain, pos=wx.Point(0, 0), size=wx.Size(1008, 635), style=wx.TAB_TRAVERSAL)
+		self.plUnivariate.SetToolTip("")
+		self.plUnivariate.parent = self
+
 		self._init_coll_nbMain_Pages(self.nbMain)
 
 	def __init__(self, parent):
@@ -676,8 +671,8 @@ class PyChemMain(wx.Frame):
 
 		info = wx.adv.AboutDialogInfo()
 		info.Name = "PyChem"
-		info.Version = "3.0.3 Beta"
-		info.Copyright = "(C) 2007 Roger Jarvis"
+		info.Version = "3.0.5 Beta"
+		info.Copyright = "(C) 2008 Roger Jarvis"
 		info.Description = wordwrap("PyChem is a software program for multivariate " "data analysis (MVA).	It includes algorithms for " "calibration and categorical analyses.	 In addition, " "novel genetic algorithm tools for spectral feature " "selection" "\n\nFor more information please go to the PyChem " "website using the link below, or email the project " "author, roger.jarvis@manchester.ac.uk", 350, wx.ClientDC(self))
 		info.WebSite = ("http://pychem.sf.net/", "PyChem home page")
 
@@ -851,22 +846,25 @@ class PyChemMain(wx.Frame):
 		self.nbMain.SetSelection(1)
 
 	def OnMnuToolsMnupcaMenu(self, event):
-		self.nbMain.SetSelection(2)
-
-	def OnMnuToolsMnuclusterMenu(self, event):
 		self.nbMain.SetSelection(3)
 
-	def OnMnuToolsMnuplsrMenu(self, event):
-		self.nbMain.SetSelection(5)
-
-	def OnMnuToolsMnudfaMenu(self, event):
+	def OnMnuToolsMnuclusterMenu(self, event):
 		self.nbMain.SetSelection(4)
 
-	def OnMnuToolsMnugadfaMenu(self, event):
+	def OnMnuToolsMnuplsrMenu(self, event):
 		self.nbMain.SetSelection(6)
 
-	def OnMnuToolsMnugaplscMenu(self, event):
+	def OnMnuToolsMnudfaMenu(self, event):
+		self.nbMain.SetSelection(5)
+
+	def OnMnuToolsMnugadfaMenu(self, event):
 		self.nbMain.SetSelection(7)
+
+	def OnMnuToolsMnugaplscMenu(self, event):
+		self.nbMain.SetSelection(8)
+
+	def OnMnuToolsMnuunivariateMenu(self, event):
+		self.nbMain.SetSelection(2)
 
 	def OnMnuGridDeleteColumn(self, event):
 		grid = self.data["gridsel"]
@@ -978,7 +976,7 @@ class PyChemMain(wx.Frame):
 		wx.TheClipboard.Close()
 
 	def Reset(self, case=0):
-		varList = "'proc':None,'class':None,'label':None," + "'split':None,'processlist':[],'xaxis':[]," + "'class':None,'label':None,'validation':None," + "'pcscores':None,'pcloads':None,'pcpervar':None," + "'pceigs':None,'pcadata':None,'niporsvd':None," + "'indlabels':None,'plsloads':None,'pcatype':None," + "'dfscores':None,'dfloads':None,'dfeigs':None," + "'sampleidx':None,'variableidx':None," + "'rawtrunc':None,'proctrunc':None," + "'gadfachroms':None,'gadfascores':None," + "'gadfacurves':None,'gaplschroms':None," + "'gaplsscores':None,'gaplscurves':None," + "'gadfadfscores':None,'gadfadfaloads':None," + "'gaplsplsloads':None,'gridsel':None,'plotsel':None," + "'tree':None,'order':None,'plsfactors':None," + "'rmsec':None,'rmsepc':None,'rmsept':None," + "'gacurrentchrom':None,'plspred':None,'pcaloadsym':None," + "'dfaloadsym':None,'plsloadsym':None,'plst':None," + "'plstype':0"
+		varList = "'proc':None,'class':None,'label':None," + "'split':None,'processlist':[],'xaxis':[]," + "'class':None,'label':None,'validation':None," + "'pcscores':None,'pcloads':None,'pcpervar':None," + "'pceigs':None,'pcadata':None,'niporsvd':None," + "'indlabels':None,'plsloads':None,'pcatype':None," + "'dfscores':None,'dfloads':None,'dfeigs':None," + "'sampleidx':None,'variableidx':None," + "'rawtrunc':None,'proctrunc':None," + "'gadfachroms':None,'gadfascores':None," + "'gadfacurves':None,'gaplschroms':None," + "'gaplsscores':None,'gaplscurves':None," + "'gadfadfscores':None,'gadfadfaloads':None," + "'gaplsplsloads':None,'gridsel':None,'plotsel':None," + "'tree':None,'order':None,'plsfactors':None," + "'rmsec':None,'rmsepc':None,'rmsept':None," + "'gacurrentchrom':None,'plspred':None,'pcaloadsym':None," + "'dfaloadsym':None,'plsloadsym':None,'plst':None," + "'plstype':0,'pls_class':None,'gaplstreeorder':None," + "'gadfatreeorder':None,'utest':None,'p_aur':None"
 
 		if case == 0:
 			exec('self.data = {"raw":None,"exppath":None,' + varList + "}")
@@ -994,8 +992,9 @@ class PyChemMain(wx.Frame):
 		self.plPls.Reset()
 		self.plGadfa.Reset()
 		self.plGapls.Reset()
+		self.plUnivariate.Reset()
 
-		# create some global variables because i'm being lazy
+		# make data dictionary available to modules
 		self.plExpset.depTitleBar.getData(self.data)
 		self.plExpset.indTitleBar.getData(self.data)
 		self.plPreproc.titleBar.getData(self.data)
@@ -1003,6 +1002,7 @@ class PyChemMain(wx.Frame):
 		self.plCluster.titleBar.getData(self.data)
 		self.plDfa.titleBar.getData(self.data)
 		self.plPls.titleBar.getData(self.data)
+		self.plUnivariate.titleBar.getData(self.data)
 		self.plGadfa.titleBar.getData(self.data)
 		self.plGadfa.titleBar.getExpGrid(self.plExpset.grdNames)
 		self.plGadfa.titleBar.getValSplitPc(self.plExpset.depTitleBar.spcGenMask.GetValue())
@@ -1056,7 +1056,6 @@ class PyChemMain(wx.Frame):
 		# add new workspace
 		if proceed == 1:
 			try:
-				##				  workspace = '0'[0:-(len(str(nws+1))-2)] + str(nws+1) + '_' + workspace
 				locals()[workspace] = ET.SubElement(Workspaces, workspace)
 
 				# get preprocessing options
@@ -1066,16 +1065,6 @@ class PyChemMain(wx.Frame):
 						item = ET.SubElement(ppOptions, "item")
 						item.set("key", "int")
 						item.text = str(each)
-
-				# save choice options
-				Choices = ET.SubElement(locals()[workspace], "Choices")
-				choiceCtrls = ["plPls.titleBar.cbxData", "plPca.titleBar.cbxPcaType", "plPca.titleBar.cbxPreprocType", "plPca.titleBar.cbxData", "plDfa.titleBar.cbxData", "plCluster.titleBar.cbxData", "plGadfa.titleBar.cbxFeature1", "plGadfa.titleBar.cbxFeature2", "plGapls.titleBar.cbxFeature1", "plGapls.titleBar.cbxFeature2", "plGadfa.titleBar.cbxData", "plGapls.titleBar.cbxData", "plPls.titleBar.cbxType", "plPls.titleBar.cbxPreprocType"]
-
-				for each in choiceCtrls:
-					name = each.split(".")[len(each.split(".")) - 1]
-					locals()[name] = ET.SubElement(Choices, each)
-					locals()[name].set("key", "int")
-					locals()[name].text = str(getByPath(self, each).GetCurrentSelection())
 
 				# save spin, string and boolean ctrl values
 				Controls = ET.SubElement(locals()[workspace], "Controls")
@@ -1144,8 +1133,18 @@ class PyChemMain(wx.Frame):
 							col.set("key", "str")
 							exec('col.text = "' + Cols + '"')
 
+				# save choice options
+				Choices = ET.SubElement(locals()[workspace], "Choices")
+				choiceCtrls = ["plPls.titleBar.cbxData", "plPca.titleBar.cbxPcaType", "plPca.titleBar.cbxPreprocType", "plPca.titleBar.cbxData", "plDfa.titleBar.cbxData", "plCluster.titleBar.cbxData", "plGadfa.titleBar.cbxFeature1", "plGadfa.titleBar.cbxFeature2", "plGapls.titleBar.cbxFeature1", "plGapls.titleBar.cbxFeature2", "plGadfa.titleBar.cbxData", "plGapls.titleBar.cbxData", "plPls.titleBar.cbxType", "plPls.titleBar.cbxPreprocType", "plUnivariate.titleBar.cbxData", "plUnivariate.titleBar.cbxVariable", "plUnivariate.titleBar.cbxTest"]
+
+				for each in choiceCtrls:
+					name = each.split(".")[len(each.split(".")) - 1]
+					locals()[name] = ET.SubElement(Choices, each)
+					locals()[name].set("key", "int")
+					locals()[name].text = str(getByPath(self, each).GetCurrentSelection())
+
 				# any scipy arrays
-				scipyArrays = ["pcscores", "pcloads", "pcpervar", "pceigs", "plsloads", "dfscores", "dfloads", "dfeigs", "gadfachroms", "gadfascores", "gadfacurves", "gaplschroms", "gaplsscores", "gaplscurves", "gadfadfscores", "gadfadfloads", "gaplsplsloads"]
+				scipyArrays = ["pcscores", "pcloads", "pcpervar", "pceigs", "plsloads", "dfscores", "dfloads", "dfeigs", "gadfachroms", "gadfascores", "gadfacurves", "gaplschroms", "gaplsscores", "gaplscurves", "gadfadfscores", "gadfadfloads", "gaplsplsloads", "p_aur"]
 
 				Array = ET.SubElement(locals()[workspace], "Array")
 				for each in scipyArrays:
@@ -1153,10 +1152,21 @@ class PyChemMain(wx.Frame):
 						# save array elements
 						isthere = self.data[each]
 						if isthere != None:
-							locals()["item" + each] = ET.SubElement(Array, each)
-							arrData = str_array(self.data[each],col_sep="\t")
-							locals()["item" + each].set("key", "array")
-							locals()["item" + each].text = arrData
+							if each not in ["p_aur"]:  # for numeric array
+								locals()["item" + each] = ET.SubElement(Array, each)
+								arrData = str_array(self.data[each],col_sep="\t")
+								locals()["item" + each].set("key", "array")
+								locals()["item" + each].text = arrData
+							else:  # for string array type
+								target = self.data[each]
+								arrData = ""
+								for row in target:
+									for element in row:
+										arrData = arrData + element + "\t"
+									arrData = arrData[0 : len(arrData) - 1] + "\n"
+								locals()["item" + each] = ET.SubElement(Array, each)
+								locals()["item" + each].set("key", "array")
+								locals()["item" + each].text = arrData[0:len(arrData)-1]
 					except:
 						continue
 
@@ -1177,6 +1187,14 @@ class PyChemMain(wx.Frame):
 					doPlsr.text = "1"
 				else:
 					doPlsr.text = "0"
+
+				# create plot univariate flag
+				doUni = ET.SubElement(Flags, "doUni")
+				doUni.set("key", "int")
+				if self.data["p_aur"] is not None:
+					doUni.text = str(self.data["plotp"])
+				else:
+					doUni.text = "0"
 
 				# wrap it in an ElementTree instance, and save as XML
 				tree = ET.ElementTree(root)
@@ -1296,7 +1314,10 @@ class PyChemMain(wx.Frame):
 							getRow = []
 							row = row.split("\t")
 							for element in row:
-								getRow.append(float(element))
+								if array.tag not in ["p_aur"]:
+									getRow.append(float(element))
+								else:
+									getRow.append(element)
 							newArray.append(getRow)
 						self.data[array.tag] = np.array(newArray)
 
@@ -1335,8 +1356,8 @@ class PyChemMain(wx.Frame):
 								except:
 									continue
 
-			# load global variables - currently just flags for re-running cluster
-			# analysis and plsr
+			# load flags for re-running cluster
+			# analysis, plsr and plotting univariate test output
 			if each.tag == "Flags":
 				getVars = each
 				for item in getVars:
@@ -1344,12 +1365,19 @@ class PyChemMain(wx.Frame):
 						self.plCluster.titleBar.RunClustering()
 					elif (item.tag == "doPlsr") & (item.text == "1") is True:
 						self.plPls.titleBar.runPls()
+					elif (item.tag == "doUni") & (item.text != "0") is True:
+						self.data["utest"] = [self.plUnivariate.titleBar.cbxTest.GetSelection(), self.plUnivariate.titleBar.cbxData.GetSelection()]
+						if self.plUnivariate.titleBar.cbxData.GetSelection() == 0:
+							x = scipy.take(self.data["rawtrunc"], [self.plUnivariate.titleBar.cbxVariable.GetSelection()], 1)
+						elif self.plUnivariate.titleBar.cbxData.GetSelection() == 1:
+							x = scipy.take(self.data["proctrunc"], [self.plUnivariate.titleBar.cbxVariable.GetSelection()], 1)
+						self.plUnivariate.titleBar.PlotResults(x, float(item.text), scipy.unique(np.array(self.data["label"])), ["black", "blue", "red", "cyan", "green"], psum=True)
 
 		# unlock ctrls
 		self.EnableCtrls()
 
-		# gather data
-		self.GetExperimentDetails()
+	##		  #gather data
+	##		  self.GetExperimentDetails()
 
 	def getGrid(self, grid):
 		r = grid.GetNumberRows()
@@ -1434,6 +1462,7 @@ class PyChemMain(wx.Frame):
 			# get x-axis labels/values
 			num = 1
 			self.data["xaxis"] = []
+			self.plUnivariate.titleBar.cbxVariable.Clear()
 			for j in range(1, self.plExpset.grdIndLabels.GetNumberCols()):
 				if self.plExpset.grdIndLabels.GetCellValue(0, j) == "1":
 					self.data["variableidx"] = []
@@ -1444,12 +1473,15 @@ class PyChemMain(wx.Frame):
 						# for removing variables from analysis
 						if self.plExpset.grdIndLabels.GetCellValue(i, 0) == "1":
 							self.data["variableidx"].append(i - 1)
+							# append to list of variables for univariate testing
+							self.plUnivariate.titleBar.cbxVariable.Append(val)
 						# check for float or txt
 						try:
 							val = float(val)
 							self.data["xaxis"].append(val)
 						except:
 							num = 0
+			self.plUnivariate.titleBar.cbxVariable.SetSelection(0)
 
 			if num == 1:
 				self.data["xaxisfull"] = self.data["xaxis"]
@@ -1511,6 +1543,8 @@ class PyChemMain(wx.Frame):
 		self.plGadfa.titleBar.btnRunGa.Enable(1)
 
 		self.plGapls.titleBar.btnRunGa.Enable(1)
+
+		self.plUnivariate.titleBar.btnRunTest.Enable(1)
 
 	def OnNbMainNotebookPageChanging(self, event):
 		if self.nbMain.GetSelection() == 0:

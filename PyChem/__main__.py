@@ -20,7 +20,7 @@ import mva
 import PyChemMain
 import wx
 
-modules = {"Cluster": [0, "", "Cluster.py"], "Dfa": [0, "", "Dfa.py"], "Ga": [0, "", "Ga.py"], "Pca": [0, "", "Pca.py"], "Plsr": [0, "", "Plsr.py"], "PyChemMain": [1, "Main frame of Application", "PyChemMain.py"], "chemometrics": [0, "", "mva/chemometrics.py"], "expSetup": [0, "", "expSetup.py"], "fitfun": [0, "", "mva/fitfun.py"], "genetic": [0, "", "mva/genetic.py"], "plotSpectra": [0, "", "plotSpectra.py"], "process": [0, "", "mva/process.py"]}
+modules = {"Cluster": [0, "", "Cluster.py"], "Dfa": [0, "", "Dfa.py"], "Ga": [0, "", "Ga.py"], "Pca": [0, "", "Pca.py"], "Plsr": [0, "", "Plsr.py"], "PyChemMain": [1, "Main frame of Application", "PyChemMain.py"], "Univariate": [0, "", "Univariate.py"], "chemometrics": [0, "", "mva/chemometrics.py"], "expSetup": [0, "", "expSetup.py"], "fitfun": [0, "", "mva/fitfun.py"], "genetic": [0, "", "mva/genetic.py"], "plotSpectra": [0, "", "plotSpectra.py"], "process": [0, "", "mva/process.py"]}
 
 # whereami for binary dists etc
 whereami = mva.__path__[0].split("mva")[0]
@@ -30,7 +30,7 @@ whereami = mva.__path__[0].split("mva")[0]
 
 class BoaApp(wx.App):
 	def OnInit(self):
-		# create splash object
+		##		  #create splash object
 		##		  bmp = wx.Image(os.path.join('bmp', 'pychemsplash.png')).ConvertToBitmap()
 		##		  splash = wx.SplashScreen(bmp,wx.SPLASH_CENTRE_ON_SCREEN,
 		##								  5000, None, id=-1)

@@ -177,7 +177,7 @@ class Dfa(wx.Panel):
 		self.titleBar.spnDfaScore1.SetValue(1)
 		self.titleBar.spnDfaScore2.SetValue(2)
 
-		objects = {"plcDFAeigs": ["Eigenvalues", "Discriminant Function", "Eigenvalue"], "plcDfaCluster": ["Hierarchical Cluster Analysis", "Distance", "Sample"], "plcDFAscores": ["DFA Scores", "DF 1", "DF 2"], "plcDfaLoadsV": ["DFA Loading", "Arbitrary", "Arbitrary"]}
+		objects = {"plcDFAeigs": ["Eigenvalues", "Discriminant Function", "Eigenvalue"], "plcDfaCluster": ["Hierarchical Cluster Analysis", "Distance", "Sample"], "plcDFAscores": ["DFA Scores", "t[1]", "t[2]"], "plcDfaLoadsV": ["DFA Loading", "w[1]", "w[2]"]}
 		curve = wx.lib.plot.PolyLine([[0, 0], [1, 1]], colour="white", width=1, style=wx.TRANSPARENT)
 
 		for each in list(objects.keys()):

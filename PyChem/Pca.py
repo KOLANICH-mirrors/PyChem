@@ -152,6 +152,50 @@ def CreateSymColSelect(canvas, output):
 	canvas.tbMain.SymPopUpWin.SetSize(wx.Size(canvas.tbMain.SymPopUpWin.GetSize()[0], count * 35))
 
 
+def BoxPlot(canvas, x, labels, **_attr):
+	"""Box and whisker plot; x is a column vector, labels a list of strings"""
+
+	objects, count = [], 1
+	uG = scipy.unique(np.array(labels))
+	for each in uG:
+		# get values
+		group = x[np.array(labels) == each]
+		# calculate group median
+		m = scipy.median(group)
+		# lower (first) quartile
+		lq = scipy.median(group[group < m])
+		# upper (third) quartile
+		uq = scipy.median(group[group > m])
+		# interquartile range
+		iqr = uq - lq
+		# lower whisker
+		lw = m - (1.5 * iqr)
+		# upper whisker
+		uw = m + (1.5 * iqr)
+		# lower outlier
+		lo = group[group < lw]
+		# upper outlier
+		uo = group[group > uw]
+		# plot b&w
+		objects.append(wx.lib.plot.PolyLine([[count - 0.25, m], [count + 0.25, m]], width=1, colour="blue", style=wx.SOLID))
+		objects.append(wx.lib.plot.PolyLine([[count - 0.25, lq], [count + 0.25, lq]], width=1, colour="black", style=wx.SOLID))
+		objects.append(wx.lib.plot.PolyLine([[count - 0.25, uq], [count + 0.25, uq]], width=1, colour="black", style=wx.SOLID))
+		objects.append(wx.lib.plot.PolyLine([[count - 0.25, lq], [count - 0.25, uq]], width=1, colour="black", style=wx.SOLID))
+		objects.append(wx.lib.plot.PolyLine([[count + 0.25, lq], [count + 0.25, uq]], width=1, colour="black", style=wx.SOLID))
+		objects.append(wx.lib.plot.PolyLine([[count, lq], [count, lw]], width=1, colour="black", style=wx.SOLID))
+		objects.append(wx.lib.plot.PolyLine([[count, uq], [count, uw]], width=1, colour="black", style=wx.SOLID))
+		objects.append(wx.lib.plot.PolyLine([[count - 0.1, lw], [count + 0.1, lw]], width=1, colour="black", style=wx.SOLID))
+		objects.append(wx.lib.plot.PolyLine([[count - 0.1, uw], [count + 0.1, uw]], width=1, colour="black", style=wx.SOLID))
+		if len(lo) > 0:
+			objects.append(wx.lib.plot.PolyMarker(scipy.concatenate((scipy.ones((len(lo), 1)) * count, lo[:, nA]), 1), colour="red", fillcolour="red", marker="circle", size=1))
+		if len(uo) > 0:
+			objects.append(wx.lib.plot.PolyMarker(scipy.concatenate((scipy.ones((len(uo), 1)) * count, uo[:, nA]), 1), colour="red", fillcolour="red", marker="circle", size=1))
+		count += 1
+
+	canvas.xSpec = "udef"
+	canvas.Draw(wx.lib.plot.PlotGraphics(objects, title, xLabel, yLabel, xTickLabels=uG))
+
+
 def plotErrorBar(canvas, **_attr):
 	"""Errorbar plot
 	Defaults:
@@ -219,6 +263,7 @@ def PlotPlsModel(canvas, model="full", tbar=None, **_attr):
 				'predictions'= None		- pls predictions
 				'cL' = None				- constituents
 				'scores'	 = None		- pls spectral scores
+				'plScL'		 = None		- false class for pls-da
 				'validation' = None,	- split data
 				'factors'	 = 1,		- no. latent variables
 				'type'		 = 0		- plsr or pls-da
@@ -228,55 +273,66 @@ def PlotPlsModel(canvas, model="full", tbar=None, **_attr):
 				'col1'		 = 0		- col for xaxis
 				'col2'		 = 1		- col for yaxis
 	"""
+
+	if model in ["full"]:
+		canvPref = "plcPredPls"
+		prnt = canvas.prnt.prnt
+		nBook = canvas.prnt
+	elif model in ["ga"]:
+		canvPref = "plcGaModelPlot"
+		prnt = canvas.prnt.prnt.prnt.splitPrnt
+		nBook = canvas.prnt
+
+	if predictions.shape[1] > 1:
+		canvas.prnt.SetTabSize((80, 15))
+	else:
+		canvas.prnt.SetTabSize((0, 1))
+		canvas.prnt.SetPageText(0, "")
+
 	if type == 0:
-		if model in ["full"]:
-			canvPref = "plcPredPls"
-			prnt = canvas.prnt.prnt
-			nBook = canvas.prnt
-		elif model in ["ga"]:
-			canvPref = "plcGaModelPlot"
-			prnt = canvas.prnt.prnt.prnt.splitPrnt
-			nBook = canvas.prnt
+		numPlots = predictions.shape[1]
+	else:
+		numPlots = predictions.shape[1] + 1
 
-		if predictions.shape[1] > 1:
-			canvas.prnt.SetTabSize((80, 13))
-		else:
-			canvas.prnt.SetTabSize((0, 1))
-			canvas.prnt.SetPageText(0, "")
+	# delete pages
+	nBook.SetSelection(0)
+	for page in range(nBook.GetPageCount() - 1, -1, -1):
+		nBook.DeletePage(page)
 
-		cL = cL
-		pRed = predictions
-
-		# delete pages
-		nBook.SetSelection(0)
-		for page in range(canvas.prnt.GetPageCount() - 1, -1, -1):
-			canvas.prnt.DeletePage(page)
-
-		for const in range(predictions.shape[1]):
+	for const in range(numPlots):
+		if type == 0:
 			cL = cL[:, const][:, nA]
 			pRed = predictions[:, const][:, nA]
+		elif (type == 1) & (const > 0) is True:
+			cL = plScL[:, const - 1][:, nA]
+			pRed = predictions[:, const - 1][:, nA]
 
-			# create new canvas
-			exec("prnt." + canvPref + str(const + 1) + "= MyPlotCanvas(id=-1," + "name='" + canvPref + str(const + 1) + "', parent=nBook, " + "pos=wx.Point(0, 0), size=wx.Size(302, 246)," + "style=0, toolbar=tbar)")
-			getByPath(prnt, canvPref + str(const + 1)).SetFontSizeAxis(8)
-			getByPath(prnt, canvPref + str(const + 1)).SetFontSizeTitle(10)
-			getByPath(prnt, canvPref + str(const + 1)).SetEnableZoom(True)
-			getByPath(prnt, canvPref + str(const + 1)).SetToolTip('')
-			getByPath(prnt, canvPref + str(const + 1)).SetEnableLegend(True)
-			getByPath(prnt, canvPref + str(const + 1)).SetFontSizeLegend(8)
-			getByPath(prnt, canvPref + str(const + 1)).SetAutoLayout(True)
-			exec("prnt." + canvPref + str(const + 1) + ".SetConstraints(LayoutAnchors(prnt." + canvPref + str(const + 1) + ",True,True, True, True))")
-			exec("prnt." + canvPref + str(const + 1) + ".SetFont(wx.Font(10," + "wx.SWISS, wx.NORMAL, wx.NORMAL,False, 'Microsoft Sans Serif'))")
+		# create new canvas
+		exec("prnt." + canvPref + str(const + 1) + "= MyPlotCanvas(id=-1," + "name='" + canvPref + str(const + 1) + "', parent=nBook, " + "pos=wx.Point(0, 0), size=wx.Size(302, 246)," + "style=0, toolbar=tbar)")
+		getByPath(prnt, canvPref + str(const + 1)).SetFontSizeAxis(8)
+		getByPath(prnt, canvPref + str(const + 1)).SetFontSizeTitle(10)
+		getByPath(prnt, canvPref + str(const + 1)).SetEnableZoom(True)
+		getByPath(prnt, canvPref + str(const + 1)).SetToolTip('')
+		getByPath(prnt, canvPref + str(const + 1)).SetEnableLegend(True)
+		getByPath(prnt, canvPref + str(const + 1)).SetFontSizeLegend(8)
+		getByPath(prnt, canvPref + str(const + 1)).SetAutoLayout(True)
+		exec("prnt." + canvPref + str(const + 1) + ".SetConstraints(LayoutAnchors(prnt." + canvPref + str(const + 1) + ",True,True, True, True))")
+		exec("prnt." + canvPref + str(const + 1) + ".SetFont(wx.Font(10," + "wx.SWISS, wx.NORMAL, wx.NORMAL,False, 'Microsoft Sans Serif'))")
 
-			# create new nb page
-			if predictions.shape[1] > 1:
-				exec("nBook.AddPage(imageId=-1, page=prnt." + canvPref + str(const + 1) + ", select=False, text='PLS Predictions " + str(const + 1) + "')")
-			else:
-				exec("nBook.AddPage(imageId=-1, page=prnt." + canvPref + str(const + 1) + ", select=False, text='')")
+		# create new nb page
+		if predictions.shape[1] > 1:
+			exec("nBook.AddPage(imageId=-1, page=prnt." + canvPref + str(const + 1) + ", select=False, text='PLS Predictions " + str(const + 1) + "')")
+		else:
+			exec("nBook.AddPage(imageId=-1, page=prnt." + canvPref + str(const + 1) + ", select=False, text='')")
 
-			# use it for plotting
-			exec("ncanv = prnt." + canvPref + str(const + 1))
+		# use it for plotting
+		exec("ncanv = prnt." + canvPref + str(const + 1))
 
+		if (type == 1) and (const == 0) is True:
+			# plot pls-da scores
+			plotScores(ncanv, scores, cl=cL[:, 0], labels=label, validation=validation, col1=col1, col2=col2, title="PLS Scores", xLabel="t[" + str(col1 + 1) + "]", yLabel="t[" + str(col2 + 1) + "]", xval=True, pconf=False, symb=symbols, text=usetxt, usecol=usecol, usesym=usesym)
+
+		else:
 			if symbols is True:
 				# pls predictions as errorbar plot
 				plotErrorBar(ncanv, x=cL, y=pRed, validation=validation, title="PLS Predictions: " + str(factors + 1) + " factors, RMS(Indep. Test) " + "%.2f" % RMSEPT, xLabel="Actual", yLabel="Predicted", lsfit=True, usesym=usesym, usecol=usecol)
@@ -319,16 +375,9 @@ def PlotPlsModel(canvas, model="full", tbar=None, **_attr):
 
 				ncanv.Draw(PlsModel, xAx, yAx)
 
-		# return canvas
-		exec("canvas = prnt." + canvPref + str(1))
-		nBook.SetSelection(0)
-
-	elif type == 1:
-		# check for single constituent
-		if predictions.shape[1] > 1:
-			cL = cL[:, 0]
-		# plot pls-da scores
-		plotScores(canvas, scores, cl=cL, labels=label, validation=validation, col1=col1, col2=col2, title="PLS Scores", xLabel="t[" + str(col1 + 1) + "]", yLabel="t[" + str(col2 + 1) + "]", xval=True, pconf=False, symb=symbols, text=usetxt, usecol=usecol, usesym=usesym)
+	# return canvas
+	nBook.SetSelection(0)
+	exec("canvas = prnt." + canvPref + str(1))
 
 	return canvas
 
@@ -411,8 +460,8 @@ def plotSymbols(plotCanvas, coords, **_attr):
 			'usesym'= [],	- List of symbols for plotting
 	"""
 
-	desCl = scipy.unique(cLass)
-
+	desCl = scipy.unique(text)
+	eCount = 0
 	if usecol == []:
 		colours = [wx.NamedColour("blue"), wx.NamedColour("red"), wx.NamedColour("green"), wx.NamedColour("cyan"), wx.NamedColour("black")]
 	else:
@@ -426,33 +475,36 @@ def plotSymbols(plotCanvas, coords, **_attr):
 	# plot scores using symbols
 	valSym = ["circle", "square"]
 	plotSym, countSym, countColour, output = [], 0, 0, []
-	for i in range(len(desCl)):
+	for each in desCl:
 		if countSym > len(symbols) - 1:
 			countSym = 0
 		if countColour > len(colours) - 1:
 			countColour = 0
 
-		list = coords[cLass == desCl[i], :]
+		# slice coords
+		list = coords[np.array(text) == each, :]
 
 		if col1 != col2:
 			list = scipy.take(list, (col1, col2), 1)
 		else:
-			list = scipy.take(list, (col1), 1)
+			sCount = copy.deepcopy(eCount) + 1
+			eCount = eCount + len(list)
+			list = scipy.concatenate((scipy.arange(sCount, eCount + 1)[:, nA], list[:, col1][:, nA]), 1)
 
 		##		  col = wx.Colour(round(scipy.rand(1).tolist()[0]*255),
 		##				round(scipy.rand(1).tolist()[0]*255),
 		##				round(scipy.rand(1).tolist()[0]*255))
 
-		output.append([text[cLass.tolist().index(desCl[i])], symbols[countSym], colours[countColour]])
+		output.append([each, symbols[countSym], colours[countColour]])
 
 		if usemask is False:
-			plotSym.append(wx.lib.plot.PolyMarker(list, marker=symbols[countSym], fillcolour=colours[countColour], colour=colours[countColour], size=2, legend=text[cLass.tolist().index(desCl[i])]))
+			plotSym.append(wx.lib.plot.PolyMarker(list, marker=symbols[countSym], fillcolour=colours[countColour], colour=colours[countColour], size=2, legend=each))
 
 		else:
-			listM = mask[cLass == desCl[i]]
+			listM = mask[np.array(text) == each]
 			for m in range(3):
 				if m == 0:  # include legend entry
-					plotSym.append(wx.lib.plot.PolyMarker(list[listM == m], marker=symbols[countSym], fillcolour=colours[countColour], colour=colours[countColour], size=2.5, legend=text[cLass.tolist().index(desCl[i])]))
+					plotSym.append(wx.lib.plot.PolyMarker(list[listM == m], marker=symbols[countSym], fillcolour=colours[countColour], colour=colours[countColour], size=2.5, legend=each))
 				else:  # no legend
 					plotSym.append(wx.lib.plot.PolyMarker(list[listM == m], marker=symbols[countSym], fillcolour=colours[countColour], colour=colours[countColour], size=2.5))
 					if m > 0:
@@ -514,28 +566,28 @@ def plotText(plotCanvas, coords, **_attr):
 			plotText.append(wx.lib.plot.PolyMarker(scipy.take(scipy.take(coords, [col1, col2], 1), idx, 0), marker="text", labels=scipy.take(text, idx, 0), text_colour=colours[getColour]))
 	else:  # plot 1d
 		points = scipy.take(coords, [col1], 1)
-		nCl = scipy.unique(cLass)
+		nCl = scipy.unique(text)
 		eCount = 0
-		for i in range(len(nCl)):
-			idx = _index(cLass, nCl[i])
+		for each in nCl:
+			slice = points[np.array(text) == each]
+			lbls = np.array(text)[np.array(text) == each]
 
-			sCount, eCount = copy.deepcopy(eCount) + 1, eCount + len(idx)
+			sCount = copy.deepcopy(eCount) + 1
+			eCount = eCount + len(slice)
 
-			pointSub = scipy.concatenate((scipy.arange(sCount, eCount + 1)[:, nA], points[cLass == nCl[i], 0][:, nA]), 1)
-
-			lbls = scipy.take(text, idx)
+			pointSub = scipy.concatenate((scipy.arange(sCount, eCount + 1)[:, nA], slice), 1)
 
 			if usemask is False:
 				plotText.append(wx.lib.plot.PolyMarker(pointSub, marker="text", labels=lbls.tolist()))
 			else:
-				msk = np.array(mask)[cLass == nCl[i]].tolist()
+				msk = np.array(mask)[np.array(text) == each].tolist()
 				for each in range(3):
 					plotText.append(wx.lib.plot.PolyMarker(scipy.take(pointSub, _index(msk, each), 0), marker="text", labels=scipy.take(lbls, _index(msk, each)).tolist(), text_colour=colours[each]))
 
 	if (coords.shape[1] > 1) & (col1 != col2) is True:
 		draw_plotText = wx.lib.plot.PlotGraphics(plotText, tit, xLabel=xL, yLabel=yL)
 	else:
-		draw_plotText = wx.lib.plot.PlotGraphics(plotText, tit, xLabel="Arbitrary", yLabel=yL)
+		draw_plotText = wx.lib.plot.PlotGraphics(plotText, tit, xLabel="", yLabel=yL)
 
 	if plotCanvas is not None:
 		plotCanvas.Draw(draw_plotText)
@@ -682,7 +734,8 @@ def plotScores(canvas, scores, **_attr):
 	"""
 
 	# make sure we can plot txt
-	if canvas.GetName() not in ["plcDFAscores"]:
+
+	if (canvas.GetName() not in ["plcDFAscores"]) & (len(canvas.GetName().split("plcGaModelPlot")) == 1) is True:
 		canvas.tbMain.tbConf.SetValue(False)
 		if (canvas.tbMain.tbPoints.GetValue() is not True) & (canvas.tbMain.tbSymbols.GetValue() is not True) is True:
 			canvas.tbMain.tbPoints.SetValue(True)
@@ -695,6 +748,8 @@ def plotScores(canvas, scores, **_attr):
 
 	plot = []
 	if (sHape[1] > 1) & (col1 != col2) is True:
+		canvas.xSpec = "auto"
+
 		scores = scipy.concatenate((scores[:, col1][:, nA], scores[:, col2][:, nA]), 1)
 
 		mScores = scipy.zeros((1, 2))
@@ -744,6 +799,7 @@ def plotScores(canvas, scores, **_attr):
 		canvas.Draw(wx.lib.plot.PlotGraphics(plot, title, xLabel, yLabel))
 
 	else:
+		canvas.xSpec = "none"
 		if text is True:
 			# plot labels
 			textPlot = plotText(None, scores, mask=validation, cLass=cl, text=labels, col1=col1, col2=col1, tit=title, xL="Arbitrary", yL=yLabel, usemask=xval)
@@ -751,25 +807,8 @@ def plotScores(canvas, scores, **_attr):
 				plot.append(each)
 
 		if symb is True:
-			# create array of index + score
-			nSc = scipy.zeros((1, 2))
-			nCs, nTx, nVm = [], [], []
-			cTa, cTb = 0, 0
-			for i in range(len(nCl)):
-				cTb += len(_index(cl, nCl[i]))
-				nSc = scipy.concatenate((nSc, scipy.concatenate((scipy.arange(cTa, cTb)[:, nA], scipy.take(scores, _index(cl, nCl[i]), 0)[:, col1][:, nA]), 1)), 0)
-				nCs.extend(
-					scipy.ones(
-						len(_index(cl, nCl[i])),
-					)
-					* nCl[i]
-				)
-				nTx.extend(scipy.take(labels, _index(cl, nCl[i])))
-				nVm.extend(scipy.take(np.array(validation), _index(cl, nCl[i])).tolist())
-				cTa = cTb
-			nSc = nSc[1 : len(nSc)]
 			# plot symbols
-			symPlot, output = plotSymbols(None, nSc, mask=np.array(nVm), cLass=np.array(nCs), text=nTx, usemask=xval, col1=0, col2=1, tit="", xL="", yL="", usecol=usecol, usesym=usesym)
+			symPlot, output = plotSymbols(None, scores, mask=validation, cLass=cl, text=labels, usemask=xval, col1=col1, col2=col1, tit="", xL="", yL="", usecol=usecol, usesym=usesym)
 
 			# create window in background for changing symbols/colours
 			CreateSymColSelect(canvas, output)
@@ -778,7 +817,7 @@ def plotScores(canvas, scores, **_attr):
 				plot.append(each)
 
 		if (text is True) | (symb is True) is True:
-			canvas.Draw(wx.lib.plot.PlotGraphics(plot, title, "Arbitrary", yLabel))
+			canvas.Draw(wx.lib.plot.PlotGraphics(plot, title, "", yLabel))
 
 
 class SymColSelectTool(wx.Dialog):
@@ -1155,7 +1194,7 @@ class Pca(wx.Panel):
 		self.titleBar.spnNumPcs1.SetValue(1)
 		self.titleBar.spnNumPcs2.SetValue(2)
 
-		objects = {"plcPCeigs": ["Eigenvalues", "Principal Component", "Eigenvalue"], "plcPCvar": ["Percentage Explained Variance", "Principal Component", "Cumulative % Variance"], "plcPCAscore": ["PCA Scores", "PC 1", "PC 2"], "plcPcaLoadsV": ["PCA Loading", "Arbitrary", "Arbitrary"]}
+		objects = {"plcPCeigs": ["Eigenvalues", "Principal Component", "Eigenvalue"], "plcPCvar": ["Percentage Explained Variance", "Principal Component", "Cumulative % Variance"], "plcPCAscore": ["PCA Scores", "t[1]", "t[2]"], "plcPcaLoadsV": ["PCA Loading", "w[1]", "w[2]"]}
 		curve = wx.lib.plot.PolyLine([[0, 0], [1, 1]], colour="white", width=1, style=wx.TRANSPARENT)
 
 		for each in list(objects.keys()):
@@ -1721,7 +1760,7 @@ class plotProperties(wx.Dialog):
 			plotScores(self.canvas, self.canvas.prnt.titleBar.data["pcscores"], cl=self.canvas.prnt.titleBar.data["class"][:, 0], labels=self.canvas.prnt.titleBar.data["label"], validation=self.canvas.prnt.titleBar.data["validation"], col1=self.canvas.prnt.titleBar.spnNumPcs1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnNumPcs2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=False, text=self.tbPoints.GetValue(), pconf=False, symb=self.tbSymbols.GetValue(), usecol=[], usesym=[])
 
 		elif len(self.GetName().split("plcPredPls")) > 1:
-			self.canvas = PlotPlsModel(self.canvas, model="full", tbar=self.canvas.prnt.prnt.prnt.parent.tbMain, cL=self.canvas.prnt.titleBar.data["class"][:, nA], label=self.canvas.prnt.titleBar.data["label"], scores=self.canvas.prnt.titleBar.data["plst"], predictions=self.canvas.prnt.titleBar.data["plspred"], validation=np.array(self.canvas.prnt.titleBar.data["validation"], "i")[:, nA], RMSEPT=self.canvas.prnt.titleBar.data["RMSEPT"], factors=self.canvas.prnt.titleBar.data["plsfactors"], type=self.canvas.prnt.titleBar.data["plstype"], col1=self.canvas.prnt.titleBar.spnPLSfactor1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnPLSfactor2.GetValue() - 1, symbols=self.tbSymbols.GetValue(), usetxt=self.tbPoints.GetValue())
+			self.canvas = PlotPlsModel(self.canvas, model="full", tbar=self.canvas.prnt.prnt.prnt.parent.tbMain, cL=self.canvas.prnt.titleBar.data["class"][:, nA], label=self.canvas.prnt.titleBar.data["label"], scores=self.canvas.prnt.titleBar.data["plst"], predictions=self.canvas.prnt.titleBar.data["plspred"], validation=np.array(self.canvas.prnt.titleBar.data["validation"], "i")[:, nA], RMSEPT=self.canvas.prnt.titleBar.data["RMSEPT"], factors=self.canvas.prnt.titleBar.data["plsfactors"], type=self.canvas.prnt.titleBar.data["plstype"], col1=self.canvas.prnt.titleBar.spnPLSfactor1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnPLSfactor2.GetValue() - 1, symbols=self.tbSymbols.GetValue(), usetxt=self.tbPoints.GetValue(), plScL=self.canvas.prnt.titleBar.data["pls_class"])
 
 		elif self.canvas.GetName() in ["plcGaFeatPlot"]:
 			plotScores(self.canvas, self.canvas.prnt.prnt.splitPrnt.titleBar.data["gavarcoords"], cl=self.canvas.prnt.prnt.splitPrnt.titleBar.data["class"][:, 0], labels=self.canvas.prnt.prnt.splitPrnt.titleBar.data["label"], validation=self.canvas.prnt.prnt.splitPrnt.titleBar.data["validation"], col1=0, col2=1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=True, text=self.tbPoints.GetValue(), pconf=False, symb=self.tbSymbols.GetValue(), usecol=[], usesym=[])
@@ -1730,7 +1769,7 @@ class plotProperties(wx.Dialog):
 			if self.canvas.prnt.prnt.splitPrnt.type in ["DFA"]:
 				plotScores(self.canvas, self.canvas.prnt.prnt.splitPrnt.titleBar.data["gadfadfscores"], cl=self.canvas.prnt.prnt.splitPrnt.titleBar.data["class"][:, 0], labels=self.canvas.prnt.prnt.splitPrnt.titleBar.data["label"], validation=self.canvas.prnt.prnt.splitPrnt.titleBar.data["validation"], col1=self.canvas.prnt.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue() - 1, col2=self.canvas.prnt.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, xval=True, text=self.tbPoints.GetValue(), pconf=self.tbConf.GetValue(), symb=self.tbSymbols.GetValue(), usecol=[], usesym=[])
 			else:
-				self.canvas = PlotPlsModel(self.canvas, model="ga", tbar=self.canvas.prnt.prnt.splitPrnt.prnt.parent.tbMain, cL=self.canvas.prnt.prnt.splitPrnt.titleBar.data["class"][:, 0], scores=None, label=self.canvas.prnt.prnt.splitPrnt.titleBar.data["label"], predictions=self.canvas.prnt.prnt.splitPrnt.titleBar.data["gaplsscores"], validation=self.canvas.prnt.prnt.splitPrnt.titleBar.data["validation"], RMSEPT=self.canvas.prnt.prnt.splitPrnt.titleBar.data["gaplsrmsept"], factors=self.canvas.prnt.prnt.splitPrnt.titleBar.data["gaplsfactors"], type=0, col1=self.canvas.prnt.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue() - 1, col2=self.canvas.prnt.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue() - 1, symbols=self.tbSymbols.GetValue(), usetxt=self.tbPoints.GetValue(), usecol=[], usesym=[])
+				self.canvas = PlotPlsModel(self.canvas, model="ga", tbar=self.canvas.prnt.prnt.splitPrnt.prnt.parent.tbMain, cL=self.canvas.prnt.prnt.splitPrnt.titleBar.data["class"][:, 0], scores=None, label=self.canvas.prnt.prnt.splitPrnt.titleBar.data["label"], predictions=self.canvas.prnt.prnt.splitPrnt.titleBar.data["gaplsscores"], validation=self.canvas.prnt.prnt.splitPrnt.titleBar.data["validation"], RMSEPT=self.canvas.prnt.prnt.splitPrnt.titleBar.data["gaplsrmsept"], factors=self.canvas.prnt.prnt.splitPrnt.titleBar.data["gaplsfactors"], type=0, col1=self.canvas.prnt.prnt.splitPrnt.titleBar.spnGaScoreFrom.GetValue() - 1, col2=self.canvas.prnt.prnt.splitPrnt.titleBar.spnGaScoreTo.GetValue() - 1, symbols=self.tbSymbols.GetValue(), usetxt=self.tbPoints.GetValue(), usecol=[], usesym=[], plScL=self.canvas.prnt.prnt.splitPrnt.titleBar.data["pls_class"])
 
 		elif self.canvas.GetName() in ["plcPcaLoadsV"]:
 			plotLoads(self.canvas, scipy.transpose(self.canvas.prnt.titleBar.data["pcloads"]), xaxis=self.canvas.prnt.titleBar.data["indlabels"], col1=self.canvas.prnt.titleBar.spnNumPcs1.GetValue() - 1, col2=self.canvas.prnt.titleBar.spnNumPcs2.GetValue() - 1, title=self.graph.title, xLabel=self.graph.xLabel, yLabel=self.graph.yLabel, type=loadType, usecol=[], usesym=[])
