@@ -1,7 +1,7 @@
 
 [Setup]
 AppName=PyChem
-AppVerName=PyChem 3.0.3 Beta
+AppVerName=PyChem 3.0.5a Beta
 DefaultDirName={pf}\PyChem
 DefaultGroupName=PyChem
 UninstallDisplayIcon={app}\Uninstall PyChem
@@ -41,6 +41,17 @@ Source: "bmp/conf_2_sym.bmp"; DestDir: "{app}/bmp"
 Source: "bmp/conf_int.bmp"; DestDir: "{app}/bmp"
 Source: "bmp/plot_symbol.bmp"; DestDir: "{app}/bmp"
 Source: "bmp/plot_text.bmp"; DestDir: "{app}/bmp"
+Source: "bmp/peakcfitareaaxis.png"; DestDir: "{app}/bmp"
+Source: "bmp/peakcfitareabase.png"; DestDir: "{app}/bmp"
+Source: "bmp/peakareabase.png"; DestDir: "{app}/bmp"
+Source: "bmp/peakareaaxis.png"; DestDir: "{app}/bmp"
+Source: "bmp/peakifitmax.png"; DestDir: "{app}/bmp"
+Source: "bmp/peakcfit.png"; DestDir: "{app}/bmp"
+Source: "bmp/peakimax.png"; DestDir: "{app}/bmp"
+Source: "bmp/peak.png"; DestDir: "{app}/bmp"
+Source: "bmp/scinote.bmp"; DestDir: "{app}/bmp"
+Source: "bmp/xlog.bmp"; DestDir: "{app}/bmp"
+Source: "bmp/ylog.bmp"; DestDir: "{app}/bmp"
 Source: "examples/ftir-ga3-raw-data.txt"; DestDir: "{app}/examples"
 Source: "examples/ftir-ga3-bioprocess-indvars-import.csv"; DestDir: "{app}/examples"
 Source: "examples/ftir-ga3-bioprocess-expsetup-import.csv"; DestDir: "{app}/examples"
@@ -128,5 +139,4 @@ Source: "docs/Preproc_files/image006.jpg"; DestDir: "{app}/docs/Preproc_files"
 Name: "{group}\PyChem"; Filename: "{app}\PyChemApp.exe"; WorkingDir: "{app}"; IconFilename: "{app}\ico\pychem.ico"
 Name: "{group}\Uninstall PyChem"; Filename: "{uninstallexe}"
 Name: "{commondesktop}\PyChem"; Filename: "{app}\PyChemApp.exe"; WorkingDir: "{app}"; IconFilename: "{app}\ico\pychem.ico"
-
 
