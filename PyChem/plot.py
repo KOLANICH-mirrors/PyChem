@@ -165,6 +165,7 @@ class PolyPoints:
 		else:
 			minXY = _Numeric.minimum.reduce(self.points)
 			maxXY = _Numeric.maximum.reduce(self.points)
+
 		return minXY, maxXY
 
 	def scaleAndShift(self, scale=(1, 1), shift=(0, 0)):
@@ -586,6 +587,9 @@ class PlotCanvas(wx.Panel):
 		self._sb_xunit = 0
 		self._sb_yunit = 0
 
+		self._interEnabled = False
+		self._interXlims = (0, 0)
+
 		self._dragEnabled = False
 		self._screenCoordinates = _Numeric.array([0.0, 0.0])
 
@@ -598,6 +602,7 @@ class PlotCanvas(wx.Panel):
 		self._zoomCorner2 = _Numeric.array([0.0, 0.0])  # left mouse up corner
 		self._zoomEnabled = False
 		self._hasDragged = False
+		self._justDragged = False
 
 		# Drawing Variables
 		self.last_draw = None
@@ -807,6 +812,8 @@ class PlotCanvas(wx.Panel):
 		if value:
 			if self.GetEnableZoom():
 				self.enableZoom = False
+			if self.GetEnableInteractive():
+				self.SetEnableInteractive(False)
 			self.SetCursor(self.HandCursor)
 		else:
 			self.SetCursor(wx.CROSS_CURSOR)
@@ -815,6 +822,26 @@ class PlotCanvas(wx.Panel):
 	def GetEnableDrag(self):
 		return self._dragEnabled
 
+	def SetEnableInteractive(self, value):
+		"""Set True to enable interactive mode - RMJ 03/2008."""
+		if value not in [True, False]:
+			raise TypeError("Value should be True or False")
+		if value:
+			if self.GetEnableZoom():
+				self.enableZoom = False
+			if self.GetEnableDrag():
+				self.SetEnableDrag(False)
+			self.SetCursor(wx.StockCursor(wx.CURSOR_PENCIL))
+		else:
+			self.SetCursor(wx.CROSS_CURSOR)
+		self._interEnabled = value
+
+	def GetEnableInteractive(self):
+		return self._interEnabled
+
+	def GetInterXlims(self):
+		return self._interXlims
+
 	def SetEnableZoom(self, value):
 		"""Set True to enable zooming."""
 		if value not in [True, False]:
@@ -822,6 +849,8 @@ class PlotCanvas(wx.Panel):
 		if value:
 			if self.GetEnableDrag():
 				self.SetEnableDrag(False)
+			if self.GetEnableInteractive():
+				self.SetEnableInteractive(False)
 			self.SetCursor(self.MagCursor)
 		else:
 			self.SetCursor(wx.CROSS_CURSOR)
@@ -1263,12 +1292,21 @@ class PlotCanvas(wx.Panel):
 			newpos, oldpos = list(map(_Numeric.array, list(map(self.PositionScreenToUser, [coordinates, self._screenCoordinates]))))
 			dist = newpos - oldpos
 			self._screenCoordinates = coordinates
-
 			if self.last_draw is not None:
 				graphics, xAxis, yAxis = self.last_draw
 				yAxis -= dist[1]
 				xAxis -= dist[0]
 				self._Draw(graphics, xAxis, yAxis)
+		elif self._interEnabled and event.LeftIsDown():
+			graphics, xAxis, yAxis = self.last_draw
+			self._screenCoordinates = event.GetPosition()
+			xy = self.PositionScreenToUser(self._screenCoordinates)
+			if len(graphics.objects) == 2:
+				graphics.objects.extend([PolyLine([[xy[0], yAxis[0]], [xy[0], yAxis[1]]], colour="red")])
+			else:
+				graphics.objects[2] = PolyLine([[xy[0], yAxis[0]], [xy[0], yAxis[1]]], colour="red")
+				self._Draw(graphics, xAxis, yAxis)
+			self._hasDragged = True
 
 	def OnMouseLeftDown(self, event):
 		self._zoomCorner1[0], self._zoomCorner1[1] = self._getXY(event)
@@ -1276,13 +1314,21 @@ class PlotCanvas(wx.Panel):
 		if self._dragEnabled:
 			self.SetCursor(self.GrabHandCursor)
 			self.canvas.CaptureMouse()
+		if self._interEnabled:  # added by rmj 03/2008
+			if self.last_draw is not None:
+				graphics, xAxis, yAxis = self.last_draw
+				xy = self.PositionScreenToUser(self._screenCoordinates)
+				graphics.objects.append(PolyLine([[xy[0], yAxis[0]], [xy[0], yAxis[1]]], colour="red"))
+				self._Draw(graphics, xAxis, yAxis)
 
 	def OnMouseLeftUp(self, event):
 		if self._zoomEnabled:
+			self._justDragged = False
 			if self._hasDragged == True:
 				self._drawRubberBand(self._zoomCorner1, self._zoomCorner2)  # remove old
 				self._zoomCorner2[0], self._zoomCorner2[1] = self._getXY(event)
 				self._hasDragged = False  # reset flag
+				self._justDragged = True
 				minX, minY = _Numeric.minimum(self._zoomCorner1, self._zoomCorner2)
 				maxX, maxY = _Numeric.maximum(self._zoomCorner1, self._zoomCorner2)
 				self.last_PointLabel = None  # reset pointLabel
@@ -1296,6 +1342,20 @@ class PlotCanvas(wx.Panel):
 			self.SetCursor(self.HandCursor)
 			if self.canvas.HasCapture():
 				self.canvas.ReleaseMouse()
+		if self._interEnabled:  # added by rmj 03/2008
+			graphics, xAxis, yAxis = self.last_draw
+			if self._hasDragged:
+				self._screenCoordinates = event.GetPosition()
+				xy = self.PositionScreenToUser(self._screenCoordinates)
+				graphics.objects.append(PolyLine([[xy[0], yAxis[0]], [xy[0], yAxis[1]]], colour="red"))
+				self._Draw(graphics, xAxis, yAxis)
+				self._hasDragged = False  # reset flag
+				self._interXlims = (graphics.objects[1]._points[0, 0], graphics.objects[2]._points[0, 0])
+				self.prnt.parent.DoPeakCalculations()  # instigate the calculation stuff in pychem
+			else:
+				graphics.objects = graphics.objects[0 : len(graphics.objects) - 1]
+				self._Draw(graphics, xAxis, yAxis)
+			self.enableZoom = True
 
 	def OnMouseDoubleClick(self, event):
 		if self._zoomEnabled:

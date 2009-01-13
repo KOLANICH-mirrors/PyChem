@@ -17,17 +17,18 @@ import sys
 from xml.etree import cElementTree as ET
 
 import scipy
-import Univariate
 import wx
 import wx.adv
 import wx.lib.filebrowsebutton
 import wx.richtext
+from numpy import loadtxt
 from scipy import newaxis as nA
 from wx.lib.anchors import LayoutAnchors
 
-from . import Cluster, Dfa, Ga, Pca, Plsr, expSetup, mva, plotSpectra
+from . import Cluster, Dfa, Ga, Pca, Plsr, Univariate, expSetup, mva, plotSpectra
 from .mva.chemometrics import _index
 from .Pca import PlotPlsModel, SymColSelectTool, plotLine, plotLoads, plotScores, plotStem, plotText
+from .plotSpectra import GridRowDel
 from .utils import getByPath
 from .utils.io import str_array
 
@@ -89,12 +90,9 @@ def create(parent):
 	wxID_WXWORKSPACEDIALOGLBSAVEWORKSPACE,
 ] = [wx.NewIdRef() for _init_savews_ctrls in range(6)]
 
-[
-	MNUGRIDCOPY,
-	MNUGRIDPASTE,
-	MNUGRIDDELETECOL,
-	MNUGRIDRENAMECOL,
-] = [wx.NewIdRef() for _init_grid_menu_Items in range(4)]
+[MNUGRIDCOPY, MNUGRIDPASTE, MNUGRIDDELETECOL, MNUGRIDRENAMECOL, MNUGRIDRESETSORT] = [wx.NewIdRef() for _init_grid_menu_Items in range(5)]
+
+[MNUGRIDROWDEL] = [wx.NewIdRef() for _init_grid_row_menu_Items in range(1)]
 
 
 def errorBox(window, error):
@@ -254,6 +252,23 @@ class PlotToolBar(wx.ToolBar):
 		self.tbLoadSymStd2.Bind(wx.EVT_RIGHT_DOWN, self.OnTbLoadSymStd2RightClick)
 		self.AddControl(self.tbLoadSymStd2)
 
+		self.AddSeparator()
+
+		self.tbXlog = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "xlog.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbXlog", parent=self, pos=wx.Point(971, 2), size=wx.Size(20, 21))
+		self.tbXlog.SetToolTip("")
+		self.tbXlog.Bind(wx.EVT_BUTTON, self.OnTbXLogButton)
+		self.AddControl(self.tbXlog)
+
+		self.tbYlog = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "ylog.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbYlog", parent=self, pos=wx.Point(993, 2), size=wx.Size(20, 21))
+		self.tbYlog.SetToolTip("")
+		self.tbYlog.Bind(wx.EVT_BUTTON, self.OnTbYLogButton)
+		self.AddControl(self.tbYlog)
+
+		self.tbScinote = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "scinote.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbScinote", parent=self, pos=wx.Point(1015, 2), size=wx.Size(20, 21))
+		self.tbScinote.SetToolTip("")
+		self.tbScinote.Bind(wx.EVT_BUTTON, self.OnTbScinoteButton)
+		self.AddControl(self.tbScinote)
+
 		self.SymPopUpWin = SymColSelectTool(self)
 
 		self.loadIdx = 0
@@ -337,6 +352,27 @@ class PlotToolBar(wx.ToolBar):
 		if (self.tbPoints.GetValue() is False) & (self.tbConf.GetValue() is False) & (self.tbSymbols.GetValue() is False) is False:
 			# plot scores
 			self.doPlot()
+
+	def OnTbXLogButton(self, event):
+		if self.canvas.getLogScale()[0] is True:
+			self.canvas.setLogScale((False, self.canvas.getLogScale()[1]))
+		else:
+			self.canvas.setLogScale((True, self.canvas.getLogScale()[1]))
+		self.canvas.Redraw()
+
+	def OnTbYLogButton(self, event):
+		if self.canvas.getLogScale()[1] is True:
+			self.canvas.setLogScale((self.canvas.getLogScale()[0], False))
+		else:
+			self.canvas.setLogScale((self.canvas.getLogScale()[0], True))
+		self.canvas.Redraw()
+
+	def OnTbScinoteButton(self, event):
+		if self.canvas.GetUseScientificNotation() is False:
+			self.canvas.SetUseScientificNotation(True)
+		else:
+			self.canvas.SetUseScientificNotation(False)
+		self.canvas.Redraw()
 
 	def doPlot(self, loadType=0, symcolours=[], symsymbols=[]):
 		if self.canvas.GetName() in ["plcDFAscores"]:
@@ -559,10 +595,16 @@ class PyChemMain(wx.Frame):
 		parent.Append(help="", id=MNUGRIDPASTE, kind=wx.ITEM_NORMAL, text="Paste")
 		parent.Append(help="", id=MNUGRIDRENAMECOL, kind=wx.ITEM_NORMAL, text="Rename column")
 		parent.Append(help="", id=MNUGRIDDELETECOL, kind=wx.ITEM_NORMAL, text="Delete column")
+		parent.Append(help="", id=MNUGRIDRESETSORT, kind=wx.ITEM_NORMAL, text="Reset row sort")
 		self.Bind(wx.EVT_MENU, self.OnMnuGridCopy, id=MNUGRIDCOPY)
 		self.Bind(wx.EVT_MENU, self.OnMnuGridPaste, id=MNUGRIDPASTE)
 		self.Bind(wx.EVT_MENU, self.OnMnuGridRenameColumn, id=MNUGRIDRENAMECOL)
 		self.Bind(wx.EVT_MENU, self.OnMnuGridDeleteColumn, id=MNUGRIDDELETECOL)
+		self.Bind(wx.EVT_MENU, self.OnMnuGridResetSort, id=MNUGRIDRESETSORT)
+
+	def _init_grid_row_menu_Items(self, parent):
+		parent.Append(help="", id=MNUGRIDROWDEL, kind=wx.ITEM_NORMAL, text="Delete User Defined Variable")
+		self.Bind(wx.EVT_MENU, self.OnMnuGridRowDel, id=MNUGRIDROWDEL)
 
 	def _init_utils(self):
 		# generated method, don't edit
@@ -576,15 +618,18 @@ class PyChemMain(wx.Frame):
 
 		self.gridMenu = wx.Menu(title="")
 
+		self.indRowMenu = wx.Menu(title="")
+
 		self._init_coll_mnuMain_Menus(self.mnuMain)
 		self._init_coll_mnuFile_Items(self.mnuFile)
 		self._init_coll_mnuTools_Items(self.mnuTools)
 		self._init_coll_mnuHelp_Items(self.mnuHelp)
 		self._init_grid_menu_Items(self.gridMenu)
+		self._init_grid_row_menu_Items(self.indRowMenu)
 
 	def _init_ctrls(self, prnt):
 		# generated method, don't edit
-		wx.Frame.__init__(self, id=wxID_PYCHEMMAIN, name="PyChemMain", parent=prnt, pos=wx.Point(0, 0), size=wx.Size(1024, 738), style=wx.DEFAULT_FRAME_STYLE, title="PyChem 3.0.5 Beta")
+		wx.Frame.__init__(self, id=wxID_PYCHEMMAIN, name="PyChemMain", parent=prnt, pos=wx.Point(0, 0), size=wx.Size(1024, 738), style=wx.DEFAULT_FRAME_STYLE, title="PyChem 3.0.5a Beta")
 		self._init_utils()
 		self.SetClientSize(wx.Size(1016, 704))
 		self.SetToolTip("")
@@ -655,8 +700,8 @@ class PyChemMain(wx.Frame):
 	def OnMainFrameSize(self, event):
 		event.Skip()
 
-	##		  wx.PyEventBinder(wx.EVT_SIZE)
-	##		  self.tbMain.Refresh()
+	##		  self.Layout()
+	##		  self.plUnivariate.Refresh()
 
 	def OnTbMainSize(self, event):
 		self.tbMain.Refresh()
@@ -671,7 +716,7 @@ class PyChemMain(wx.Frame):
 
 		info = wx.adv.AboutDialogInfo()
 		info.Name = "PyChem"
-		info.Version = "3.0.5 Beta"
+		info.Version = "3.0.5a Beta"
 		info.Copyright = "(C) 2008 Roger Jarvis"
 		info.Description = wordwrap("PyChem is a software program for multivariate " "data analysis (MVA).	It includes algorithms for " "calibration and categorical analyses.	 In addition, " "novel genetic algorithm tools for spectral feature " "selection" "\n\nFor more information please go to the PyChem " "website using the link below, or email the project " "author, roger.jarvis@manchester.ac.uk", 350, wx.ClientDC(self))
 		info.WebSite = ("http://pychem.sf.net/", "PyChem home page")
@@ -691,9 +736,10 @@ class PyChemMain(wx.Frame):
 					self.Reset()
 					self.xmlLoad(tree, workSpace)
 					self.data["exppath"] = loadFile
-					self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEEXP, True)
-					self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEWS, True)
-					self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILELOADWS, True)
+					mb = self.GetMenuBar()
+					mb.Enable(wxID_PYCHEMMAINMNUFILESAVEEXP, True)
+					mb.Enable(wxID_PYCHEMMAINMNUFILESAVEWS, True)
+					mb.Enable(wxID_PYCHEMMAINMNUFILELOADWS, True)
 		finally:
 			dlg.Destroy()
 
@@ -717,7 +763,7 @@ class PyChemMain(wx.Frame):
 		if self.data["raw"] is not None:
 			try:
 				if dlg.ShowModal() == wx.ID_OK:
-					saveFile = dlg.GetPath()
+					self.data["exppath"] = dlg.GetPath()
 					# workspace name entry dialog
 					texTdlg = wx.TextEntryDialog(self, "Type in a name under which to save the current workspace", "Save Workspace as...", "Default")
 					try:
@@ -725,13 +771,14 @@ class PyChemMain(wx.Frame):
 							wsName = texTdlg.GetValue()
 					finally:
 						texTdlg.Destroy()
-					self.xmlSave(saveFile, wsName, "new")
+					self.xmlSave(self.data["exppath"], wsName, "new")
 					# activate workspace save menu option
-					self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEEXP, True)
-					self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEWS, True)
-					self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILELOADWS, True)
+					mb = self.GetMenuBar()
+					mb.Enable(wxID_PYCHEMMAINMNUFILESAVEEXP, True)
+					mb.Enable(wxID_PYCHEMMAINMNUFILESAVEWS, True)
+					mb.Enable(wxID_PYCHEMMAINMNUFILELOADWS, True)
 					# show workspace dialog so that default can be edited
-					dlgws = wxWorkspaceDialog(self, saveFile, dtype="Save")
+					dlgws = wxWorkspaceDialog(self, self.data["exppath"], dtype="Save")
 					try:
 						dlgws.ShowModal()
 					finally:
@@ -743,13 +790,14 @@ class PyChemMain(wx.Frame):
 
 	def OnMnuFileSavewsMenu(self, event):
 		if self.data["exppath"] is not None:
+			wsName = ""
 			# text entry dialog
-			dlg = wx.TextEntryDialog(self, "Type in a name under which to save the current workspace", "Save Workspace as...", "Default")
-			try:
-				if dlg.ShowModal() == wx.ID_OK:
-					wsName = dlg.GetValue()
-			finally:
-				dlg.Destroy()
+			dlg = wx.TextEntryDialog(self, "Type in a name under which to save " + "the current workspace", "Save Workspace as...", "Default")
+			##			  try:
+			if dlg.ShowModal() == wx.ID_OK:
+				wsName = dlg.GetValue()
+			##			  finally:
+			dlg.Destroy()
 
 			# workspace dialog for editing
 			if wsName is not "":
@@ -782,13 +830,13 @@ class PyChemMain(wx.Frame):
 				wx.BeginBusyCursor()
 
 				if dlg.Transpose() == 0:
-					self.data["raw"] = scipy.io.read_array(dlg.getFile())
+					self.data["raw"] = loadtxt(dlg.getFile())
 				else:
-					self.data["raw"] = scipy.transpose(scipy.io.read_array(dlg.getFile()))
+					self.data["raw"] = scipy.transpose(loadtxt(dlg.getFile()))
 
 				# create additional arrays of experimental data
 				self.data["rawtrunc"] = self.data["raw"]
-				self.data["processed"] = self.data["raw"]
+				self.data["proc"] = self.data["raw"]
 				self.data["proctrunc"] = self.data["raw"]
 
 				# Resize grids
@@ -818,9 +866,10 @@ class PyChemMain(wx.Frame):
 					data = self.data["raw"][0:rows, 0:cols]
 
 				# allow for experiment save on file menu
-				self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEEXP, True)
-				self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEWS, False)
-				self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILELOADWS, False)
+				mb = self.GetMenuBar()
+				mb.Enable(wxID_PYCHEMMAINMNUFILESAVEEXP, True)
+				mb.Enable(wxID_PYCHEMMAINMNUFILESAVEWS, False)
+				mb.Enable(wxID_PYCHEMMAINMNUFILELOADWS, False)
 
 				dlgConfirm = wxImportConfirmDialog(self, data, rows, cols)
 				try:
@@ -879,7 +928,36 @@ class PyChemMain(wx.Frame):
 					heads.append(grid.GetColLabelValue(i))
 				this = count[grid.GetCellValue(0, col)]
 			if this > 1:
-				dlg = wx.MessageDialog(self, "Are you sure you want to delete the column?", "Confirm", wx.OK | wx.CANCEL | wx.ICON_WARNING)
+				##				  flag = 1
+				##				  #check this col isn't used in a saved workspace
+				##				  if self.data['exppath'] is not None:
+				##					  tree = ET.ElementTree(file=self.data['exppath'])
+				##					  root = tree.getroot()
+				##					  #get workspaces subelement
+				##					  WSnode = root.findall("Workspaces")[0]
+				##					  workspaces = WSnode
+				##					  #run through each workspace to see it grid col used
+				##					  for each in workspaces:
+				##						  for item in each:
+				##							  if item.tag == 'Lists':
+				##								  for list in item:
+				##									  if list.tag == 'depvarsel':
+				##										  L = list.text.split('\t')
+				##										  Didx = []
+				##										  for iL in range(len(L)-1):
+				##											  Didx.append(int(iL))
+				##						  for Lind in Didx:
+				##							  if (Lind < 0) & (-Lind == col) is True:
+				##								  flag = 0
+				##								  wsdel = each
+				##				  if flag == 1:
+				msg = "Are you sure you want to delete the column?"
+				##				  else:
+				##					  msg = 'The workspace "' + wsdel + '" uses this column, if you delete this ' +\
+				##							'entry then the workspace must also be deleted.	 Are you sure you want ' +\
+				##							'to continue?'
+				##
+				dlg = wx.MessageDialog(self, msg, "Confirm", wx.OK | wx.CANCEL | wx.ICON_WARNING)
 				try:
 					if dlg.ShowModal() == wx.ID_OK:
 						grid.DeleteCols(col)
@@ -890,7 +968,7 @@ class PyChemMain(wx.Frame):
 				finally:
 					dlg.Destroy()
 		else:
-			if (grid.GetNumberCols() > 2) & (col != 0) is True:
+			if (grid.GetNumberCols() > 2) & (col > 1) is True:
 				dlg = wx.MessageDialog(self, "Are you sure you want to delete the column?", "Confirm", wx.OK | wx.CANCEL | wx.ICON_WARNING)
 				try:
 					if dlg.ShowModal() == wx.ID_OK:
@@ -904,6 +982,33 @@ class PyChemMain(wx.Frame):
 							grid.SetColLabelValue(i, heads[i - 1])
 				finally:
 					dlg.Destroy()
+
+	def OnMnuGridResetSort(self, event):
+		# order rows in grid by row number
+		grid = self.data["gridsel"]
+		order = []
+		# get index
+		for i in range(2, grid.GetNumberRows()):
+			order.append(int(grid.GetRowLabelValue(i)))
+		index = scipy.argsort(order)
+		# create list of grid contents
+		gList = []
+		for i in index:
+			tp = []
+			for j in range(grid.GetNumberCols()):
+				tp.append(grid.GetCellValue(i + 2, j))
+			gList.append(tp)
+		# replace current grid contents with ordered
+		for i in range(len(gList)):
+			grid.SetRowLabelValue(i + 2, str(i + 1))
+			for j in range(grid.GetNumberCols()):
+				grid.SetCellValue(i + 2, j, gList[i][j])
+
+	def OnMnuGridRowDel(self, event):
+		# delete user defined variable row from grdIndLabels
+		GridRowDel(self.data["gridsel"], self.data)
+		# update experiment details
+		self.GetExperimentDetails(case=1)
 
 	def OnMnuGridRenameColumn(self, event):
 		grid = self.data["gridsel"]
@@ -976,16 +1081,21 @@ class PyChemMain(wx.Frame):
 		wx.TheClipboard.Close()
 
 	def Reset(self, case=0):
-		varList = "'proc':None,'class':None,'label':None," + "'split':None,'processlist':[],'xaxis':[]," + "'class':None,'label':None,'validation':None," + "'pcscores':None,'pcloads':None,'pcpervar':None," + "'pceigs':None,'pcadata':None,'niporsvd':None," + "'indlabels':None,'plsloads':None,'pcatype':None," + "'dfscores':None,'dfloads':None,'dfeigs':None," + "'sampleidx':None,'variableidx':None," + "'rawtrunc':None,'proctrunc':None," + "'gadfachroms':None,'gadfascores':None," + "'gadfacurves':None,'gaplschroms':None," + "'gaplsscores':None,'gaplscurves':None," + "'gadfadfscores':None,'gadfadfaloads':None," + "'gaplsplsloads':None,'gridsel':None,'plotsel':None," + "'tree':None,'order':None,'plsfactors':None," + "'rmsec':None,'rmsepc':None,'rmsept':None," + "'gacurrentchrom':None,'plspred':None,'pcaloadsym':None," + "'dfaloadsym':None,'plsloadsym':None,'plst':None," + "'plstype':0,'pls_class':None,'gaplstreeorder':None," + "'gadfatreeorder':None,'utest':None,'p_aur':None"
+		varList = "'split':None,'processlist':[]," + "'pcscores':None,'pcloads':None,'pcpervar':None," + "'pceigs':None,'pcadata':None,'niporsvd':None," + "'plsloads':None,'pcatype':None," + "'dfscores':None,'dfloads':None,'dfeigs':None," + "'gadfachroms':None,'gadfascores':None," + "'gadfacurves':None,'gaplschroms':None," + "'gaplsscores':None,'gaplscurves':None," + "'gadfadfscores':None,'gadfadfaloads':None," + "'gaplsplsloads':None,'gridsel':None,'plotsel':None," + "'tree':None,'order':None,'plsfactors':None," + "'rmsec':None,'rmsepc':None,'rmsept':None," + "'gacurrentchrom':None,'plspred':None,'pcaloadsym':None," + "'dfaloadsym':None,'plsloadsym':None,'plst':None," + "'plstype':0,'pls_class':None,'gaplstreeorder':None," + "'gadfatreeorder':None,'utest':None,'p_aur':None," + "'indvarlist':None,'depvarlist':None,'plotp':None"
 
 		if case == 0:
-			exec('self.data = {"raw":None,"exppath":None,' + varList + "}")
+			exec('self.data = {"raw":None,"proc":None,"exppath":None,"indlabels":None,' + '"class":None,"label":None,"validation":None,"xaxis":[],' + '"sampleidx":None,"variableidx":None,"rawtrunc":None,' + '"proctrunc":None,' + varList + "}")
+			# disable options on file menu
+			mb = self.GetMenuBar()
+			mb.Enable(wxID_PYCHEMMAINMNUFILESAVEEXP, False)
+			mb.Enable(wxID_PYCHEMMAINMNUFILESAVEWS, False)
+			mb.Enable(wxID_PYCHEMMAINMNUFILELOADWS, False)
 		else:
-			exec('self.data = {"raw":self.data["raw"],"exppath":self.data["exppath"],' + varList + "}")
+			exec('self.data = {"raw":self.data["raw"],"proc":self.data["raw"],' + '"exppath":self.data["exppath"],"indlabels":self.data["indlabels"],' + '"class":self.data["class"],"label":self.data["label"],' + '"validation":self.data["validation"],"xaxis":self.data["xaxis"],' + '"sampleidx":self.data["sampleidx"],"variableidx":self.data["variableidx"],' + '"rawtrunc":self.data["rawtrunc"],"proctrunc":self.data["proctrunc"],' + varList + "}")
 
 		# for returning application to default settings
 		self.plPreproc.Reset()
-		self.plExpset.Reset()
+		self.plExpset.Reset(case)
 		self.plPca.Reset()
 		self.plDfa.Reset()
 		self.plCluster.Reset()
@@ -1010,11 +1120,6 @@ class PyChemMain(wx.Frame):
 		self.plGapls.titleBar.getValSplitPc(self.plExpset.depTitleBar.spcGenMask.GetValue())
 		self.plGapls.titleBar.getExpGrid(self.plExpset.grdNames)
 
-		# disable options on file menu
-		self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEEXP, False)
-		self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEWS, False)
-		self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILELOADWS, False)
-
 	def xmlSave(self, path, workspace, type=None):
 		# type is either "new" (in which case workspace = "Default")
 		# or path to saved xml file
@@ -1024,18 +1129,39 @@ class PyChemMain(wx.Frame):
 		proceed = 1
 		if type is "new":
 			# build a tree structure
-			root = ET.Element("pychem_experiment")
+			root = ET.Element("pychem_305_experiment")
 			# save raw data
 			rawdata = ET.SubElement(root, "rawdata")
 			rawdata.set("key", "array")
 			rawdata.text = str_array(self.data["raw"], col_sep="\t")
-
+			# save grdindlabels content
+			indgrid = ET.SubElement(root, "indgrid")
+			# get data
+			g = self.getGrid(self.plExpset.grdIndLabels)
+			# save grid
+			indgrid.set("key", "indgrid")
+			indgrid.text = g
 			# add workspace subelement
 			Workspaces = ET.SubElement(root, "Workspaces")
 			nws = 1
 		else:
 			tree = ET.ElementTree(file=type)
 			root = tree.getroot()
+			# delete old raw data and exp setup stuff
+			for each in root:
+				if each.tag in ["rawdata", "indgrid"]:
+					root.remove(each)
+			# save raw data in case any user defined variables created
+			rawdata = ET.SubElement(root, "rawdata")
+			rawdata.set("key", "array")
+			rawdata.text = str_array(self.data["raw"], col_sep="\t")
+			# save grdindlabels content
+			indgrid = ET.SubElement(root, "indgrid")
+			# get data
+			g = self.getGrid(self.plExpset.grdIndLabels)
+			# save grid
+			indgrid.set("key", "indgrid")
+			indgrid.text = g
 			# get workspaces subelement
 			ch = root
 			for each in ch:
@@ -1058,6 +1184,18 @@ class PyChemMain(wx.Frame):
 			try:
 				locals()[workspace] = ET.SubElement(Workspaces, workspace)
 
+				# save experiment setup stuff
+				wxGrids = ["plExpset.grdNames", "plExpset.grdIndLabels"]
+				grid = ET.SubElement(locals()[workspace], "grid")
+				for each in wxGrids:
+					name = each.split(".")[len(each.split(".")) - 1]
+					# get data
+					g = self.getGrid(getByPath(self, each))
+					locals()[name] = ET.SubElement(grid, each)
+					# save grid
+					locals()[name].set("key", "grid")
+					locals()[name].text = g
+
 				# get preprocessing options
 				if len(self.data["processlist"]) != 0:
 					ppOptions = ET.SubElement(locals()[workspace], "ppOptions")
@@ -1065,6 +1203,20 @@ class PyChemMain(wx.Frame):
 						item = ET.SubElement(ppOptions, "item")
 						item.set("key", "int")
 						item.text = str(each)
+
+				##				  #save 1D lists as a string
+				##				  Lists = ET.SubElement(locals()[workspace],"Lists")
+				##				  #lists
+				##				  listOfLists = ['depvarsel']
+				##
+				##				  for each in listOfLists:
+				##					  L = self.data[each]
+				##					  sL = ''
+				##					  for item in L:
+				##						  sL = sL + str(item) + '\t'
+				##					  locals()[each] = ET.SubElement(Lists, each)
+				##					  locals()[each].set("key", "list")
+				##					  locals()[each].text = sL
 
 				# save spin, string and boolean ctrl values
 				Controls = ET.SubElement(locals()[workspace], "Controls")
@@ -1102,36 +1254,6 @@ class PyChemMain(wx.Frame):
 					locals()[name] = ET.SubElement(Controls, each)
 					locals()[name].set("key", "bool")
 					locals()[name].text = str(getByPath(self, each).GetValue())
-
-				# any wxgrid ctrl values
-				wxGrids = ["plExpset.grdNames", "plExpset.grdIndLabels"]
-
-				Grid = ET.SubElement(locals()[workspace], "Grid")
-
-				for each in wxGrids:
-					name = each.split(".")[len(each.split(".")) - 1]
-
-					g, gn = self.getGrid(getByPath(self, each))
-
-					locals()[name] = ET.SubElement(Grid, each)
-
-					# save grid column labels
-					columnLabels = ET.SubElement(locals()[name], "columnLabels")
-					for item in gn:
-						label = ET.SubElement(columnLabels, "label")
-						label.set("key", "str")
-						exec('label.text = "' + item + '"')
-
-					# save grid cell values
-					gridElements = ET.SubElement(locals()[name], "gridElements")
-					for Rows in g:
-						row = ET.SubElement(gridElements, "row")
-						for Cols in Rows:
-							if Cols == "":
-								Cols = "0"
-							col = ET.SubElement(row, "col")
-							col.set("key", "str")
-							exec('col.text = "' + Cols + '"')
 
 				# save choice options
 				Choices = ET.SubElement(locals()[workspace], "Choices")
@@ -1191,7 +1313,7 @@ class PyChemMain(wx.Frame):
 				# create plot univariate flag
 				doUni = ET.SubElement(Flags, "doUni")
 				doUni.set("key", "int")
-				if self.data["p_aur"] is not None:
+				if self.data["plotp"] is not None:
 					doUni.text = str(self.data["plotp"])
 				else:
 					doUni.text = "0"
@@ -1201,8 +1323,8 @@ class PyChemMain(wx.Frame):
 				tree.write(path)
 
 				# enable menu options
-				self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILESAVEWS, True)
-				self.mnuFile.Enable(wxID_PYCHEMMAINMNUFILELOADWS, True)
+				self.mnuMain.Enable(wxID_PYCHEMMAINMNUFILESAVEWS, True)
+				self.mnuMain.Enable(wxID_PYCHEMMAINMNUFILELOADWS, True)
 
 			except Exception as error:
 				raise
@@ -1217,28 +1339,91 @@ class PyChemMain(wx.Frame):
 
 	def xmlLoad(self, tree, workspace, type="new"):
 		# load pychem experiments from saved xml files
-		if type == "new":
-			# load raw data
-			rdArray = []
-			getRows = tree.findtext("rawdata")
-
-			rows = getRows.split("\n")
-
-			for each in rows:
-				newRow = []
-				items = each.split("\t")
-				for item in items:
-					if item not in ["", " "]:
-						newRow.append(float(item))
-				rdArray.append(newRow)
-
-			self.data["raw"] = np.array(rdArray)
-			self.data["processed"] = self.data["raw"]
+		##		  if type == 'new':
+		# load raw data
+		rdArray = []
+		getRows = tree.findtext("rawdata")
+		rows = getRows.split("\n")
+		for each in rows:
+			newRow = []
+			items = each.split("\t")
+			for item in items:
+				if item not in ["", " "]:
+					newRow.append(float(item))
+			rdArray.append(newRow)
+		self.data["raw"] = np.array(rdArray)
+		self.data["proc"] = self.data["raw"]
+		# load grdindlabels
+		gCont = tree.findtext("indgrid")
+		rows = gCont.split("\n")
+		r = len(rows) - 3
+		c = len(rows[0].split("\t")) - 2
+		# size grid accordingly
+		expSetup.ResizeGrids(self.plExpset.grdIndLabels, r, c - 1, type=-1)
+		# add column labels
+		cl = rows[0].split("\t")
+		for col in range(1, len(cl)):
+			self.plExpset.grdIndLabels.SetColLabelValue(col - 1, cl[col])
+		for row in range(1, len(rows) - 1):
+			items = rows[row].split("\t")
+			self.plExpset.grdIndLabels.SetRowLabelValue(row - 1, items[0])
+			for ci in range(1, len(items) - 1):
+				self.plExpset.grdIndLabels.SetCellValue(row - 1, ci - 1, items[ci])
+		# set read only and grey background
+		grid = self.plExpset.grdIndLabels
+		for rx in range(1, grid.GetNumberRows()):
+			if len(grid.GetRowLabelValue(rx).split("U")) > 1:
+				grid.SetReadOnly(rx, 1, 1)
+				grid.SetCellBackgroundColour(rx, 1, wx.LIGHT_GREY)
+			else:
+				break
 
 		# load workspace
 		getWsElements = tree.getroot().findall("".join(("*/", workspace)))[0]
 
 		for each in getWsElements:
+			if each.tag == "grid":
+				gName = each
+				for item in gName:
+					gCont = item.text
+					rows = gCont.split("\n")
+					r = len(rows) - 3
+					c = len(rows[0].split("\t")) - 2
+					# size grid accordingly
+					if item.tag in ["plExpset.grdNames"]:
+						expSetup.ResizeGrids(getByPath(self, item.tag), r, c - 1, type=0)
+						##					  else:
+						##						  expSetup.ResizeGrids(getByPath(self, item.tag), r, c-1, type=-1)
+						# add column labels
+						cl = rows[0].split("\t")
+						for col in range(1, len(cl)):
+							getByPath(self, item.tag).SetColLabelValue(exec(str(col - 1) + "," + '"' + cl[col] + '"'))
+						for row in range(1, len(rows) - 1):
+							items = rows[row].split("\t")
+							getByPath(self, item.tag).SetRowLabelValue(exec(str(row - 1) + "," + '"' + items[0] + '"'))
+							for ci in range(1, len(items) - 1):
+								getByPath(self, item.tag).SetCellValue(exec(str(row - 1) + "," + str(ci - 1) + "," + '"' + items[ci] + '"'))
+						# set read only and grey background
+						grid = getByPath(self, item.tag)
+						for rx in range(1, grid.GetNumberRows()):
+							if len(grid.GetRowLabelValue(rx).split("U")) > 1:
+								grid.SetReadOnly(rx, 1, 1)
+								grid.SetCellBackgroundColour(rx, 1, wx.LIGHT_GREY)
+							else:
+								break
+						# Validation column renderer for grdnames
+						##						  if grid == self.plExpset.grdNames:
+						expSetup.SetValidationEditor(grid)
+
+					else:  # just set check boxes for grdindlabels
+						for row in range(1, len(rows) - 1):
+							items = rows[row].split("\t")
+							if len(items[0].split("U")) == 1:  # spectral variable
+								self.plExpset.grdIndLabels.SetCellValue(row - 1, 0, items[1])
+
+				# set exp details
+				self.GetExperimentDetails()
+
 			# apply preprocessing steps
 			if each.tag == "ppOptions":
 				getOpts = each
@@ -1251,6 +1436,20 @@ class PyChemMain(wx.Frame):
 						self.plPreproc.optDlg.lbSpectra2.Append(SelectedText[2 : len(SelectedText)])
 				self.plPreproc.titleBar.RunProcessingSteps()
 
+			##			  #load lists
+			##			  if each.tag == 'Lists':
+			##				  getLists = each
+			##				  for item in getLists:
+			##					  L = item.text.split('\t')
+			##					  lL = []
+			##					  for iL in range(len(L)-1):
+			##						  lL.append(int(L[iL]))#wrong!!
+			##						  if int(L[iL]) < 0: #set column selections here
+			##							  self.plExpset.grdNames.SetCellValue(1,iL+1,'1')
+			##						  else:
+			##							  self.plExpset.grdNames.SetCellValue(1,iL+1,'0')
+			##					  self.data[item.tag]=lL
+
 			# load ctrl values
 			if each.tag == "Controls":
 				getVars = each
@@ -1262,45 +1461,6 @@ class PyChemMain(wx.Frame):
 				getVars = each
 				for item in getVars:
 					getByPath(self, item.tag).SetSelection(exec(list(item.items())[0][1] + "(" + item.text + ")"))
-
-			# load grids
-			if each.tag == "Grid":
-				grids = each
-				for item in grids:
-					gName = item.tag
-					members = item
-					for ind in members:
-						if ind.tag == "columnLabels":
-							cols = ind
-							expSetup.ResizeGrids(getByPath(self, gName), 10, len(cols) - 1)
-							count = 0
-							for cName in cols:
-								text = cName.text.split("\n")[0]
-								exec("self." + gName + ".SetColLabelValue(" + str(count) + "," + '"' + text + '")')
-								count += 1
-						elif ind.tag == "gridElements":
-							Rows = ind
-
-							# grid resize according to type
-							if gName == "plExpset.grdNames":
-								expSetup.ResizeGrids(getByPath(self, gName), len(Rows) - 2, len(cols) - 1, 1)
-							elif gName == "plExpset.grdIndLabels":
-								expSetup.ResizeGrids(getByPath(self, gName), len(Rows) - 1, len(cols) - 1, 3)
-
-							rCount = 0
-							for r in Rows:
-								Cols = r
-								cCount = 0
-								for c in Cols:
-									exec("self." + gName + ".SetCellValue(" + str(rCount) + "," + str(cCount) + "," + '"' + c.text + '")')
-									cCount += 1
-								rCount += 1
-
-					# Validation column renderer for grdnames
-					expSetup.SetValidationEditor(self.plExpset.grdNames)
-
-				# set exp details
-				self.GetExperimentDetails()
 
 			# load arrays
 			if each.tag == "Array":
@@ -1366,12 +1526,18 @@ class PyChemMain(wx.Frame):
 					elif (item.tag == "doPlsr") & (item.text == "1") is True:
 						self.plPls.titleBar.runPls()
 					elif (item.tag == "doUni") & (item.text != "0") is True:
-						self.data["utest"] = [self.plUnivariate.titleBar.cbxTest.GetSelection(), self.plUnivariate.titleBar.cbxData.GetSelection()]
 						if self.plUnivariate.titleBar.cbxData.GetSelection() == 0:
 							x = scipy.take(self.data["rawtrunc"], [self.plUnivariate.titleBar.cbxVariable.GetSelection()], 1)
 						elif self.plUnivariate.titleBar.cbxData.GetSelection() == 1:
 							x = scipy.take(self.data["proctrunc"], [self.plUnivariate.titleBar.cbxVariable.GetSelection()], 1)
-						self.plUnivariate.titleBar.PlotResults(x, float(item.text), scipy.unique(np.array(self.data["label"])), ["black", "blue", "red", "cyan", "green"], psum=True)
+						if self.plUnivariate.titleBar.cbxTest.GetSelection() < 2:
+							self.data["utest"] = [self.plUnivariate.titleBar.cbxTest.GetSelection(), self.plUnivariate.titleBar.cbxData.GetSelection()]
+							self.plUnivariate._init_class_sizers()
+							self.plUnivariate.titleBar.PlotResults(x, float(item.text), scipy.unique(np.array(self.data["label"])), ["black", "blue", "red", "cyan", "green"], psum=True)
+						else:
+							self.data["utest"] = None
+							self.plUnivariate._init_corr_sizers()
+							self.plUnivariate.titleBar.RunUnivariate()
 
 		# unlock ctrls
 		self.EnableCtrls()
@@ -1384,42 +1550,50 @@ class PyChemMain(wx.Frame):
 		c = grid.GetNumberCols()
 
 		# get column labels
-		gridcolhead = []
+		gridout = "\t"
 		for i in range(c):
-			gridcolhead.append(grid.GetColLabelValue(i))
-
-		# get grid contents
-		gridout = []
+			gridout = gridout + grid.GetColLabelValue(i) + "\t"
+		gridout = gridout + "\n"
+		# get grid contents & row labels
 		for i in range(r):
-			row = []
+			row = ""
+			row = row + grid.GetRowLabelValue(i) + "\t"
 			for j in range(c):
-				row.append(grid.GetCellValue(i, j))
-			gridout.append(row)
+				row = row + grid.GetCellValue(i, j) + "\t"
+			gridout = gridout + row + "\n"
 
-		return gridout, gridcolhead
+		return gridout
 
-	def GetExperimentDetails(self):
+	def GetExperimentDetails(self, case=0):
 		if self.data["raw"] is not None:
 			self.plExpset.grdNames.SetGridCursor(2, 0)
 			self.plExpset.grdIndLabels.SetGridCursor(1, 0)
-			# count active samples
-			countActive = 0
+			# show busy egg timer
+			wx.BeginBusyCursor()
+			# count active samples and get index to sort by
+			countActive, order = 0, []
 			for i in range(2, self.plExpset.grdNames.GetNumberRows()):
 				if self.plExpset.grdNames.GetCellValue(i, 0) == "1":
+					order.append(int(self.plExpset.grdNames.GetRowLabelValue(i)))
 					countActive += 1
+			index = scipy.argsort(order)
+			# index for removing samples from analysis
+			self.data["sampleidx"] = scipy.sort(np.array(order) - 1).tolist()
 			# get col headings
 			colHeads, self.data["class"], classCols = [], [], 0
 			for i in range(1, self.plExpset.grdNames.GetNumberCols()):
 				colHeads.append(self.plExpset.grdNames.GetColLabelValue(i))
 				# get label vector
 				if (self.plExpset.grdNames.GetCellValue(0, i) == "Label") and (self.plExpset.grdNames.GetCellValue(1, i) == "1") is True:
-
-					self.data["label"], self.data["sampleidx"] = [], []
-
+					self.data["label"] = []
 					for j in range(2, self.plExpset.grdNames.GetNumberRows()):
 						if self.plExpset.grdNames.GetCellValue(j, 0) == "1":
-							self.data["sampleidx"].append(j - 2)  # for removing samples from analysis
+							##							  self.data['sampleidx'].append(j-2) #for removing samples from analysis
 							self.data["label"].append(self.plExpset.grdNames.GetCellValue(j, i))
+
+					# reorder by index
+					##					  self.data['sampleidx'] = np.array(self.data['sampleidx'])[index].tolist()
+					self.data["label"] = np.array(self.data["label"])[index].tolist()
 
 				# get class vector
 				if (self.plExpset.grdNames.GetCellValue(0, i) == "Class") and (self.plExpset.grdNames.GetCellValue(1, i) == "1") is True:
@@ -1439,6 +1613,9 @@ class PyChemMain(wx.Frame):
 							countSample += 1
 					classCols += 1
 
+					# reorder by index
+					self.data["class"] = self.data["class"][index, :]
+
 					# set max dfs that can be calculated
 					self.plDfa.titleBar.spnDfaDfs.SetRange(1, len(scipy.unique(self.data["class"][:, 0])) - 1)
 				##				  self.plCluster.titleBar.dlg.spnNumClass.SetValue(max(self.data['class']))
@@ -1455,18 +1632,22 @@ class PyChemMain(wx.Frame):
 									self.data["validation"].append(1)
 								elif self.plExpset.grdNames.GetCellValue(j, i) == "Test":
 									self.data["validation"].append(2)
+								else:
+									self.data["validation"].append(0)
 							except:
 								continue
 					self.data["validation"] = np.array(self.data["validation"])
 
+					# reorder by index
+					self.data["validation"] = self.data["validation"][index]
+
 			# get x-axis labels/values
-			num = 1
-			self.data["xaxis"] = []
 			self.plUnivariate.titleBar.cbxVariable.Clear()
 			for j in range(1, self.plExpset.grdIndLabels.GetNumberCols()):
 				if self.plExpset.grdIndLabels.GetCellValue(0, j) == "1":
 					self.data["variableidx"] = []
 					self.data["indlabelsfull"] = []
+					self.data["xaxisfull"] = []
 					for i in range(1, self.plExpset.grdIndLabels.GetNumberRows()):
 						val = self.plExpset.grdIndLabels.GetCellValue(i, j)
 						self.data["indlabelsfull"].append(val)
@@ -1477,20 +1658,37 @@ class PyChemMain(wx.Frame):
 							self.plUnivariate.titleBar.cbxVariable.Append(val)
 						# check for float or txt
 						try:
-							val = float(val)
-							self.data["xaxis"].append(val)
+							self.data["xaxisfull"].append(float(val))
 						except:
-							num = 0
+							self.data["xaxisfull"].append(val)
+
 			self.plUnivariate.titleBar.cbxVariable.SetSelection(0)
 
-			if num == 1:
-				self.data["xaxisfull"] = self.data["xaxis"]
-				self.data["xaxis"] = scipy.take(np.array(self.data["xaxis"]), self.data["variableidx"])[:, nA]
-			else:
+			self.data["xaxis"] = []
+			for each in self.data["variableidx"]:
+				self.data["xaxis"].append(self.data["xaxisfull"][each])
+			self.data["xaxis"] = np.array(self.data["xaxis"])[:, nA]
+			num = 1
+			for row in range(len(self.data["xaxis"])):
+				try:
+					val = float(self.data["xaxis"][row, 0])
+				except:
+					num = 0
+			# xaxis values not numeric therefore define xaxis range
+			if num == 0:
 				self.data["xaxisfull"] = scipy.arange(1, self.data["raw"].shape[1] + 1)
 				self.data["xaxis"] = scipy.take(self.data["xaxisfull"], self.data["variableidx"])[:, nA]
 
 			self.data["indlabels"] = scipy.take(np.array(self.data["indlabelsfull"]), self.data["variableidx"]).tolist()
+
+			##			  #if any udv's have been calculated then possible that data array larger than
+			##			  #number of rows in indlabels
+			##			  nL = self.plExpset.grdIndLabels.GetNumberRows()-1
+			##			  rS = self.data['raw'].shape[1]
+			##			  if rS > nL:
+			##				  self.data['raw'] = self.data['raw'][:,rS-nL:rS]
+			##				  #run pre-processing funcs
+			##				  self.plPreproc.titleBar.RunProcessingSteps()
 
 			# remove any unwanted samples & variables, always following any preprocessing
 			self.data["rawtrunc"] = scipy.take(self.data["raw"], self.data["variableidx"], 1)
@@ -1518,6 +1716,42 @@ class PyChemMain(wx.Frame):
 			except:
 				pass
 
+			# check if necessary to do a soft reset
+			if case == 0:
+				if self.data["indvarlist"] is not None:
+					if (self.data["indvarlist"] != self.data["variableidx"]) | (self.data["depvarlist"] != self.data["sampleidx"]) is True:
+						dlg = wx.MessageDialog(self, "Changes have been made to the samples and/or " + "variables selected for analysis, the system must be reset.	Would you " + "like to continue without saving your current work?", caption="Attention!", style=wx.OK | wx.CANCEL | wx.CENTRE | wx.ICON_QUESTION)
+						if dlg.ShowModal() == wx.ID_OK:
+							# clear all modelling screens
+							self.Reset(1)
+						else:
+							# set checkmarks to original
+							for ri in range(2, self.plExpset.grdNames.GetNumberRows()):
+								if ri - 2 in self.data["depvarlist"]:
+									self.plExpset.grdNames.SetCellValue(ri, 0, "1")
+								else:
+									self.plExpset.grdNames.SetCellValue(ri, 0, "0")
+							for ri in range(1, self.plExpset.grdIndLabels.GetNumberRows()):
+								if ri - 1 in self.data["indvarlist"]:
+									self.plExpset.grdIndLabels.SetCellValue(ri, 0, "1")
+								else:
+									self.plExpset.grdIndLabels.SetCellValue(ri, 0, "0")
+					else:
+						# save indices to compare to next
+						self.data["indvarlist"] = self.data["variableidx"]
+						self.data["depvarlist"] = self.data["sampleidx"]
+				else:
+					# save indices to compare to next
+					self.data["indvarlist"] = self.data["variableidx"]
+					self.data["depvarlist"] = self.data["sampleidx"]
+			else:
+				# save indices to compare to next
+				self.data["indvarlist"] = self.data["variableidx"]
+				self.data["depvarlist"] = self.data["sampleidx"]
+
+			# remove egg timer
+			wx.EndBusyCursor()
+
 	def EnableCtrls(self):
 		self.plExpset.grdNames.Enable(1)
 		self.plExpset.depTitleBar.btnImportMetaData.Enable(1)
@@ -1529,7 +1763,8 @@ class PyChemMain(wx.Frame):
 		self.plExpset.indTitleBar.btnImportIndVar.Enable(1)
 		self.plExpset.indTitleBar.btnInsertRange.Enable(1)
 
-		self.plPreproc.titleBar.btnPlotRaw.Enable(1)
+		self.plPreproc.titleBar.btnPlot.Enable(1)
+		self.plPreproc.titleBar.btnInteractive.Enable(1)
 		self.plPreproc.titleBar.btnExportData.Enable(1)
 
 		self.plPca.titleBar.btnRunPCA.Enable(1)
@@ -1747,7 +1982,8 @@ class wxWorkspaceDialog(wx.Dialog):
 				if dtype == "Save":
 					self.btnCancel.Enable(0)
 		except:
-			dlg = wx.MessageDialog(self, "Unable to load data - this is not a PyChem Experiment file", "Error!", wx.OK | wx.ICON_ERROR)
+			raise
+			dlg = wx.MessageDialog(self, "Unable to load data - this is not a " + "PyChem Experiment file", "Error!", wx.OK | wx.ICON_ERROR)
 			try:
 				dlg.ShowModal()
 			finally:

@@ -389,9 +389,9 @@ class TitleBar(bp.ButtonPanel):
 	def treeindex(self, clusters, linkdist, order):
 		nodeindex = 0
 		nnodes = len(clusters)
-		nodecounts = zeros(nnodes)
-		nodeorder = zeros(nnodes, "d")
-		nodedist = array(linkdist)
+		nodecounts = scipy.zeros(nnodes)
+		nodeorder = scipy.zeros(nnodes, "d")
+		nodedist = np.array(linkdist)
 		for nodeindex in range(nnodes):
 			min1 = clusters[nodeindex][0]
 			min2 = clusters[nodeindex][1]
@@ -421,7 +421,7 @@ class TitleBar(bp.ButtonPanel):
 	def treesort(self, order, nodeorder, nodecounts, NodeElement):
 		nNodes = len(NodeElement)
 		nElements = nNodes + 1
-		neworder = zeros(nElements, "d")
+		neworder = scipy.zeros(nElements, "d")
 		clusterids = list(range(nElements))
 		for i in range(nNodes):
 			i1 = NodeElement[i][0]
@@ -465,7 +465,7 @@ class TitleBar(bp.ButtonPanel):
 						neworder[j] += increase
 					if clusterid == i1 or clusterid == i2:
 						clusterids[j] = -i - 1
-		return argsort(neworder)
+		return scipy.argsort(neworder)
 
 	def drawTree(self, canvas, tree, order, labels, tit="", xL="", yL=""):
 		##		  colourList = ['BLUE', 'BROWN', 'CYAN','GREY', 'GREEN', 'MAGENTA',
@@ -612,9 +612,7 @@ class TitleBar(bp.ButtonPanel):
 					# save node coord
 					Nodes[str((tree[i, 0] + 1) * -1)] = (x2, (y1 + y2) / 2)
 
-		canvas.Draw(wx.lib.plot.PlotGraphics(Line, title=tit, xLabel=xL, yLabel=yL))  # ,
-
-	##				xAxis=(-.05,1.05), yAxis=(-4,(len(order)*2)))
+		canvas.Draw(wx.lib.plot.PlotGraphics(Line, title=tit, xLabel=xL, yLabel=yL))
 
 	def ReportPartitioning(self, textctrl, clusterid, error, nfound, title, centroids=None):
 		# report summary
@@ -735,7 +733,7 @@ class selFun(fpb.FoldPanelBar):
 		self.distPnl = wx.Panel(id=-1, name="distPnl", parent=self.distType, pos=wx.Point(0, 0), size=wx.Size(200, 290), style=wx.TAB_TRAVERSAL)
 		self.distPnl.SetToolTip("")
 
-		self.linkPnl = wx.Panel(id=-1, name="linkPnl", parent=self.linkType, pos=wx.Point(0, 0), size=wx.Size(200, 110), style=wx.TAB_TRAVERSAL)
+		self.linkPnl = wx.Panel(id=-1, name="linkPnl", parent=self.linkType, pos=wx.Point(0, 0), size=wx.Size(200, 150), style=wx.TAB_TRAVERSAL)
 		self.linkPnl.SetToolTip("")
 
 		self.rbKmeans = wx.RadioButton(id=-1, label="k-means clustering", name="rbKmeans", parent=self.methPnl, pos=wx.Point(16, 48), size=wx.Size(128, 21), style=wx.RB_GROUP)

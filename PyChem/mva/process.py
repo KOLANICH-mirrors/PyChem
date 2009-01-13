@@ -16,6 +16,9 @@
 # -----------------------------------------------------------------------------
 
 import scipy
+from scipy import newaxis as nA
+
+from .chemometrics import MLR
 
 
 def _padarray(myarray, frame, type):
@@ -50,15 +53,37 @@ def _slice(x, index, axis=0):
 	return slice
 
 
+def emsc(myarray, order, fit=None):
+	"""Extended multiplicative scatter correction (Ref H. Martens)
+	myarray -	spectral data for background correction
+	order -		order of polynomial
+	fit -		if None then use average spectrum, otherwise provide a spectrum
+				as a column vector to which all others fitted
+	corr -		EMSC corrected data
+	mx -		fitting spectrum
+	"""
+
+	# choose fitting vector
+	if fit:
+		mx = fit
+	else:
+		mx = scipy.mean(myarray, axis=0)[:, nA]
+
+	# do fitting
+	corr = scipy.zeros(myarray.shape)
+	for i in range(len(myarray)):
+		b, f, r = MLR(mx, myarray[i, :][:, nA], order)
+		corr[i, :] = scipy.reshape((r / b[0, 0]) + mx, (corr.shape[1],))
+
+	return corr
+
+
 def norm01(myarray):
 	"""Scale lowest bin to 0, highest bin to +1"""
-	size = myarray.shape
-	a = 0
-	while a < size[0]:
+	for a in range(myarray.shape[0]):
 		diff_myarray_min = myarray[a, :] - min(myarray[a, :])
 		diff_max_min = max(myarray[a, :]) - min(myarray[a, :])
 		myarray[a, :] = diff_myarray_min / diff_max_min
-		a = a + 1
 	return myarray
 
 

@@ -408,13 +408,19 @@ def plotLine(plotCanvas, plotArr, **_attr):
 		for i in range(plotArr.shape[0]):
 			pA = plotArr[i]
 			pA = pA[:, nA]
-			Line.append(wx.lib.plot.PolyLine(scipy.concatenate((xaxis, pA), 1), legend=ledge[i], colour=colourList[ColourCount], width=wdth, style=wx.SOLID))
+			if ledge is not None:
+				Line.append(wx.lib.plot.PolyLine(scipy.concatenate((xaxis, pA), 1), legend=ledge[i], colour=colourList[ColourCount], width=wdth, style=wx.SOLID))
+			else:
+				Line.append(wx.lib.plot.PolyLine(scipy.concatenate((xaxis, pA), 1), colour=colourList[ColourCount], width=wdth, style=wx.SOLID))
 			ColourCount += 1
 			if ColourCount == len(colourList):
-				ColourCount == 0
+				ColourCount = 0
 		NewplotLine = wx.lib.plot.PlotGraphics(Line, tit, xLabel, yLabel)
 
-	plotCanvas.Draw(NewplotLine, xAxis=(xaxis.min(), xaxis.max()))
+	plotCanvas.Draw(NewplotLine)  # ,xAxis=(xaxis.min(),
+
+
+##			xaxis.max()))
 
 
 def plotStem(plotCanvas, plotArr, **_attr):
@@ -955,8 +961,10 @@ class MyPlotCanvas(wx.lib.plot.PlotCanvas):
 
 		self._init_plot_menu_Items(self.plotMenu)
 
-	def __init__(self, parent, id, pos, size, style, name, toolbar, tbstatus="generic"):
+	def __init__(self, parent, id, pos, size, style, name, toolbar):
 		wx.lib.plot.PlotCanvas.__init__(self, parent, id, pos, size, style, name)
+		self.xSpec = "min"
+		self.ySpec = "min"
 		self.Bind(wx.EVT_RIGHT_DOWN, self.OnMouseRightDown)
 		self.Bind(wx.EVT_LEFT_DOWN, self.OnMouseLeftDown)
 
@@ -967,7 +975,7 @@ class MyPlotCanvas(wx.lib.plot.PlotCanvas):
 		self.tbMain = toolbar
 
 	def OnMnuPlotCopy(self, event):
-		# for winxp
+		# for windows
 		self.Redraw(wx.MetaFileDC()).SetClipboard()
 
 		# for linux
@@ -1018,6 +1026,22 @@ class MyPlotCanvas(wx.lib.plot.PlotCanvas):
 		self.PopupMenu(self.plotMenu, pt)
 
 	def OnMouseLeftDown(self, event):
+		# put info in tb
+		self.PopulateToolbar()
+		# get coords for zoom centre
+		self._zoomCorner1[0], self._zoomCorner1[1] = self._getXY(event)
+		self._screenCoordinates = np.array(event.GetPosition())
+		if self._dragEnabled:
+			self.SetCursor(self.GrabHandCursor)
+			self.tbMain.canvas.CaptureMouse()
+		if self._interEnabled:
+			if self.last_draw is not None:
+				graphics, xAxis, yAxis = self.last_draw
+				xy = self.PositionScreenToUser(self._screenCoordinates)
+				graphics.objects.append(wx.lib.plot.PolyLine([[xy[0], yAxis[0]], [xy[0], yAxis[1]]], colour="red"))
+				self._Draw(graphics, xAxis, yAxis)
+
+	def PopulateToolbar(self):
 		# enable plot toolbar
 		self.tbMain.Enable(True)
 		self.tbMain.Refresh()
@@ -1091,13 +1115,6 @@ class MyPlotCanvas(wx.lib.plot.PlotCanvas):
 			self.tbMain.tbLoadLabStd1.Enable(False)
 			self.tbMain.tbLoadLabStd2.Enable(False)
 			self.tbMain.tbLoadSymStd2.Enable(False)
-
-		# get coords for zoom centre
-		self._zoomCorner1[0], self._zoomCorner1[1] = self._getXY(event)
-		self._screenCoordinates = np.array(event.GetPosition())
-		if self._dragEnabled:
-			self.SetCursor(self.GrabHandCursor)
-			self.tbMain.canvas.CaptureMouse()
 
 
 class Pca(wx.Panel):

@@ -23,8 +23,6 @@ import scipy
 import scipy.linalg
 from scipy import newaxis as nA
 
-from .process import autoscale, meancent
-
 
 def _fdot(a, b):
 	"""Dot product for large arrays, faster than numarrays dot
@@ -35,6 +33,17 @@ def _fdot(a, b):
 		product[r, :] = scipy.sum(scipy.reshape(a[r, :], (a.shape[1], 1)) * b, 0)
 		r = r + 1
 	return product
+
+
+def _meancent(myarray):
+	means = scipy.mean(myarray, axis=0)  # Get the mean of each colm
+	return scipy.subtract(myarray, means)
+
+
+def _autoscale(a):
+	mean_cols = scipy.resize(sum(a, 0) / a.shape[0], (a.shape))
+	std_cols = scipy.resize(scipy.sqrt((sum((a - mean_cols) ** 2, 0)) / (a.shape[0] - 1)), (a.shape))
+	return (a - mean_cols) / std_cols
 
 
 def _mean(a, axis=0):
@@ -299,9 +308,9 @@ def PCA_SVD(myarray, type="covar"):
 		   [  8. ,	15. ,	2. ]])
 	"""
 	if type == "covar":
-		myarray = meancent(myarray)
+		myarray = _meancent(myarray)
 	elif type == "corr":
-		myarray = autoscale(myarray)
+		myarray = _autoscale(myarray)
 	else:
 		raise KeyError("'type' must be one of 'covar or 'corr'")
 
@@ -337,9 +346,9 @@ def PCA_NIPALS(myarray, comps, type="covar", stb=None):
 	"""
 
 	if type == "covar":
-		newarray = meancent(myarray)
+		newarray = _meancent(myarray)
 	elif type == "corr":
-		newarray = autoscale(myarray)
+		newarray = _autoscale(myarray)
 
 	arr_size = newarray.shape
 	tt, pp, i = scipy.zeros((arr_size[0], comps), "d"), scipy.zeros((comps, arr_size[1]), "d"), 0
@@ -371,9 +380,9 @@ def PCA_NIPALS(myarray, comps, type="covar", stb=None):
 
 	# work out percentage explained variance
 	if type == "covar":
-		newarray = meancent(myarray)
+		newarray = _meancent(myarray)
 	elif type == "corr":
-		newarray = autoscale(myarray)
+		newarray = _autoscale(myarray)
 
 	s0, s = scipy.sum(scipy.sum(newarray**2)), []
 	for n in scipy.arange(1, comps + 1, 1):
@@ -471,6 +480,34 @@ def DFA(X, group, nodfs, pcloads=None):
 	return U, As_out, Ls_out, pcloads
 
 
+def MLR(x, y, order):
+	"""Multiple linear regression fit of the columns of matrix x
+	(dependent variables) to constituent vector y (independent variables)
+
+	order -		order of a smoothing polynomial, which can be included
+				in the set of independent variables. If order is
+				not specified, no background will be included.
+	b -			fit coeffs
+	f -			fit result (m x 1 column vector)
+	r -			residual   (m x 1 column vector)
+	"""
+
+	if order > 0:
+		s = scipy.ones((len(y), 1))
+		for j in range(order):
+			s = scipy.concatenate((s, (scipy.arange(0, 1 + (1.0 / (len(y) - 1)), 1.0 / (len(y) - 1)) ** j)[:, nA]), 1)
+		X = scipy.concatenate((x, s), 1)
+	else:
+		X = x
+
+	# calc fit b=fit coefficients
+	b = scipy.dot(scipy.dot(scipy.linalg.pinv(scipy.dot(scipy.transpose(X), X)), scipy.transpose(X)), y)
+	f = scipy.dot(X, b)
+	r = y - f
+
+	return b, f, r
+
+
 def PLS(xdata, ydata, mask, factors, stb=None, type=0):
 	"""PLS1 for modelling a single Y-variable and
 	PLS2 for several Y-variables
@@ -504,9 +541,9 @@ def PLS(xdata, ydata, mask, factors, stb=None, type=0):
 		Xmt, ymt = scipy.mean(x3, axis=0), scipy.mean(y3, axis=0)
 
 	if type == 0:  # use matrix of covariances
-		x, y = meancent(xdata), meancent(ydata)
+		x, y = _meancent(xdata), _meancent(ydata)
 	elif type == 1:  # use matrix of correlations
-		x, y = autoscale(xdata), autoscale(ydata)
+		x, y = _autoscale(xdata), _autoscale(ydata)
 
 	# split into training, cross-validation & test
 	train_x, cval_x, test_x, train_y, cval_y, test_y, dummy1, dummy2, dummy3 = _split(x, y, mask)

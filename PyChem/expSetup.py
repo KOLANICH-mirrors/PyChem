@@ -162,16 +162,25 @@ def GetXaxis(From, To, Bins, Grid):
 		ax = float(From) - int
 		xaxis = scipy.dot(int, scipy.arange(1, Bins + 1)) + ax
 		xaxis = scipy.around(scipy.reshape(xaxis, (len(xaxis), 1)), 2)
-
+		# determine if any user defined variables present
+		count = 0
+		for r in range(1, Grid.GetNumberRows()):
+			if len(Grid.GetRowLabelValue(r).split("U")) == 2:
+				count += 1
+			else:
+				break
 		# Append row to independent label grid
 		Grid.SetCellAlignment(0, Grid.GetNumberCols() - 1, wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
 		Grid.SetCellEditor(0, Grid.GetNumberCols() - 1, wx.grid.GridCellBoolEditor())
 		Grid.SetCellRenderer(0, Grid.GetNumberCols() - 1, wx.grid.GridCellBoolRenderer())
 		Grid.SetCellValue(0, Grid.GetNumberCols() - 1, "1")
 		Grid.SetColLabelValue(Grid.GetNumberCols() - 1, "X-axis")
-
-		for i in range(1, xaxis.shape[0] + 1):
-			Grid.SetCellValue(i, Grid.GetNumberCols() - 1, "%.2f" % xaxis[i - 1, 0])
+		# set variables for user defined data
+		for i in range(1, count + 1):
+			Grid.SetCellValue(i, Grid.GetNumberCols() - 1, Grid.GetCellValue(i, 1))
+		# set variables for experimental data
+		for i in range(count + 1, count + xaxis.shape[0] + 1):
+			Grid.SetCellValue(i, Grid.GetNumberCols() - 1, "%.2f" % xaxis[i - count - 1, 0])
 
 	return xaxis
 
@@ -188,10 +197,28 @@ def ResizeGrids(grid, rows, cols, type=None):
 	elif grid.GetNumberRows() < rows + 1:
 		grid.AppendRows(rows + 1 - grid.GetNumberRows())
 
+	if type in [0]:
+		for i in range(grid.GetNumberCols()):
+			grid.SetCellAlignment(0, i, wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
+			grid.SetCellAlignment(1, i, wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
+			grid.SetCellTextColour(0, i, wx.RED)
+			grid.SetReadOnly(0, i, 1)
+			grid.SetCellEditor(1, i, wx.grid.GridCellBoolEditor())
+			grid.SetCellRenderer(1, i, wx.grid.GridCellBoolRenderer())
+			grid.SetCellValue(1, i, "1")
+			if i == 0:
+				grid.SetColLabelValue(i, "Sample")
+				grid.SetCellValue(0, i, "Select")
+				for j in range(2, grid.GetNumberRows()):
+					grid.SetCellEditor(j, 0, wx.grid.GridCellBoolEditor())
+					grid.SetCellRenderer(j, 0, wx.grid.GridCellBoolRenderer())
+					grid.SetCellAlignment(j, 0, wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
+					grid.SetCellValue(j, 0, "1")
+
 	if type in [1, 2]:
 		grid.AppendRows(1)
 		grid.SetRowLabelValue(0, "Type")
-		grid.SetRowLabelValue(1, "Select")
+		grid.SetRowLabelValue(1, "Iterative")
 		for i in range(grid.GetNumberRows() - 2):
 			grid.SetRowLabelValue(i + 2, str(i + 1))
 		for i in range(grid.GetNumberCols()):
@@ -220,9 +247,27 @@ def ResizeGrids(grid, rows, cols, type=None):
 		grid.SetCellValue(0, 3, "Validation")
 
 	if type == 3:
-		grid.SetRowLabelValue(0, "Select")
+		grid.SetRowLabelValue(0, "Iterative")
 		for i in range(1, grid.GetNumberRows()):
 			grid.SetRowLabelValue(i, str(i))
+			grid.SetReadOnly(i, 1, 0)
+			grid.SetCellBackgroundColour(i, 1, wx.WHITE)
+		for i in range(grid.GetNumberCols()):
+			grid.SetCellAlignment(0, i, wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
+			grid.SetCellEditor(0, i, wx.grid.GridCellBoolEditor())
+			grid.SetCellRenderer(0, i, wx.grid.GridCellBoolRenderer())
+			grid.SetCellValue(0, i, "1")
+			if i == 0:
+				grid.SetColLabelValue(0, "Variable")
+				for j in range(1, grid.GetNumberRows()):
+					grid.SetCellEditor(j, 0, wx.grid.GridCellBoolEditor())
+					grid.SetCellRenderer(j, 0, wx.grid.GridCellBoolRenderer())
+					grid.SetCellAlignment(j, 0, wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
+					grid.SetCellValue(j, 0, "1")
+			else:
+				grid.SetColLabelValue(i, "X-axis")
+
+	if type == -1:
 		for i in range(grid.GetNumberCols()):
 			grid.SetCellAlignment(0, i, wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
 			grid.SetCellEditor(0, i, wx.grid.GridCellBoolEditor())
@@ -323,14 +368,14 @@ class expSetup(wx.Panel):
 	##	  def OnPanelSize(self, event):
 	##		  self.Refresh()
 
-	def Reset(self):
-		# create dependent variables grid
-		self.grdNames.ClearGrid()
-		ResizeGrids(self.grdNames, 100, 3, 2)
-
-		# create independent variables grid
-		self.grdIndLabels.ClearGrid()
-		ResizeGrids(self.grdIndLabels, 100, 1, 3)
+	def Reset(self, case=0):
+		if case == 0:
+			# create dependent variables grid
+			self.grdNames.ClearGrid()
+			ResizeGrids(self.grdNames, 100, 3, 2)
+			# create independent variables grid
+			self.grdIndLabels.ClearGrid()
+			ResizeGrids(self.grdIndLabels, 100, 1, 3)
 
 	def InitialiseFoldBar(self):
 		# get fold panel icons
@@ -355,6 +400,8 @@ class expSetup(wx.Panel):
 		self.grdNames.Enable(False)
 		self.grdNames.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.OnGrdNamesEditorShown)
 		self.grdNames.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnGrdNamesRightDown)
+		self.grdNames.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnGrdNamesCellLeftDown)
+		self.grdNames.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.OnGrdNamesLabelLeftClick)
 		self.grdNames.CreateGrid(1, 3)
 
 		# variable id input
@@ -373,7 +420,9 @@ class expSetup(wx.Panel):
 		self.grdIndLabels.SetDefaultCellBackgroundColour(wx.Colour(255, 255, 255))
 		self.grdIndLabels.Enable(False)
 		self.grdIndLabels.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.OnGrdIndLabelsEditorShown)
-		self.grdIndLabels.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnGrdIndLabelsRightDown)
+		self.grdIndLabels.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnGrdIndLabelsCellRightDown)
+		self.grdIndLabels.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnGrdIndLabelsCellLeftDown)
+		self.grdIndLabels.Bind(wx.grid.EVT_GRID_LABEL_RIGHT_CLICK, self.OnGrdIndLabelsLabelRightDown)
 		self.grdIndLabels.CreateGrid(100, 1)
 
 		self.pnl.AddFoldPanelWindow(self.depparamsitem, self.grdNames, fpb.FPB_ALIGN_WIDTH)
@@ -394,15 +443,90 @@ class expSetup(wx.Panel):
 		frameParent._init_utils()
 		self.frameParent = frameParent
 
-	def OnGrdIndLabelsRightDown(self, event):
+	def OnGrdIndLabelsCellRightDown(self, event):
 		pt = event.GetPosition()
 		self.indTitleBar.data["gridsel"] = self.grdIndLabels
 		self.frameParent.PopupMenu(self.frameParent.gridMenu, pt)
+
+	def OnGrdIndLabelsLabelRightDown(self, event):
+		# menu to delete udef row
+		pt = event.GetPosition()
+		self.indTitleBar.data["gridsel"] = self.grdIndLabels
+		self.frameParent.PopupMenu(self.frameParent.indRowMenu, pt)
 
 	def OnGrdNamesRightDown(self, event):
 		pt = event.GetPosition()
 		self.depTitleBar.data["gridsel"] = self.grdNames
 		self.frameParent.PopupMenu(self.frameParent.gridMenu, pt)
+
+	def OnGrdNamesLabelLeftClick(self, event):
+		# create index based on selected column order
+		col = event.GetCol()
+		order, rLab = [], []
+		for i in range(2, self.grdNames.GetNumberRows()):
+			rLab.append(self.grdNames.GetRowLabelValue(i))
+			order.append(self.grdNames.GetCellValue(i, col))
+		index = scipy.argsort(order)
+		# create list of grid contents
+		gList = []
+		for i in index:
+			tp = []
+			for j in range(self.grdNames.GetNumberCols()):
+				tp.append(self.grdNames.GetCellValue(i + 2, j))
+			gList.append(tp)
+		# replace current grid contents with ordered
+		for i in range(len(gList)):
+			self.grdNames.SetRowLabelValue(i + 2, rLab[index[i]])
+			for j in range(self.grdNames.GetNumberCols()):
+				self.grdNames.SetCellValue(i + 2, j, gList[i][j])
+
+	def OnGrdIndLabelsCellLeftDown(self, event):
+		# get position
+		r, c = event.GetRow(), event.GetCol()
+		# reposition cursor
+		self.grdIndLabels.SetGridCursor(event.GetRow(), event.GetCol())
+		# if first column of grid then change chkbox
+		if c == 0:
+			if self.grdIndLabels.GetCellValue(r, 0) == "0":
+				sel = "1"
+			else:
+				sel = "0"
+			if r < 1:
+				self.grdIndLabels.SetCellValue(r, 0, sel)
+			else:
+				if self.grdIndLabels.GetCellValue(0, 0) == "0":
+					self.grdIndLabels.SetCellValue(r, 0, sel)
+				else:
+					for row in range(r, self.grdIndLabels.GetNumberRows()):
+						self.grdIndLabels.SetCellValue(row, 0, sel)
+
+	##		  #manage column idx
+	##		  if (r == 0) and (c>0) is True:
+	##			  self.data['indvarsel'][c-1] = -1*self.data['indvarsel'][c-1]
+
+	def OnGrdNamesCellLeftDown(self, event):
+		# get position
+		r, c = event.GetRow(), event.GetCol()
+		# reposition cursor
+		self.grdNames.SetGridCursor(event.GetRow(), event.GetCol())
+		# if first column of grid then change chkbox
+		if c == 0:
+			if self.grdNames.GetCellValue(r, 0) == "0":
+				sel = "1"
+			else:
+				sel = "0"
+			if 0 < r < 2:
+				self.grdNames.SetCellValue(r, 0, sel)
+			else:
+				if self.grdNames.GetCellValue(1, 0) == "0":
+					self.grdNames.SetCellValue(r, 0, sel)
+				else:
+					for row in range(r, self.grdNames.GetNumberRows()):
+						self.grdNames.SetCellValue(row, 0, sel)
+
+	##		  #manage column idx
+	##		  if (r == 1) and (c>0) is True:
+	##			  self.depTitleBar.data['depvarsel'][c-1] = -1*self.depTitleBar.data['depvarsel'][c-1]
 
 	def OnGrdNamesEditorShown(self, event):
 		if (self.grdNames.GetGridCursorCol() == 0) & (self.grdNames.GetGridCursorRow() == 1) is True:
@@ -410,8 +534,9 @@ class expSetup(wx.Panel):
 				value = "1"
 			else:
 				value = "0"
-			for i in range(2, self.grdNames.GetNumberRows()):
-				self.grdNames.SetCellValue(i, 0, value)
+
+	##				  for i in range(2,self.grdNames.GetNumberRows()):
+	##					  self.grdNames.SetCellValue(i,0,value)
 
 	def OnGrdIndLabelsEditorShown(self, event):
 		if (self.grdIndLabels.GetGridCursorCol() == 0) & (self.grdIndLabels.GetGridCursorRow() == 0) is True:
@@ -419,8 +544,9 @@ class expSetup(wx.Panel):
 				value = "1"
 			else:
 				value = "0"
-			for i in range(1, self.grdIndLabels.GetNumberRows()):
-				self.grdIndLabels.SetCellValue(i, 0, value)
+
+	##				  for i in range(1,self.grdIndLabels.GetNumberRows()):
+	##					  self.grdIndLabels.SetCellValue(i,0,value)
 
 	def SizeGrdNames(self):
 		self.depTitleBar.SetSize((self.pnl.GetSize()[0], 49))
@@ -553,10 +679,18 @@ class DepTitleBar(bp.ButtonPanel):
 				if self.grid.GetCellValue(1, i) == "1":
 					currClass.append(i)
 
+		# sort out column headings
 		temp = colHeads[last + 1 : len(colHeads)]
 		colHeads = colHeads[0 : last + 1]
 		colHeads.append(type)
 		colHeads = colHeads + temp
+
+		##		  #sort out column indexing
+		##		  nI = max(abs(np.array(self.data['depvarsel'])))+1
+		##		  temp = self.data['depvarsel'][last+1:len(colHeads)-1]
+		##		  self.data['depvarsel'] = self.data['depvarsel'][0:last+1]
+		##		  self.data['depvarsel'].append(nI)
+		##		  self.data['depvarsel'].extend(temp)
 
 		self.grid.InsertCols(last + 1, 1)
 
@@ -721,7 +855,16 @@ class IndTitleBar(bp.ButtonPanel):
 	def OnBtnInsertRangeButton(self, event):
 		if self.stcRangeFrom.GetValue() and self.stcRangeTo.GetValue() not in [""]:
 			self.grid.AppendCols(1)
-			self.data["xaxis"] = GetXaxis(self.stcRangeFrom.GetValue(), self.stcRangeTo.GetValue(), self.data["raw"].shape[1], self.grid)
+			##			  #keep indexing up to date
+			##			  self.data['indvarsel'].append(max(np.array(self.data['indvarsel']))+1)
+			# check for user def vars
+			countpos = 0
+			for r in range(1, self.grid.GetNumberRows()):
+				if len(self.grid.GetRowLabelValue(r).split("U")) > 1:
+					countpos += 1
+				else:
+					break
+			self.data["xaxis"] = GetXaxis(self.stcRangeFrom.GetValue(), self.stcRangeTo.GetValue(), self.data["raw"].shape[1] - countpos, self.grid)
 
 
 class wxImportMetaDataDialog(wx.Dialog):
