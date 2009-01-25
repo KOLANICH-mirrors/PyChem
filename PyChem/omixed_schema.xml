@@ -1,0 +1,15 @@
+<OmixedDatabaseSchema>
+  <ItemTypeList>
+    <ItemType name="experiment" x="272" y="50">
+      <Attribute name="id" type="String"/>
+      <Link name="workflows" arity="many" to="workflow"/>
+      <File name="array" type=""/>
+    </ItemType>
+    <ItemType name="workflow" x="732" y="113">
+      <Attribute name="id" type="String"/>
+    </ItemType>
+  </ItemTypeList>
+  <RootItemTypeList>
+    <ItemType name="experiment"/>
+  </RootItemTypeList>
+</OmixedDatabaseSchema>

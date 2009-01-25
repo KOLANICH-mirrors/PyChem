@@ -13,7 +13,7 @@
 # 			   Includes:
 # 				-Partial least squares regression (PLS1 and PLS2)
 # 				-Principal components analysis
-# 				-Discriminant function analysis (DFA)
+# 				-Canonical variates analysis (CVA)
 # -----------------------------------------------------------------------------
 
 import copy
@@ -268,7 +268,7 @@ def _sample(x, N):
 	return select
 
 
-def PCA_SVD(myarray, type="covar"):
+def pca_svd(myarray, type="covar"):
 	"""Run principal components analysis (PCA) by singular
 	value decomposition (SVD)
 
@@ -329,7 +329,7 @@ def PCA_SVD(myarray, type="covar"):
 	return tt, pp, pr[:, nA], eigs[:, nA]
 
 
-def PCA_NIPALS(myarray, comps, type="covar", stb=None):
+def pca_nipals(myarray, comps, type="covar", stb=None):
 	"""Run principal components analysis (PCA) using NIPALS
 
 	Martens,H; Naes,T: Multivariate Calibration, Wiley: New York, 1989
@@ -401,8 +401,8 @@ def PCA_NIPALS(myarray, comps, type="covar", stb=None):
 	return tt, pp, pr[:, nA], eigs[:, nA]
 
 
-def DFA(X, group, nodfs, pcloads=None):
-	"""Discriminant function analysis
+def cva(X, group, nodfs, pcloads=None):
+	"""Canonical variates analysis
 
 	Ref. Krzanowski
 
@@ -480,7 +480,7 @@ def DFA(X, group, nodfs, pcloads=None):
 	return U, As_out, Ls_out, pcloads
 
 
-def MLR(x, y, order):
+def mlr(x, y, order):
 	"""Multiple linear regression fit of the columns of matrix x
 	(dependent variables) to constituent vector y (independent variables)
 
@@ -508,7 +508,7 @@ def MLR(x, y, order):
 	return b, f, r
 
 
-def PLS(xdata, ydata, mask, factors, stb=None, type=0):
+def pls(xdata, ydata, mask, factors, stb=None, type=0):
 	"""PLS1 for modelling a single Y-variable and
 	PLS2 for several Y-variables
 
@@ -655,7 +655,7 @@ def PLS(xdata, ydata, mask, factors, stb=None, type=0):
 	return output
 
 
-def DFA_XVALRAW(X, group, mask, nodfs):
+def dfa_xval_raw(X, group, mask, nodfs):
 	"""Perform DFA with full cross validation
 
 	>>> import scipy
@@ -702,7 +702,7 @@ def DFA_XVALRAW(X, group, mask, nodfs):
 	return scores, loads, eigs
 
 
-def DFA_XVAL_PCA(X, pca, nopcs, group, mask, nodfs, ptype="covar"):
+def dfa_xval_pca(X, pca, nopcs, group, mask, nodfs, ptype="covar"):
 	"""Perform PC-DFA with full cross validation
 
 	>>> import scipy
@@ -812,7 +812,7 @@ def DFA_XVAL_PLS(plsscores, plsloads, nolvs, group, mask, nodfs):
 	return scores, loads, eigs
 
 
-def OLS(act, pred):
+def ols(act, pred):
 	"""Ordinary least squares regression"""
 	act = scipy.reshape(act, (len(act), 1))
 	gradient = scipy.sum((act - _mean(act)) * (pred - _mean(pred))) / (sum((act - _mean(act)) ** 2))

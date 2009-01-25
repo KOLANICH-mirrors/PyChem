@@ -17,28 +17,24 @@ import string
 import time
 
 import mva
-import PyChemMain
+import psyco
+import pychemaui
 import wx
 
-modules = {"Cluster": [0, "", "Cluster.py"], "Dfa": [0, "", "Dfa.py"], "Ga": [0, "", "Ga.py"], "Pca": [0, "", "Pca.py"], "Plsr": [0, "", "Plsr.py"], "PyChemMain": [1, "Main frame of Application", "PyChemMain.py"], "Univariate": [0, "", "Univariate.py"], "chemometrics": [0, "", "mva/chemometrics.py"], "expSetup": [0, "", "expSetup.py"], "fitfun": [0, "", "mva/fitfun.py"], "genetic": [0, "", "mva/genetic.py"], "plotSpectra": [0, "", "plotSpectra.py"], "process": [0, "", "mva/process.py"]}
-
-# whereami for binary dists etc
-whereami = mva.__path__[0].split("mva")[0]
-# whereami for stand alone dist
-##whereami = mva.__path__[0].split('\library.zip\mva')[0]
+modules = {"Cluster": [0, "", "Cluster.py"], "Dfa": [0, "", "Dfa.py"], "Ga": [0, "", "Ga.py"], "Pca": [0, "", "Pca.py"], "Plsr": [0, "", "Plsr.py"], "pychemaui": [1, "Main frame of Application", "pychemaui.py"], "Univariate": [0, "", "Univariate.py"], "chemometrics": [0, "", "mva/chemometrics.py"], "expSetup": [0, "", "expSetup.py"], "fitfun": [0, "", "mva/fitfun.py"], "genetic": [0, "", "mva/genetic.py"], "plotSpectra": [0, "", "plotSpectra.py"], "process": [0, "", "mva/process.py"]}
 
 
-class BoaApp(wx.App):
+class pychemapp(wx.App):
 	def OnInit(self):
 		# create splash object
 		# 		 bmp = wx.Image(os.path.join('bmp', 'pychemsplash.png')).ConvertToBitmap()
 		# 		 splash = wx.SplashScreen(bmp,wx.SPLASH_CENTRE_ON_SCREEN,
-		# 								  5000, None, id=-1)
+		# 			   5000, None, id=-1)
 		# 		 self.SetTopWindow(splash)
 		# 		 time.sleep(2)
-
 		# start pychem
-		self.main = PyChemMain.create(None)
+		psyco.full()
+		self.main = pychemaui.create(None)
 		self.main.Show()
 		self.SetTopWindow(self.main)
 		# 		 splash.Destroy()
@@ -46,7 +42,7 @@ class BoaApp(wx.App):
 
 
 def main():
-	application = BoaApp(0)
+	application = pychemapp(0)
 	application.MainLoop()
 
 

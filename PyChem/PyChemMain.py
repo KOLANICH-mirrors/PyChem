@@ -32,11 +32,6 @@ from .plotSpectra import GridRowDel
 from .utils import getByPath
 from .utils.io import str_array
 
-# whereami for binary dists etc
-whereami = mva.__path__[0].split("mva")[0]
-# whereami for stand alone dist
-##whereami = mva.__path__[0].split('\library.zip\mva')[0]
-
 
 def create(parent):
 	return PyChemMain(parent)
