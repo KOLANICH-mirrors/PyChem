@@ -4,6 +4,7 @@ import os
 
 import wx
 import wx.aui
+import wx.grid
 import wx.lib.agw.customtreectrl as ctc
 import wx.lib.filebrowsebutton as fbb
 import wx.wizard
@@ -14,6 +15,9 @@ from .mva import chemometrics
 
 def create(parent):
 	return Pychem(parent)
+
+
+[ExpWizId] = [wx.NewIdRef() for _init_ctrls in range(1)]
 
 
 def _index(values, id):
@@ -140,9 +144,13 @@ class Experiment(Pychem):
 	lists containing text entries"""
 
 	def __init__(self, name, variables, sample_labels, variable_labels):
-		self.variables = variables
-		self.sample_labels = sample_labels
-		self.variable_labels = variable_labels
+		# 		 self.variables = variables
+		# 		 self.sample_labels = sample_labels
+		# 		 self.variable_labels = variable_labels
+
+		"""add new experiment to tree"""
+		exp = parent.ctcRoot.AppendItem(parent, name, ct_type=0)
+		parent.ctcRoot.SetItemBold(exp, True)
 
 
 class Data(Experiment):
@@ -150,46 +158,57 @@ class Data(Experiment):
 	sample_ids is a list of integers relating giving retained samples
 	variable_ids is a list of integers giving retained variables"""
 
-	def __init__(self, sample_ids, variable_ids, split_ids):
+	def __init__(sample_ids, variable_ids, split_ids):
 		"""select only samples in sample_ids"""
-		self.variable_select = numpy.take(parent.variables, sample_ids, 0)
+		variable_select = numpy.take(variables, sample_ids, 0)
 		"""select only variables in variable_ids"""
-		self.variable_select = numpy.take(self.variable_select, variable_ids, 0)
+		variable_select = numpy.take(variable_select, variable_ids, 0)
 		"""prune sample labels"""
-		self.sample_label_select = numpy.take(parent.sample_labels, sample_ids, 0)
+		sample_label_select = numpy.take(sample_labels, sample_ids, 0)
 		"""prune variable labels"""
-		self.variable_label_select = numpy.take(parent.variable_labels, variable_ids, 0)
+		variable_label_select = numpy.take(parent.variable_labels, variable_ids, 0)
 
 
 class Model(Data):
 	"""modelling class"""
 
-	def __init__(self, method):
+	def __init__(method):
 		"""matrix to model"""
-		self.variables = parent.variable_select
+		variables = variable_select
 		"""holder for model output"""
-		self.model_outputs = {}
+		model_outputs = {}
 
 	def pca(self, factors):
 		"""principal component analysis"""
-		pcscores, pcloads, pev, eigs = chemometrics.pca_nipals(self.variables, factors)
+		pcscores, pcloads, pev, eigs = chemometrics.pca_nipals(variables, factors)
 		"""place in holder"""
-		self.model_outputs["pcscores"] = pcscores
-		self.model_outputs["pcloads"] = pcloads
-		self.model_outputs["pev"] = pev
-		self.model_outputs["eigs"] = eigs
+		model_outputs["pcscores"] = pcscores
+		model_outputs["pcloads"] = pcloads
+		model_outputs["pev"] = pev
+		model_outputs["eigs"] = eigs
+
+
+class ViewVarGrid(Pychem):
+	def __init__(self, parent, variables):
+		wx.grid.Grid.__init__(self, parent, id, size=wx.Size(0, 0))
+		self.SetEnableCellControl(False)
+		self.SetRowLabelSize(0)
+		self.SetMargins(0, 0)
+		self.AutoSizeColumns(False)
 
 
 class NewExperimentWizard(wx.wizard.Wizard):
 	"""wizard to manage the import of data and metadata"""
 
 	def _init_ctrls(self, prnt):
-		wx.wizard.Wizard.__init__(self, id=-1, bitmap=wx.NullBitmap, pos=wx.Point(-1, -1), parent=prnt, title="Define New Experiment")
-		# 		 self.Bind(wx.wizard.EVT_WIZARD_FINISHED, self.OnFinished, id=WizId)
+		wx.wizard.Wizard.__init__(self, id=ExpWizId, bitmap=wx.NullBitmap, pos=wx.Point(-1, -1), parent=prnt, title="Define New Experiment")
+		self.Bind(wx.wizard.EVT_WIZARD_FINISHED, self.OnFinished, id=ExpWizId)
 
 		self.load_variables_page = wx.wizard.WizardPageSimple(self)
 
-		self.import_variables = fbb.FileBrowseButton(self.load_variables_page, -1, size=(450, -1), changeCallback=self.fbbCallback)
+		self.fbbImportVariables = fbb.FileBrowseButton(self.load_variables_page, -1, size=(450, -1), changeCallback=self.fbbCallback, labelText="Select File")
+
+		# 		 self.grdImportVariables =
 
 		self.show_variables_page = wx.wizard.WizardPageSimple(self)
 
@@ -219,10 +238,21 @@ class NewExperimentWizard(wx.wizard.Wizard):
 	def fbbCallback(self, event):
 		"""import data"""
 		filename = event.GetString()
-		self.variables = loadtxt(filename)
-		print(Experiment("New Experiment", self.variables, None, None))
+		try:
+			self.variables = loadtxt(filename)
+		except Exception as error:
+			# 			 raise
+			dlg = wx.MessageDialog(self, "Unable to load array, please check file format", "Error!", wx.OK | wx.ICON_ERROR)
+			dlg.ShowModal()
+			dlg.Destroy()
 
 	def OnFinished(self, event):
 		"""create experiment"""
-		print("Hello")
-		print(Experiment("New Experiment", self.variables, None, None))
+		try:
+			Experiment("New Experiment", self.variables, [[1, 1, 1, 2, 2, 2, 3, 3, 3, 3]], [["1", "1", "1", "2", "2", "2", "3", "3", "3", "3"]])
+
+		except Exception as error:
+			raise
+			dlg = wx.MessageDialog(self, "%s" % str(error), "Error!", wx.OK | wx.ICON_ERROR)
+			dlg.ShowModal()
+			dlg.Destroy()
