@@ -29,6 +29,56 @@ def _index(values, id):
 	return tuple(idx)
 
 
+class Experiment:
+	"""the experiment class, a holder for
+	models variables are numpy array type of samples (rows) by
+	variables (columns). sample and variable labels are lists of
+	lists containing text entries"""
+
+	def __init__(self, name, variables, sample_labels, variable_labels):
+		self.name = name
+		self.variables = variables
+		self.sample_labels = sample_labels
+		self.variable_labels = variable_labels
+
+
+class Data(Experiment):
+	"""data class
+	sample_ids is a list of integers relating giving retained samples
+	variable_ids is a list of integers giving retained variables"""
+
+	# 	 name = self.name
+	# 	 variables = self.variables
+	# 	 sample_labels = self.sample_labels
+	# 	 variable_labels = self.variable_labels
+
+	def slice(self, sample_ids, variable_ids, split_ids):
+		"""select only samples in sample_ids"""
+		variable_select = numpy.take(variables, sample_ids, 0)
+		"""select only variables in variable_ids"""
+		variable_select = numpy.take(variable_select, variable_ids, 0)
+		"""prune sample labels"""
+		sample_label_select = numpy.take(sample_labels, sample_ids, 0)
+		"""prune variable labels"""
+		variable_label_select = numpy.take(parent.variable_labels, variable_ids, 0)
+
+
+class Model(Data):
+	"""modelling class"""
+
+	"""holder for model output"""
+	model_outputs = {}
+
+	def pca(self, factors):
+		"""principal component analysis"""
+		pcscores, pcloads, pev, eigs = chemometrics.pca_nipals(self.variable_select, factors)
+		"""place in holder"""
+		model_outputs["pcscores"] = pcscores
+		model_outputs["pcloads"] = pcloads
+		model_outputs["pev"] = pev
+		model_outputs["eigs"] = eigs
+
+
 class Pychem(wx.Frame):
 	def _init_statusbar(self, parent):
 		parent.SetFieldsCount(5)
@@ -137,67 +187,7 @@ class Pychem(wx.Frame):
 			self.ImportWizard.RunWizard(self.ImportWizard.load_variables_page)
 
 
-class Experiment(Pychem):
-	"""the experiment class, a holder for
-	models variables are numpy array type of samples (rows) by
-	variables (columns). sample and variable labels are lists of
-	lists containing text entries"""
-
-	def __init__(self, name, variables, sample_labels, variable_labels):
-		# 		 self.variables = variables
-		# 		 self.sample_labels = sample_labels
-		# 		 self.variable_labels = variable_labels
-
-		"""add new experiment to tree"""
-		exp = parent.ctcRoot.AppendItem(parent, name, ct_type=0)
-		parent.ctcRoot.SetItemBold(exp, True)
-
-
-class Data(Experiment):
-	"""data class
-	sample_ids is a list of integers relating giving retained samples
-	variable_ids is a list of integers giving retained variables"""
-
-	def __init__(sample_ids, variable_ids, split_ids):
-		"""select only samples in sample_ids"""
-		variable_select = numpy.take(variables, sample_ids, 0)
-		"""select only variables in variable_ids"""
-		variable_select = numpy.take(variable_select, variable_ids, 0)
-		"""prune sample labels"""
-		sample_label_select = numpy.take(sample_labels, sample_ids, 0)
-		"""prune variable labels"""
-		variable_label_select = numpy.take(parent.variable_labels, variable_ids, 0)
-
-
-class Model(Data):
-	"""modelling class"""
-
-	def __init__(method):
-		"""matrix to model"""
-		variables = variable_select
-		"""holder for model output"""
-		model_outputs = {}
-
-	def pca(self, factors):
-		"""principal component analysis"""
-		pcscores, pcloads, pev, eigs = chemometrics.pca_nipals(variables, factors)
-		"""place in holder"""
-		model_outputs["pcscores"] = pcscores
-		model_outputs["pcloads"] = pcloads
-		model_outputs["pev"] = pev
-		model_outputs["eigs"] = eigs
-
-
-class ViewVarGrid(Pychem):
-	def __init__(self, parent, variables):
-		wx.grid.Grid.__init__(self, parent, id, size=wx.Size(0, 0))
-		self.SetEnableCellControl(False)
-		self.SetRowLabelSize(0)
-		self.SetMargins(0, 0)
-		self.AutoSizeColumns(False)
-
-
-class NewExperimentWizard(wx.wizard.Wizard):
+class NewExperimentWizard(wx.wizard.Wizard, Pychem):
 	"""wizard to manage the import of data and metadata"""
 
 	def _init_ctrls(self, prnt):
@@ -251,8 +241,21 @@ class NewExperimentWizard(wx.wizard.Wizard):
 		try:
 			Experiment("New Experiment", self.variables, [[1, 1, 1, 2, 2, 2, 3, 3, 3, 3]], [["1", "1", "1", "2", "2", "2", "3", "3", "3", "3"]])
 
+			exp = self.ctcRoot.AppendItem(Pychem, "New Experiment", ct_type=0)
+
+			self.ctcRoot.SetItemBold(exp, True)
+
 		except Exception as error:
 			raise
 			dlg = wx.MessageDialog(self, "%s" % str(error), "Error!", wx.OK | wx.ICON_ERROR)
 			dlg.ShowModal()
 			dlg.Destroy()
+
+
+class ViewVarGrid(NewExperimentWizard):
+	def __init__(self, parent, variables):
+		wx.grid.Grid.__init__(self, parent, id, size=wx.Size(0, 0))
+		self.SetEnableCellControl(False)
+		self.SetRowLabelSize(0)
+		self.SetMargins(0, 0)
+		self.AutoSizeColumns(False)
