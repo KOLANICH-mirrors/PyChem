@@ -340,26 +340,26 @@ class TitleBar(bp.ButtonPanel):
 			if self.cbDfaXval.GetValue() is False:
 				# just a fix to recover original loadings when using PC-DFA
 				if self.cbxData.GetSelection() > 1:
-					self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"], dummy = mva.chemometrics.DFA(xdata, self.data["class"][:, 0], self.spnDfaDfs.GetValue())
+					self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"], dummy = mva.chemometrics.dfa(xdata, self.data["class"][:, 0], self.spnDfaDfs.GetValue())
 				else:
-					self.data["dfscores"], dummy, self.data["dfeigs"], self.data["dfloads"] = mva.chemometrics.DFA(xdata, self.data["class"][:, 0], self.spnDfaDfs.GetValue(), loads[0 : self.spnDfaPcs.GetValue(), :])
+					self.data["dfscores"], dummy, self.data["dfeigs"], self.data["dfloads"] = mva.chemometrics.dfa(xdata, self.data["class"][:, 0], self.spnDfaDfs.GetValue(), loads[0 : self.spnDfaPcs.GetValue(), :])
 
 			elif self.cbDfaXval.GetValue() is True:
 				if self.cbxData.GetSelection() > 1:
 					# run dfa
-					self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"] = mva.chemometrics.DFA_XVALRAW(xdata, self.data["class"][:, 0], self.data["validation"], self.spnDfaDfs.GetValue())
+					self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"] = mva.chemometrics.dfa_xvalraw(xdata, self.data["class"][:, 0], self.data["validation"], self.spnDfaDfs.GetValue())
 
 				elif self.cbxData.GetSelection() == 0:
 					# run pc-dfa
 					if self.data["niporsvd"] in ["nip"]:
-						self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"] = mva.chemometrics.DFA_XVAL_PCA(xvaldata, "NIPALS", self.spnDfaPcs.GetValue(), self.data["class"][:, 0], self.data["validation"], self.spnDfaDfs.GetValue(), ptype=self.data["pcatype"])
+						self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"] = mva.chemometrics.dfa_xval_pca(xvaldata, "NIPALS", self.spnDfaPcs.GetValue(), self.data["class"][:, 0], self.data["validation"], self.spnDfaDfs.GetValue(), ptype=self.data["pcatype"])
 
 					elif self.data["niporsvd"] in ["svd"]:
-						self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"] = mva.chemometrics.DFA_XVAL_PCA(xvaldata, "SVD", self.spnDfaPcs.GetValue(), self.data["class"][:, 0], self.data["validation"], self.spnDfaDfs.GetValue(), ptype=self.data["pcatype"])
+						self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"] = mva.chemometrics.dfa_xval_pca(xvaldata, "SVD", self.spnDfaPcs.GetValue(), self.data["class"][:, 0], self.data["validation"], self.spnDfaDfs.GetValue(), ptype=self.data["pcatype"])
 
 				elif self.cbxData.GetSelection() == 1:
 					# run pls-dfa
-					self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"] = mva.chemometrics.DFA_XVAL_PLS(self.data["plst"], self.data["plsloads"], self.spnDfaPcs.GetValue(), self.data["class"][:, 0], self.data["validation"], self.spnDfaDfs.GetValue())
+					self.data["dfscores"], self.data["dfloads"], self.data["dfeigs"] = mva.chemometrics.dfa_xval_pls(self.data["plst"], self.data["plsloads"], self.spnDfaPcs.GetValue(), self.data["class"][:, 0], self.data["validation"], self.spnDfaDfs.GetValue())
 
 			# plot dfa results
 			self.plotDfa()

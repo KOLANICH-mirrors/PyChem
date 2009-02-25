@@ -824,10 +824,11 @@ class PyChemMain(wx.Frame):
 				# Load arrays
 				wx.BeginBusyCursor()
 
-				if dlg.Transpose() == 0:
-					self.data["raw"] = loadtxt(dlg.getFile())
-				else:
-					self.data["raw"] = scipy.transpose(loadtxt(dlg.getFile()))
+				for sep in [",", "\t", ",  "]:
+					if dlg.Transpose() == 0:
+						self.data["raw"] = loadtxt(dlg.getFile(), delimiter=sep)
+					else:
+						self.data["raw"] = scipy.transpose(loadtxt(dlg.getFile()), delimiter=sep)
 
 				# create additional arrays of experimental data
 				self.data["rawtrunc"] = self.data["raw"]
@@ -875,6 +876,7 @@ class PyChemMain(wx.Frame):
 				wx.EndBusyCursor()
 
 		except Exception as error:
+			raise
 			wx.EndBusyCursor()
 			self.Reset()
 			dlg.Destroy()

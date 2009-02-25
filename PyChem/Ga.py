@@ -25,7 +25,7 @@ from scipy import newaxis as nA
 from wx.lib.anchors import LayoutAnchors
 
 from .expSetup import valSplit
-from .mva import chemometrics, fitfun, genetic, process
+from .mva import fitfun, genetic, process
 from .mva.chemometrics import _index
 from .Pca import MyPlotCanvas, PlotPlsModel, plotLine, plotLoads, plotScores, plotStem, plotText
 from .utils.io import str_array
