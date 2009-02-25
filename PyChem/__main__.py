@@ -12,16 +12,30 @@
 # -----------------------------------------------------------------------------
 # Boa:App:BoaApp
 
-import os
+import os  # , psyco, pychemaui
 import string
 import time
 
 import mva
-import psyco
-import pychemaui
+import PyChemMain
 import wx
 
-modules = {"Cluster": [0, "", "Cluster.py"], "Dfa": [0, "", "Dfa.py"], "Ga": [0, "", "Ga.py"], "Pca": [0, "", "Pca.py"], "Plsr": [0, "", "Plsr.py"], "pychemaui": [1, "Main frame of Application", "pychemaui.py"], "Univariate": [0, "", "Univariate.py"], "chemometrics": [0, "", "mva/chemometrics.py"], "expSetup": [0, "", "expSetup.py"], "fitfun": [0, "", "mva/fitfun.py"], "genetic": [0, "", "mva/genetic.py"], "plotSpectra": [0, "", "plotSpectra.py"], "process": [0, "", "mva/process.py"]}
+modules = {
+	"Cluster": [0, "", "Cluster.py"],
+	"Dfa": [0, "", "Dfa.py"],
+	"Ga": [0, "", "Ga.py"],
+	"Pca": [0, "", "Pca.py"],
+	"Plsr": [0, "", "Plsr.py"],
+	# 'pychemaui': [1, 'Main frame of Application', 'pychemaui.py'],
+	"PyChemMain": [1, "Main frame of Application", "PyChemMain.py"],
+	"Univariate": [0, "", "Univariate.py"],
+	"chemometrics": [0, "", "mva/chemometrics.py"],
+	"expSetup": [0, "", "expSetup.py"],
+	"fitfun": [0, "", "mva/fitfun.py"],
+	"genetic": [0, "", "mva/genetic.py"],
+	"plotSpectra": [0, "", "plotSpectra.py"],
+	"process": [0, "", "mva/process.py"],
+}
 
 
 class pychemapp(wx.App):
@@ -33,8 +47,9 @@ class pychemapp(wx.App):
 		# 		 self.SetTopWindow(splash)
 		# 		 time.sleep(2)
 		# start pychem
-		psyco.full()
-		self.main = pychemaui.create(None)
+		# 		 psyco.full()
+		# 		 self.main = pychemaui.create(None)
+		self.main = PyChemMain.create(None)
 		self.main.Show()
 		self.SetTopWindow(self.main)
 		# 		 splash.Destroy()

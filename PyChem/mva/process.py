@@ -18,7 +18,7 @@
 import scipy
 from scipy import newaxis as nA
 
-from .chemometrics import MLR
+from .chemometrics import mlr
 
 
 def _padarray(myarray, frame, type):
