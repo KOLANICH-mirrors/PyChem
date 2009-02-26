@@ -20,7 +20,6 @@ import wx.adv
 import wx.grid
 import wx.lib.agw.buttonpanel as bp
 import wx.lib.agw.foldpanelbar as fpb
-import wx.lib.bcrtl.user.StaticTextCtrl
 import wx.lib.stattext
 from wx.lib.anchors import LayoutAnchors
 

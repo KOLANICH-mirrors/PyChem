@@ -635,7 +635,7 @@ class PyChemMain(wx.Frame):
 		self.SetMenuBar(self.mnuMain)
 		self.Bind(wx.EVT_SIZE, self.OnMainFrameSize)
 
-		self.nbMain = wx.Notebook(id=wxID_PYCHEMMAINNBMAIN, name="nbMain", parent=self, pos=wx.Point(0, 0), size=wx.Size(1016, 661), style=0)
+		self.nbMain = wx.Notebook(id=wxID_PYCHEMMAINNBMAIN, name="nbMain", parent=self, pos=wx.Point(0, 0), size=wx.Size(1016, 730), style=wx.NB_MULTILINE)
 		self.nbMain.SetToolTip("")
 		self.nbMain.SetMinSize(wx.Size(200, 400))
 		self.nbMain.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.OnNbMainNotebookPageChanging, id=wxID_PYCHEMMAINNBMAIN)
@@ -824,11 +824,10 @@ class PyChemMain(wx.Frame):
 				# Load arrays
 				wx.BeginBusyCursor()
 
-				for sep in [",", "\t", ",  "]:
-					if dlg.Transpose() == 0:
-						self.data["raw"] = loadtxt(dlg.getFile(), delimiter=sep)
-					else:
-						self.data["raw"] = scipy.transpose(loadtxt(dlg.getFile()), delimiter=sep)
+				if dlg.Transpose() == 0:
+					self.data["raw"] = loadtxt(dlg.getFile(), delimiter=sep)
+				else:
+					self.data["raw"] = scipy.transpose(loadtxt(dlg.getFile()), delimiter=sep)
 
 				# create additional arrays of experimental data
 				self.data["rawtrunc"] = self.data["raw"]
