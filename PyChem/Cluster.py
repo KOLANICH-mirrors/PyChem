@@ -116,7 +116,6 @@ class Cluster(wx.Panel):
 		self.plcCluster.fontSizeAxis = 12
 		self.plcCluster.xSpec = "none"
 		self.plcCluster.ySpec = "none"
-		self.plcCluster.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Small Fonts"))
 		self.plcCluster.SetConstraints(LayoutAnchors(self.plcCluster, True, True, True, True))
 
 		self.txtCluster = wx.TextCtrl(id=-1, name="txtCluster", parent=self.p1, pos=wx.Point(0, 0), size=wx.Size(200, 200), style=wx.TE_DONTWRAP | wx.HSCROLL | wx.TE_READONLY | wx.SUNKEN_BORDER | wx.TE_MULTILINE | wx.VSCROLL, value="")

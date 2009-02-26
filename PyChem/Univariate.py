@@ -129,7 +129,6 @@ class Univariate(wx.Panel):
 		self.plcBoxplot.fontSizeLegend = 8
 		self.plcBoxplot.SetAutoLayout(True)
 		self.plcBoxplot.SetConstraints(LayoutAnchors(self.plcBoxplot, True, True, True, True))
-		self.plcBoxplot.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
 		self.plcPsumm = MyPlotCanvas(id=-1, name="plcPsumm", parent=self, pos=wx.Point(0, 0), size=wx.Size(302, 246), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcPsumm.fontSizeAxis = 8
@@ -141,7 +140,6 @@ class Univariate(wx.Panel):
 		self.plcPsumm.SetAutoLayout(True)
 		##		  self.plcPsumm.setLogScale((True,False))
 		self.plcPsumm.SetConstraints(LayoutAnchors(self.plcPsumm, True, True, True, True))
-		self.plcPsumm.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
 		self.plcRoc = MyPlotCanvas(id=-1, name="plcRoc", parent=self, pos=wx.Point(0, 0), size=wx.Size(302, 246), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcRoc.fontSizeAxis = 8
@@ -152,7 +150,6 @@ class Univariate(wx.Panel):
 		self.plcRoc.fontSizeLegend = 8
 		self.plcRoc.SetAutoLayout(True)
 		self.plcRoc.SetConstraints(LayoutAnchors(self.plcRoc, True, True, True, True))
-		self.plcRoc.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
 		self.nbUniRes = wx.Notebook(id=-1, name="nbUniRes", parent=self, pos=wx.Point(176, 274), size=wx.Size(310, 272), style=wx.NB_BOTTOM)
 		self.nbUniRes.SetToolTip("")
@@ -169,7 +166,6 @@ class Univariate(wx.Panel):
 		self.plcScatter.fontSizeLegend = 8
 		self.plcScatter.SetAutoLayout(True)
 		self.plcScatter.SetConstraints(LayoutAnchors(self.plcScatter, True, True, True, True))
-		self.plcScatter.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
 		self.txtResTable = wx.TextCtrl(id=-1, name="txtResTable", parent=self.nbUniRes, pos=wx.Point(0, 0), size=wx.Size(200, 200), style=wx.TE_DONTWRAP | wx.HSCROLL | wx.TE_READONLY | wx.SUNKEN_BORDER | wx.TE_MULTILINE | wx.VSCROLL, value="")
 		self.txtResTable.SetToolTip("")

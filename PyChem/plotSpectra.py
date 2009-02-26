@@ -18,6 +18,7 @@ import string
 import scipy
 import wx
 import wx.lib.agw.buttonpanel as bp
+import wx.lib.agw.customtreectrl as ctc
 import wx.lib.agw.foldpanelbar as fpb
 import wx.lib.plot
 from scipy import newaxis as nA
@@ -26,7 +27,7 @@ from wx.lib.anchors import LayoutAnchors
 from .mva import process
 from .Pca import MyPlotCanvas, plotLine
 
-[IDPLOTSPEC] = [wx.NewIdRef() for _init_ctrls in range(1)]
+[IDPLOTSPEC, ID_ADDPROCESSMETHOD] = [wx.NewIdRef() for _init_ctrls in range(2)]
 
 
 def errorBox(window, error):
@@ -363,8 +364,6 @@ class plotSpectra(wx.Panel):
 		curve = wx.lib.plot.PlotGraphics([curve], "Experimental Data", "Arbitrary", "Arbitrary")
 		self.plcPlot.Draw(curve)
 
-		self.optDlg.lbSpectra2.Clear()
-
 	def OnSplitterDclick(self, event):
 		if self.Splitter.GetSashPosition() <= 5:
 			self.Splitter.SetSashPosition(250)
@@ -631,159 +630,34 @@ class TitleBar(bp.ButtonPanel):
 		self.parent.optDlg.getData(data)
 
 
-class selFun(fpb.FoldPanelBar):
-	def _init_coll_gbsSelfun_Growables(self, parent):
-		# generated method, don't edit
-
-		parent.AddGrowableRow(0)
-		parent.AddGrowableCol(0)
-		parent.AddGrowableCol(1)
-
-	def _init_coll_gbsSelfun_Items(self, parent):
-		# generated method, don't edit
-
-		parent.AddWindow(self.lbSpectra2, (0, 0), flag=wx.EXPAND, span=(1, 2))
-		parent.AddWindow(self.btnSpectraUp, (1, 0), flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.btnSpectraDown, (1, 1), flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.btnSpectraDelete, (2, 0), flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.btnSpectraReset, (2, 1), flag=wx.EXPAND, span=(1, 1))
-		parent.AddSpacer(wx.Size(8, 8), (3, 0), flag=wx.EXPAND, span=(2, 2))
-
-	def _init_selparam_sizers(self):
-		# generated method, don't edit
-		self.gbsSelfun = wx.GridBagSizer(5, 5)
-		self.gbsSelfun.SetCols(2)
-		self.gbsSelfun.SetRows(5)
-
-		self._init_coll_gbsSelfun_Items(self.gbsSelfun)
-		self._init_coll_gbsSelfun_Growables(self.gbsSelfun)
-
-		self.fpSelected.SetSizer(self.gbsSelfun)
-
+class selFun(ctc.CustomTreeCtrl):
 	def _init_selfun_ctrls(self, prnt):
 		# generated method, don't edit
-		fpb.FoldPanelBar.__init__(self, prnt, -1, pos=wx.DefaultPosition, size=wx.DefaultSize, style=fpb.FPB_DEFAULT_STYLE | fpb.FPB_SINGLE_FOLD)
-		self.SetConstraints(LayoutAnchors(self, True, True, True, True))
-		self.SetAutoLayout(True)
+		ctc.CustomTreeCtrl.__init__(self, parent=prnt, id=-1, style=ctc.TR_HAS_BUTTONS | ctc.TR_HAS_VARIABLE_ROW_HEIGHT | wx.WANTS_CHARS)
+		self.SetToolTip("")
 
-		icons = wx.ImageList(16, 16)
-		icons.Add(wx.Bitmap(os.path.join("bmp", "arrown.png"), wx.BITMAP_TYPE_PNG))
-		icons.Add(wx.Bitmap(os.path.join("bmp", "arrows.png"), wx.BITMAP_TYPE_PNG))
+		self.plDecisionBtns = wx.Panel(id=-1, name="plDecisionBtns", parent=self, pos=wx.Point(0, 0), size=wx.Size(79, 19), style=wx.TAB_TRAVERSAL)
+		self.plDecisionBtns.SetBackgroundColour(wx.Colour(255, 255, 255))
+		self.plDecisionBtns.SetAutoLayout(True)
 
-		self.fpFunctions = self.AddFoldPanel("Preprocessing functions", collapsed=True, foldIcons=icons)
-		self.fpFunctions.SetAutoLayout(True)
+		self.btnAddDecision = wx.Button(id=-1, label="New", name="btnAddDecision", parent=self, pos=wx.Point(0, 0), size=wx.Size(30, 17), style=0)
+		self.btnAddDecision.SetToolTip("")
+		# 		 self.btnAddDecision.Bind(wx.EVT_BUTTON, self.OnBtnAddDecisionButton,
+		# 			   id=ID_FOBBTNADDDECISION)
 
-		self.fpSelected = self.AddFoldPanel("Selected functions", collapsed=True, foldIcons=icons)
-		self.fpSelected.SetAutoLayout(True)
-		##		  self.fpResults.Bind(wx.EVT_SIZE, self.OnFpbResize)
-
-		self.plSelected = wx.Panel(id=-1, name="plSelected", parent=self.fpSelected, pos=wx.Point(0, 0), size=wx.Size(200, 350), style=wx.TAB_TRAVERSAL)
-		self.plSelected.SetToolTip("")
-		self.plSelected.SetConstraints(LayoutAnchors(self.plSelected, True, True, True, True))
-
-		self.lbSpectra1 = wx.ListBox(choices=["", "Scaling", "	Normalise to 0 for min, +1 for max.", "  Normalise max. bin to +1", "	Normalise to total", "	Mean centre", "	 Column normalisation", "  Row normalisation", "  Extended multiplicative scatter correction, order 0", "  Extended multiplicative scatter correction, order 1", "	Extended multiplicative scatter correction, order 2", "	 Extended multiplicative scatter correction, order 3", "  Extended multiplicative scatter correction, order 4", "  Extended multiplicative scatter correction, order 5", "	Extended multiplicative scatter correction, order 6", "	 Extended multiplicative scatter correction, order 7", "  Extended multiplicative scatter correction, order 8", "  Extended multiplicative scatter correction, order 9", "	Extended multiplicative scatter correction, order 10", "  Extended multiplicative scatter correction, order 11", "	Extended multiplicative scatter correction, order 12", "  Extended multiplicative scatter correction, order 13", "	Extended multiplicative scatter correction, order 14", "  Extended multiplicative scatter correction, order 15", "", "Filtering", "	 Linear mean filter, frame width 3", "	Linear mean filter, frame width 4", "  Linear mean filter, frame width 5", "  Linear mean filter, frame width 6", "	 Linear mean filter, frame width 7", "	Linear mean filter, frame width 8", "  Linear mean filter, frame width 9", "  Linear mean filter, frame width 10", "", "Baseline Correction", "	 Set first bin to zero", "	Subtract average of first and last bin", "	Subtract a linearly increasing baseline", "", "Derivatisation", "  Linear derivatisation, frame width 3", "	 Linear derivatisation, frame width 4", "  Linear derivatisation, frame width 5", "	 Linear derivatisation, frame width 6", "  Linear derivatisation, frame width 7", "	 Linear derivatisation, frame width 8", "  Linear derivatisation, frame width 9", "	 Linear derivatisation, frame width 10", ""], id=-1, name="lbSpectra1", parent=self.fpFunctions, pos=wx.Point(0, 23), size=wx.Size(250, 280), style=wx.HSCROLL, validator=wx.DefaultValidator)
-		self.lbSpectra1.SetToolTip("")
-		self.lbSpectra1.Bind(wx.EVT_LISTBOX_DCLICK, self.OnLbspectra1ListboxDclick)
-
-		self.lbSpectra2 = wx.ListBox(choices=[], id=-1, name="lbSpectra2", parent=self.plSelected, pos=wx.Point(0, 0), size=wx.Size(250, 150), style=wx.HSCROLL, validator=wx.DefaultValidator)
-		self.lbSpectra2.SetToolTip("")
-
-		self.btnSpectraUp = wx.Button(id=-1, label="Up", name="btnSpectraUp", parent=self.plSelected, pos=wx.Point(0, 0), size=wx.Size(48, 23), style=0)
-		self.btnSpectraUp.SetToolTip("Move up")
-		self.btnSpectraUp.Bind(wx.EVT_BUTTON, self.OnBtnspectraupButton)
-
-		self.btnSpectraDelete = wx.Button(id=-1, label="Del", name="btnSpectraDelete", parent=self.plSelected, pos=wx.Point(0, 0), size=wx.Size(48, 23), style=0)
-		self.btnSpectraDelete.SetToolTip("Delete selected function")
-		self.btnSpectraDelete.Bind(wx.EVT_BUTTON, self.OnBtnspectradeleteButton)
-
-		self.btnSpectraDown = wx.Button(id=-1, label="Down", name="btnSpectraDown", parent=self.plSelected, pos=wx.Point(0, 0), size=wx.Size(48, 23), style=0)
-		self.btnSpectraDown.SetToolTip("Move down")
-		self.btnSpectraDown.Bind(wx.EVT_BUTTON, self.OnBtnspectradownButton)
-
-		self.btnSpectraReset = wx.Button(id=-1, label="Reset", name="btnSpectraReset", parent=self.plSelected, pos=wx.Point(0, 0), size=wx.Size(46, 23), style=0)
-		self.btnSpectraReset.SetToolTip("Reset")
-		self.btnSpectraReset.Bind(wx.EVT_BUTTON, self.OnBtnspectraresetButton)
-
-		self.AddFoldPanelWindow(self.fpFunctions, self.lbSpectra1, fpb.FPB_ALIGN_WIDTH)
-		self.AddFoldPanelWindow(self.fpSelected, self.plSelected, fpb.FPB_ALIGN_WIDTH)
-
-		self._init_selparam_sizers()
+		self.btnAddMethod = wx.Button(id=ID_ADDPROCESSMETHOD, label="Add Method", name="btnAddMethod", parent=self, pos=wx.Point(31, 0), size=wx.Size(30, 17), style=0)
+		self.btnAddMethod.SetToolTip("")
+		self.btnAddMethod.Bind(wx.EVT_BUTTON, self.OnBtnAddMethod, id=ID_ADDPROCESSMETHOD)
 
 	def __init__(self, parent):
 		self._init_selfun_ctrls(parent)
 
-		self.Expand(self.fpFunctions)
-		self.Expand(self.fpSelected)
-
 	def getData(self, data):
 		self.data = data
 
-	def OnLbspectra1ListboxDclick(self, event):
-		Selected = self.lbSpectra1.GetSelection()
-		SelectedText = self.lbSpectra1.GetStringSelection()
-		if SelectedText[0:2] == "  ":
-			self.data["processlist"].append(Selected + 1)
-			self.lbSpectra2.Append(SelectedText[2 : len(SelectedText)])
-
-	def OnBtnspectraupButton(self, event):
-		CurrentPos = self.lbSpectra2.GetSelection()
-		if CurrentPos > 0:
-			NewList = []
-			NewProcessList = []
-			for i in range(0, CurrentPos - 1):
-				NewList.append(self.lbSpectra2.GetString(i))
-				NewProcessList.append(self.data["processlist"][i])
-
-			NewList.append(self.lbSpectra2.GetString(CurrentPos))
-			NewList.append(self.lbSpectra2.GetString(CurrentPos - 1))
-			NewProcessList.append(self.data["processlist"][CurrentPos])
-			NewProcessList.append(self.data["processlist"][CurrentPos - 1])
-
-			for i in range(CurrentPos + 1, self.lbSpectra2.GetCount()):
-				NewList.append(self.lbSpectra2.GetString(i))
-				NewProcessList.append(self.data["processlist"][i])
-
-			self.data["processlist"] = NewProcessList
-			self.lbSpectra2.Clear()
-			for i in range(len(NewList)):
-				self.lbSpectra2.Append(NewList[i])
-			self.lbSpectra2.SetSelection(CurrentPos - 1)
-
-	def OnBtnspectradeleteButton(self, event):
-		if len(self.data["processlist"]) > 0:
-			del self.data["processlist"][self.lbSpectra2.GetSelection()]
-			self.lbSpectra2.Delete(self.lbSpectra2.GetSelection())
-			if len(self.data["processlist"]) == 0:
-				self.data["processlist"] = []
-				self.data["proc"] = None
-
-	def OnBtnspectradownButton(self, event):
-		CurrentPos = self.lbSpectra2.GetSelection()
-		if CurrentPos < self.lbSpectra2.GetCount() - 1:
-			NewList = []
-			NewProcessList = []
-			if CurrentPos > 0:
-				for i in range(0, CurrentPos):
-					NewList.append(self.lbSpectra2.GetString(i))
-					NewProcessList.append(self.data["processlist"][i])
-
-			NewList.append(self.lbSpectra2.GetString(CurrentPos + 1))
-			NewList.append(self.lbSpectra2.GetString(CurrentPos))
-			NewProcessList.append(self.data["processlist"][CurrentPos + 1])
-			NewProcessList.append(self.data["processlist"][CurrentPos])
-
-			if CurrentPos + 2 <= self.lbSpectra2.GetCount() - 1:
-				for i in range(CurrentPos + 2, self.lbSpectra2.GetCount()):
-					NewList.append(self.lbSpectra2.GetString(i))
-					NewProcessList.append(self.data["processlist"][i])
-
-			self.ProcessList = NewProcessList
-			self.lbSpectra2.Clear()
-			for i in range(len(NewList)):
-				self.lbSpectra2.Append(NewList[i])
-			self.lbSpectra2.SetSelection(CurrentPos + 1)
+	def OnBtnAddMethod(self, event):
+		event.Skip()
 
 	def OnBtnspectraresetButton(self, event):
-		self.lbSpectra2.Clear()
 		self.data["processlist"] = []
 		self.data["proc"] = None

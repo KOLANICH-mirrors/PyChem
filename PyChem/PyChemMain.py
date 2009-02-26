@@ -635,7 +635,7 @@ class PyChemMain(wx.Frame):
 		self.SetMenuBar(self.mnuMain)
 		self.Bind(wx.EVT_SIZE, self.OnMainFrameSize)
 
-		self.nbMain = wx.Notebook(id=wxID_PYCHEMMAINNBMAIN, name="nbMain", parent=self, pos=wx.Point(0, 0), size=wx.Size(1016, 730), style=wx.NB_MULTILINE)
+		self.nbMain = wx.Notebook(id=wxID_PYCHEMMAINNBMAIN, name="nbMain", parent=self, pos=wx.Point(0, 0), size=wx.Size(1016, 730), style=0)
 		self.nbMain.SetToolTip("")
 		self.nbMain.SetMinSize(wx.Size(200, 400))
 		self.nbMain.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.OnNbMainNotebookPageChanging, id=wxID_PYCHEMMAINNBMAIN)
@@ -825,9 +825,9 @@ class PyChemMain(wx.Frame):
 				wx.BeginBusyCursor()
 
 				if dlg.Transpose() == 0:
-					self.data["raw"] = loadtxt(dlg.getFile(), delimiter=sep)
+					self.data["raw"] = loadtxt(dlg.getFile())
 				else:
-					self.data["raw"] = scipy.transpose(loadtxt(dlg.getFile()), delimiter=sep)
+					self.data["raw"] = scipy.transpose(loadtxt(dlg.getFile()))
 
 				# create additional arrays of experimental data
 				self.data["rawtrunc"] = self.data["raw"]
@@ -844,6 +844,10 @@ class PyChemMain(wx.Frame):
 				# set x-range 1 to n
 				self.plExpset.indTitleBar.stcRangeFrom.SetValue("1")
 				self.plExpset.indTitleBar.stcRangeTo.SetValue(str(self.data["raw"].shape[1]))
+
+				# set plot spn range
+				self.plPreproc.titleBar.spcPlotSpectra.SetValue(1)
+				self.plPreproc.titleBar.spcPlotSpectra.SetRange(1, self.data["raw"].shape[0])
 
 				# Calculate Xaxis
 				self.data["xaxis"] = expSetup.GetXaxis(self.plExpset.indTitleBar.stcRangeFrom.GetValue(), self.plExpset.indTitleBar.stcRangeTo.GetValue(), self.data["raw"].shape[1], self.plExpset.grdIndLabels)

@@ -390,7 +390,6 @@ class expSetup(wx.Panel):
 		self.grdNames = wx.grid.Grid(self.depparamsitem, id=wx.ID_ANY, pos=wx.Point(0, 23), size=wx.Size(40, 40), style=wx.SUNKEN_BORDER | wx.HSCROLL | wx.VSCROLL)
 		self.grdNames.SetColLabelSize(20)
 		self.grdNames.SetDefaultCellFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "MS Shell Dlg"))
-		self.grdNames.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "MS Shell Dlg"))
 		self.grdNames.SetLabelFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.BOLD, False, "MS Shell Dlg"))
 		self.grdNames.SetConstraints(LayoutAnchors(self.grdNames, True, True, True, True))
 		self.grdNames.SetRowLabelSize(50)
@@ -410,9 +409,6 @@ class expSetup(wx.Panel):
 
 		self.grdIndLabels = wx.grid.Grid(self.indparamsitem, id=wx.ID_ANY, pos=wx.Point(0, 23), size=wx.Size(40, 40), style=wx.SUNKEN_BORDER | wx.HSCROLL | wx.VSCROLL)
 		self.grdIndLabels.SetColLabelSize(20)
-		self.grdIndLabels.SetDefaultCellFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "MS Shell Dlg"))
-		self.grdIndLabels.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "MS Shell Dlg"))
-		self.grdIndLabels.SetLabelFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.BOLD, False, "MS Shell Dlg"))
 		self.grdIndLabels.SetConstraints(LayoutAnchors(self.grdIndLabels, True, True, True, True))
 		self.grdIndLabels.SetRowLabelSize(50)
 		self.grdIndLabels.SetToolTip("")
@@ -601,12 +597,10 @@ class DepTitleBar(bp.ButtonPanel):
 		self.spcGenMask = wx.SpinCtrl(parent=self, id=-1, initial=1, max=50, min=1, pos=wx.Point(444, 30), size=wx.Size(46, 23), style=wx.TAB_TRAVERSAL | wx.SP_ARROW_KEYS)
 		self.spcGenMask.SetValue(50)
 		self.spcGenMask.SetToolTip("")
-		self.spcGenMask.SetFont(wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
 		self.cbGenerateMask = wx.CheckBox(parent=self, id=-1, label="", pos=wx.Point(355, 33), size=wx.Size(14, 13), style=wx.TAB_TRAVERSAL | wx.TRANSPARENT_WINDOW)
 		self.cbGenerateMask.SetValue(False)
 		self.cbGenerateMask.SetToolTip("")
-		self.cbGenerateMask.SetFont(wx.Font(7, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
 	def __init__(self, parent, id, text, style, alignment):
 

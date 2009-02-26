@@ -317,7 +317,8 @@ def PlotPlsModel(canvas, model="full", tbar=None, **_attr):
 		getByPath(prnt, canvPref + str(const + 1)).SetFontSizeLegend(8)
 		getByPath(prnt, canvPref + str(const + 1)).SetAutoLayout(True)
 		exec("prnt." + canvPref + str(const + 1) + ".SetConstraints(LayoutAnchors(prnt." + canvPref + str(const + 1) + ",True,True, True, True))")
-		exec("prnt." + canvPref + str(const + 1) + ".SetFont(wx.Font(10," + "wx.SWISS, wx.NORMAL, wx.NORMAL,False, 'Microsoft Sans Serif'))")
+		# 		 exec("prnt." + canvPref + str(const+1) + ".SetFont(wx.Font(10," + \
+		# 			   "wx.SWISS, wx.NORMAL, wx.NORMAL,False, 'Microsoft Sans Serif'))")
 
 		# create new nb page
 		if predictions.shape[1] > 1:
@@ -1167,14 +1168,12 @@ class Pca(wx.Panel):
 		self.plcPCeigs.fontSizeAxis = 8
 		self.plcPCeigs.SetConstraints(LayoutAnchors(self.plcPCeigs, False, True, False, True))
 		self.plcPCeigs.fontSizeLegend = 8
-		self.plcPCeigs.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
 		self.plcPCvar = MyPlotCanvas(id=-1, name="plcPCvar", parent=self, pos=wx.Point(176, 283), size=wx.Size(200, 200), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcPCvar.fontSizeAxis = 8
 		self.plcPCvar.fontSizeTitle = 10
 		self.plcPCvar.enableZoom = True
 		self.plcPCvar.SetToolTip("")
-		self.plcPCvar.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 		self.plcPCvar.fontSizeLegend = 8
 
 		self.plcPCAscore = MyPlotCanvas(parent=self, id=-1, name="plcPCAscore", pos=wx.Point(0, 24), size=wx.Size(200, 200), style=0, toolbar=self.prnt.parent.tbMain)
@@ -1182,7 +1181,6 @@ class Pca(wx.Panel):
 		self.plcPCAscore.fontSizeAxis = 8
 		self.plcPCAscore.enableZoom = True
 		self.plcPCAscore.enableLegend = True
-		self.plcPCAscore.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "MS Sans Serif"))
 		self.plcPCAscore.SetToolTip("")
 		self.plcPCAscore.fontSizeLegend = 8
 
@@ -1193,8 +1191,6 @@ class Pca(wx.Panel):
 		self.plcPcaLoadsV.fontSizeAxis = 8
 		self.plcPcaLoadsV.enableLegend = True
 		self.plcPcaLoadsV.fontSizeLegend = 8
-
-		self.plcPcaLoadsV.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
 		self.titleBar = TitleBar(self, id=-1, text="Principal Component Analysis", style=bp.BP_USE_GRADIENT, alignment=bp.BP_ALIGN_LEFT)
 
@@ -1252,7 +1248,6 @@ class TitleBar(bp.ButtonPanel):
 		self.spnPCAnum = wx.SpinCtrl(id=ID_SPNPCS, initial=3, max=100, min=3, name="spnPCAnum", parent=self, pos=wx.Point(112, 158), size=wx.Size(46, 23), style=wx.SP_ARROW_KEYS)
 		self.spnPCAnum.SetToolTip("")
 		self.spnPCAnum.SetValue(3)
-		self.spnPCAnum.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "MS Sans Serif"))
 
 		self.spnNumPcs1 = wx.SpinCtrl(id=ID_NUMPCS1, initial=1, max=100, min=1, name="spnNumPcs1", parent=self, pos=wx.Point(240, 184), size=wx.Size(46, 23), style=wx.SP_ARROW_KEYS)
 		self.spnNumPcs1.Enable(0)

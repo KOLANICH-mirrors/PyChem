@@ -122,7 +122,6 @@ class Dfa(wx.Panel):
 		self.plcDFAscores.fontSizeAxis = 8
 		self.plcDFAscores.enableZoom = True
 		self.plcDFAscores.enableLegend = True
-		self.plcDFAscores.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "MS Sans Serif"))
 		self.plcDFAscores.SetToolTip("")
 		self.plcDFAscores.SetAutoLayout(True)
 		self.plcDFAscores.SetConstraints(LayoutAnchors(self.plcDFAscores, True, True, True, True))
@@ -137,7 +136,6 @@ class Dfa(wx.Panel):
 		self.plcDfaLoadsV.SetAutoLayout(True)
 		self.plcDfaLoadsV.SetConstraints(LayoutAnchors(self.plcDfaLoadsV, True, True, True, True))
 		self.plcDfaLoadsV.fontSizeLegend = 8
-		self.plcDfaLoadsV.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
 		self.plcDFAeigs = MyPlotCanvas(id=-1, name="plcDFAeigs", parent=self, pos=wx.Point(483, 214), size=wx.Size(305, 212), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcDFAeigs.fontSizeAxis = 8
@@ -147,7 +145,6 @@ class Dfa(wx.Panel):
 		self.plcDFAeigs.SetAutoLayout(True)
 		self.plcDFAeigs.SetConstraints(LayoutAnchors(self.plcDFAeigs, False, True, False, True))
 		self.plcDFAeigs.fontSizeLegend = 8
-		self.plcDFAeigs.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
 		self.plcDfaCluster = MyPlotCanvas(id=-1, name="plcDfaCluster", parent=self, pos=wx.Point(176, 214), size=wx.Size(305, 212), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcDfaCluster.fontSizeAxis = 8
@@ -160,7 +157,6 @@ class Dfa(wx.Panel):
 		self.plcDfaCluster.ySpec = "none"
 		self.plcDfaCluster.SetConstraints(LayoutAnchors(self.plcDfaCluster, True, True, False, True))
 		self.plcDfaCluster.fontSizeLegend = 8
-		self.plcDfaCluster.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
 		self.titleBar = TitleBar(self, id=-1, text="Discriminant Function Analysis", style=bp.BP_USE_GRADIENT, alignment=bp.BP_ALIGN_LEFT)
 
@@ -206,7 +202,6 @@ class TitleBar(bp.ButtonPanel):
 
 		self.cbDfaXval = wx.CheckBox(id=-1, label="", name="cbDfaXval", parent=self, pos=wx.Point(16, 216), size=wx.Size(14, 13), style=0)
 		self.cbDfaXval.SetValue(False)
-		self.cbDfaXval.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "MS Sans Serif"))
 		self.cbDfaXval.SetToolTip("")
 
 		self.btnExpDfa = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "export.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Export DFA Results", longHelp="Export DFA Results")
@@ -214,13 +209,11 @@ class TitleBar(bp.ButtonPanel):
 		self.Bind(wx.EVT_BUTTON, self.OnBtnExpDfaButton, id=self.btnExpDfa.GetId())
 
 		self.spnDfaScore1 = wx.SpinCtrl(id=-1, initial=1, max=100, min=1, name="spnDfaScore1", parent=self, pos=wx.Point(199, 4), size=wx.Size(46, 23), style=wx.SP_ARROW_KEYS)
-		self.spnDfaScore1.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "MS Sans Serif"))
 		self.spnDfaScore1.SetToolTip("")
 		self.spnDfaScore1.Enable(0)
 		self.spnDfaScore1.Bind(wx.EVT_SPINCTRL, self.OnSpnDfaScore1Spinctrl, id=-1)
 
 		self.spnDfaScore2 = wx.SpinCtrl(id=-1, initial=1, max=100, min=1, name="spnDfaScore2", parent=self, pos=wx.Point(287, 4), size=wx.Size(46, 23), style=wx.SP_ARROW_KEYS)
-		self.spnDfaScore2.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "MS Sans Serif"))
 		self.spnDfaScore2.SetToolTip("")
 		self.spnDfaScore2.Enable(0)
 		self.spnDfaScore2.Bind(wx.EVT_SPINCTRL, self.OnSpnDfaScore2Spinctrl, id=-1)

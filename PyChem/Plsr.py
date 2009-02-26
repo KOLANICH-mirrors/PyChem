@@ -138,7 +138,6 @@ class Plsr(wx.Panel):
 		self.plcPLSerror.fontSizeLegend = 8
 		self.plcPLSerror.SetAutoLayout(True)
 		self.plcPLSerror.SetConstraints(LayoutAnchors(self.plcPLSerror, True, True, True, True))
-		self.plcPLSerror.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
 		self.plcPlsStats = MyPlotCanvas(id=-1, name="plcPlsStats", parent=self.nbFullPls, pos=wx.Point(176, 0), size=wx.Size(310, 272), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcPlsStats.xSpec = "none"
@@ -153,7 +152,6 @@ class Plsr(wx.Panel):
 		self.plcPredPls1.fontSizeTitle = 10
 		self.plcPredPls1.fontSizeAxis = 8
 		self.plcPredPls1.enableZoom = True
-		self.plcPredPls1.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "MS Sans Serif"))
 		self.plcPredPls1.SetToolTip("")
 		self.plcPredPls1.enableLegend = True
 		self.plcPredPls1.fontSizeLegend = 8
@@ -169,14 +167,12 @@ class Plsr(wx.Panel):
 		self.plcPlsHetero.fontSizeLegend = 8
 		self.plcPlsHetero.SetAutoLayout(True)
 		self.plcPlsHetero.SetConstraints(LayoutAnchors(self.plcPlsHetero, True, True, True, True))
-		self.plcPlsHetero.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
 		self.plcPLSloading = MyPlotCanvas(id=-1, name="plcPLSloading", parent=self, pos=wx.Point(0, 24), size=wx.Size(330, 292), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcPLSloading.fontSizeTitle = 10
 		self.plcPLSloading.fontSizeAxis = 8
 		self.plcPLSloading.enableZoom = True
 		self.plcPLSloading.enableLegend = True
-		self.plcPLSloading.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "MS Sans Serif"))
 		self.plcPLSloading.SetToolTip("")
 		self.plcPLSloading.fontSizeLegend = 8
 		self.plcPLSloading.SetAutoLayout(True)
@@ -242,13 +238,11 @@ class TitleBar(bp.ButtonPanel):
 		self.Bind(wx.EVT_BUTTON, self.OnBtnRunFullPlsButton, id=self.btnRunFullPls.GetId())
 
 		self.spnPLSfactor1 = wx.SpinCtrl(id=-1, initial=1, max=100, min=1, name="spnPLSfactor1", parent=self, pos=wx.Point(228, 4), size=wx.Size(46, 23), style=wx.SP_ARROW_KEYS)
-		self.spnPLSfactor1.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "MS Sans Serif"))
 		self.spnPLSfactor1.SetToolTip("")
 		self.spnPLSfactor1.Enable(0)
 		self.spnPLSfactor1.Bind(wx.EVT_SPINCTRL, self.OnSpnPLSfactor1Spinctrl, id=-1)
 
 		self.spnPLSfactor2 = wx.SpinCtrl(id=-1, initial=2, max=100, min=1, name="spnPLSfactor2", parent=self, pos=wx.Point(228, 4), size=wx.Size(46, 23), style=wx.SP_ARROW_KEYS)
-		self.spnPLSfactor2.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "MS Sans Serif"))
 		self.spnPLSfactor2.SetToolTip("")
 		self.spnPLSfactor2.Enable(0)
 		self.spnPLSfactor2.Bind(wx.EVT_SPINCTRL, self.OnSpnPLSfactor2Spinctrl, id=-1)

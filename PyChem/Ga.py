@@ -131,7 +131,6 @@ class Ga(wx.Panel):
 		self.plcGaModelPlot1.fontSizeLegend = 8
 		self.plcGaModelPlot1.fontSizeTitle = 10
 		self.plcGaModelPlot1.SetToolTip("")
-		self.plcGaModelPlot1.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
 		self.nbGaModPlot = wx.Notebook(id=-1, name="nbGaModPlot", parent=self.p1, pos=wx.Point(760, 326), size=wx.Size(310, 272), style=wx.NB_BOTTOM)
 		self.nbGaModPlot.prnt = self.p1
@@ -151,7 +150,6 @@ class Ga(wx.Panel):
 		self.plcGaEigs.fontSizeLegend = 8
 		self.plcGaEigs.fontSizeTitle = 10
 		self.plcGaEigs.SetToolTip("")
-		self.plcGaEigs.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
 		self.plcGaSpecLoad = MyPlotCanvas(id=-1, name="plcGaSpecLoad", parent=self.nbGaModPlot, pos=wx.Point(0, 24), size=wx.Size(503, 279), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcGaSpecLoad.SetToolTip("")
@@ -159,7 +157,6 @@ class Ga(wx.Panel):
 		self.plcGaSpecLoad.fontSizeAxis = 8
 		self.plcGaSpecLoad.fontSizeLegend = 8
 		self.plcGaSpecLoad.fontSizeTitle = 10
-		self.plcGaSpecLoad.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
 		self.plcGaFreqPlot = MyPlotCanvas(id=-1, name="plcGaFreqPlot", parent=self.p1, pos=wx.Point(760, 0), size=wx.Size(310, 272), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcGaFreqPlot.enableZoom = True
@@ -167,7 +164,6 @@ class Ga(wx.Panel):
 		self.plcGaFreqPlot.fontSizeLegend = 8
 		self.plcGaFreqPlot.fontSizeTitle = 10
 		self.plcGaFreqPlot.SetToolTip("")
-		self.plcGaFreqPlot.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
 		self.plcGaFeatPlot = MyPlotCanvas(id=-1, name="plcGaFeatPlot", parent=self.p1, pos=wx.Point(0, 24), size=wx.Size(310, 272), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcGaFeatPlot.SetToolTip("")
@@ -176,7 +172,6 @@ class Ga(wx.Panel):
 		self.plcGaFeatPlot.fontSizeAxis = 8
 		self.plcGaFeatPlot.fontSizeLegend = 8
 		self.plcGaFeatPlot.fontSizeTitle = 10
-		self.plcGaFeatPlot.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
 		self.plcGaGrpDistPlot = MyPlotCanvas(id=-1, name="plcGaGrpDistPlot", parent=self.nbGaModPlot, pos=wx.Point(0, 0), size=wx.Size(310, 272), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcGaGrpDistPlot.enableLegend = True
@@ -185,7 +180,6 @@ class Ga(wx.Panel):
 		self.plcGaGrpDistPlot.fontSizeLegend = 8
 		self.plcGaGrpDistPlot.fontSizeTitle = 10
 		self.plcGaGrpDistPlot.SetToolTip("")
-		self.plcGaGrpDistPlot.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
 		self.plcGaOptPlot = MyPlotCanvas(id=-1, name="plcGaOptPlot", parent=self.nbGaModPlot, pos=wx.Point(0, 0), size=wx.Size(310, 272), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcGaOptPlot.enableLegend = False
@@ -194,7 +188,6 @@ class Ga(wx.Panel):
 		self.plcGaOptPlot.fontSizeLegend = 8
 		self.plcGaOptPlot.fontSizeTitle = 10
 		self.plcGaOptPlot.SetToolTip("")
-		self.plcGaOptPlot.SetFont(wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, "Microsoft Sans Serif"))
 
 		self.titleBar = TitleBar(self, id=-1, text="", style=bp.BP_USE_GRADIENT, alignment=bp.BP_ALIGN_LEFT, gatype=self.type)
 
