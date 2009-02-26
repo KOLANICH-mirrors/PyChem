@@ -17,6 +17,7 @@ import string
 
 import scipy
 import wx
+import wx.combo
 import wx.lib.agw.buttonpanel as bp
 import wx.lib.agw.customtreectrl as ctc
 import wx.lib.agw.foldpanelbar as fpb
@@ -630,24 +631,31 @@ class TitleBar(bp.ButtonPanel):
 		self.parent.optDlg.getData(data)
 
 
-class selFun(ctc.CustomTreeCtrl):
+class selFun(wx.Panel):
 	def _init_selfun_ctrls(self, prnt):
 		# generated method, don't edit
-		ctc.CustomTreeCtrl.__init__(self, parent=prnt, id=-1, style=ctc.TR_HAS_BUTTONS | ctc.TR_HAS_VARIABLE_ROW_HEIGHT | wx.WANTS_CHARS)
+		wx.Panel.__init__(self, parent=prnt, id=-1, style=0)
 		self.SetToolTip("")
 
-		self.plDecisionBtns = wx.Panel(id=-1, name="plDecisionBtns", parent=self, pos=wx.Point(0, 0), size=wx.Size(79, 19), style=wx.TAB_TRAVERSAL)
-		self.plDecisionBtns.SetBackgroundColour(wx.Colour(255, 255, 255))
-		self.plDecisionBtns.SetAutoLayout(True)
+		new_bmp = wx.ArtProvider.GetBitmap(wx.ART_NEW, wx.ART_TOOLBAR, (16, 16))
+		del_bmp = wx.ArtProvider.GetBitmap(wx.ART_DELETE, wx.ART_TOOLBAR, (16, 16))
+		# 		 ref_bmp = wx.ArtProvider.GetBitmap(wx.ART_REFRESH, wx.ART_TOOLBAR, (16,16))
 
-		self.btnAddDecision = wx.Button(id=-1, label="New", name="btnAddDecision", parent=self, pos=wx.Point(0, 0), size=wx.Size(30, 17), style=0)
-		self.btnAddDecision.SetToolTip("")
-		# 		 self.btnAddDecision.Bind(wx.EVT_BUTTON, self.OnBtnAddDecisionButton,
-		# 			   id=ID_FOBBTNADDDECISION)
+		sizer = wx.BoxSizer(wx.VERTICAL)
 
-		self.btnAddMethod = wx.Button(id=ID_ADDPROCESSMETHOD, label="Add Method", name="btnAddMethod", parent=self, pos=wx.Point(31, 0), size=wx.Size(30, 17), style=0)
-		self.btnAddMethod.SetToolTip("")
-		self.btnAddMethod.Bind(wx.EVT_BUTTON, self.OnBtnAddMethod, id=ID_ADDPROCESSMETHOD)
+		self.tb = wx.ToolBar(self, style=wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT)
+		self.tb.SetToolBitmapSize((16, 16))
+		self.tb.AddSimpleTool(10, new_bmp, "Add Method", "Add Method'")
+		self.tb.AddSimpleTool(20, del_bmp, "Delete Method", "Delete Method'")
+		# 		 self.tb.AddSimpleTool(30, ref_bmp, "Reset", "Reset")
+		self.tb.Bind(wx.EVT_TOOL, self.OnNewMethod, id=10)
+		self.tb.Bind(wx.EVT_TOOL, self.OnNewMethod, id=20)
+
+		sizer.Add(self.tb, 0, wx.EXPAND)
+
+		self.SetSizer(sizer)
+
+		self.tb.Realize()
 
 	def __init__(self, parent):
 		self._init_selfun_ctrls(parent)
@@ -655,9 +663,25 @@ class selFun(ctc.CustomTreeCtrl):
 	def getData(self, data):
 		self.data = data
 
-	def OnBtnAddMethod(self, event):
-		event.Skip()
+	def OnNewMethod(self, event):
+		tb = event.GetId()
+		if tb == 10:
+			win = Process(self, "Pre-processing Options", style=wx.DEFAULT_FRAME_STYLE | wx.TINY_CAPTION_HORIZ)
+			win.CenterOnParent(wx.VERTICAL)
+			win.Show(True)
+		elif tb == 20:
+			pass
+		elif tb == 30:
+			self.data["processlist"] = []
+			self.data["proc"] = None
 
-	def OnBtnspectraresetButton(self, event):
-		self.data["processlist"] = []
-		self.data["proc"] = None
+
+class Process(wx.MiniFrame):
+	def __init__(self, parent, title, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.DEFAULT_FRAME_STYLE):
+		wx.MiniFrame.__init__(self, parent, -1, title, pos, size, style)
+		self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
+
+		self.panel = wx.Panel(self, -1)
+
+	def OnCloseWindow(self, event):
+		self.Destroy()
