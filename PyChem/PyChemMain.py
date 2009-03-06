@@ -19,6 +19,7 @@ from xml.etree import cElementTree as ET
 import scipy
 import wx
 import wx.adv
+import wx.lib.agw.flatnotebook as fnb
 import wx.lib.filebrowsebutton
 import wx.richtext
 from numpy import loadtxt
@@ -635,7 +636,7 @@ class PyChemMain(wx.Frame):
 		self.SetMenuBar(self.mnuMain)
 		self.Bind(wx.EVT_SIZE, self.OnMainFrameSize)
 
-		self.nbMain = wx.Notebook(id=wxID_PYCHEMMAINNBMAIN, name="nbMain", parent=self, pos=wx.Point(0, 0), size=wx.Size(1016, 730), style=0)
+		self.nbMain = fnb.FlatNotebook(id=wxID_PYCHEMMAINNBMAIN, name="nbMain", parent=self, pos=wx.Point(0, 0), size=wx.Size(1016, 730), style=fnb.FNB_NODRAG | fnb.FNB_NO_X_BUTTON)
 		self.nbMain.SetToolTip("")
 		self.nbMain.SetMinSize(wx.Size(200, 400))
 		self.nbMain.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.OnNbMainNotebookPageChanging, id=wxID_PYCHEMMAINNBMAIN)
@@ -650,6 +651,7 @@ class PyChemMain(wx.Frame):
 		self.tbMain.Enable(False)
 		self.tbMain.Bind(wx.EVT_SIZE, self.OnTbMainSize)
 		self.SetToolBar(self.tbMain)
+		self.tbMain.Realize()
 
 		self.plExpset = expSetup.expSetup(id=wxID_PYCHEMMAINPLEXPSET, name="plExpset", parent=self.nbMain, pos=wx.Point(0, 0), size=wx.Size(1008, 635), style=wx.TAB_TRAVERSAL)
 		self.plExpset.getFrame(self)
