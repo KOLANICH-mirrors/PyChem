@@ -826,10 +826,22 @@ class PyChemMain(wx.Frame):
 				# Load arrays
 				wx.BeginBusyCursor()
 
-				if dlg.Transpose() == 0:
-					self.data["raw"] = loadtxt(dlg.getFile())
+				# test for commas in file indicating csv filetype (AlexH 2009.03.10)
+				infile = open(dlg.getFile())
+				lineFromFile = infile.readline()
+				infile.close()
+
+				# if comma present, assume csv file and add delimiter to loadtxt function (AlexH 2009.03.10)
+				if "," in lineFromFile:
+					if dlg.Transpose() == 0:
+						self.data["raw"] = loadtxt(dlg.getFile(), delimiter=",")
+					else:
+						self.data["raw"] = scipy.transpose(loadtxt(dlg.getFile(), delimiter=","))
 				else:
-					self.data["raw"] = scipy.transpose(loadtxt(dlg.getFile()))
+					if dlg.Transpose() == 0:
+						self.data["raw"] = loadtxt(dlg.getFile())
+					else:
+						self.data["raw"] = scipy.transpose(loadtxt(dlg.getFile()))
 
 				# create additional arrays of experimental data
 				self.data["rawtrunc"] = self.data["raw"]

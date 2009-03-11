@@ -874,7 +874,7 @@ class wxImportMetaDataDialog(wx.Dialog):
 		self.btnBrowseArray = wx.Button(id=wxID_WXIMPORTMETADATADIALOGBTNBROWSEARRAY, label="Browse...", name="btnBrowseArray", parent=self.swLoadX, pos=wx.Point(320, 16), size=wx.Size(75, 23), style=0)
 		self.btnBrowseArray.Bind(wx.EVT_BUTTON, self.OnBtnbrowsearrayButton, id=wxID_WXIMPORTMETADATADIALOGBTNBROWSEARRAY)
 
-		self.stArray = wx.lib.bcrtl.user.StaticTextCtrl.StaticTextCtrl(caption="", id=wxID_WXIMPORTMETADATADIALOGSTARRAY, name="stArray", parent=self.swLoadX, pos=wx.Point(16, 16), size=wx.Size(296, 23), style=0, value="")
+		self.stArray = wx.lib.stattext.GenStaticText(self, -1, "", pos=wx.Point(16, 16), size=wx.Size(296, 23), style=0)
 
 		self.btnOK = wx.Button(id=wxID_WXIMPORTMETADATADIALOGBTNOK, label="OK", name="btnOK", parent=self.swLoadX, pos=wx.Point(96, 48), size=wx.Size(104, 23), style=0)
 		self.btnOK.Bind(wx.EVT_BUTTON, self.OnBtnOKButton, id=wxID_WXIMPORTMETADATADIALOGBTNOK)
