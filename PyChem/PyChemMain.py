@@ -21,10 +21,10 @@ import wx
 import wx.adv
 import wx.lib.agw.flatnotebook as fnb
 import wx.lib.filebrowsebutton
+import wx.lib.stattext
 import wx.richtext
 from numpy import loadtxt
 from scipy import newaxis as nA
-from wx.lib.anchors import LayoutAnchors
 
 from . import Cluster, Dfa, Ga, Pca, Plsr, Univariate, expSetup, mva, plotSpectra
 from .mva.chemometrics import _index
@@ -106,12 +106,12 @@ class PlotToolBar(wx.ToolBar):
 		self.stTitle = wx.lib.stattext.GenStaticText(self, -1, "Title:", pos=wx.Point(2, 5), style=wx.TRANSPARENT_WINDOW)
 		self.AddControl(self.stTitle)
 
-		self.txtPlot = wx.TextCtrl(id=-1, name="txtPlot", parent=self, pos=wx.Point(26, 2), size=wx.Size(120, 21), style=wx.TE_DONTWRAP, value="Title")
+		self.txtPlot = wx.TextCtrl(id=-1, name="txtPlot", parent=self, pos=wx.Point(26, 2), size=wx.Size(120, -1), style=wx.TE_DONTWRAP | wx.TE_PROCESS_ENTER, value="Title")
 		self.txtPlot.SetToolTip("Graph Title")
 		self.txtPlot.Bind(wx.EVT_TEXT_ENTER, self.OnTxtPlot)
 		self.AddControl(self.txtPlot)
 
-		self.spnTitleFont = wx.SpinCtrl(id=-1, initial=12, max=76, min=5, name="spnTitleFont", parent=self, pos=wx.Point(148, 2), size=wx.Size(50, 21), style=wx.SP_ARROW_KEYS)
+		self.spnTitleFont = wx.SpinCtrl(id=-1, initial=12, max=76, min=5, name="spnTitleFont", parent=self, pos=wx.Point(148, 2), size=wx.Size(50, -1), style=wx.SP_ARROW_KEYS)
 		self.spnTitleFont.SetToolTip("Title Font Size")
 		self.spnTitleFont.Bind(wx.EVT_SPIN, self.OnSpnTitleFont)
 		self.AddControl(self.spnTitleFont)
@@ -121,7 +121,7 @@ class PlotToolBar(wx.ToolBar):
 		self.stXlabel = wx.lib.stattext.GenStaticText(self, -1, "X-label:", pos=wx.Point(202, 5), style=wx.TRANSPARENT_WINDOW)
 		self.AddControl(self.stXlabel)
 
-		self.txtXlabel = wx.TextCtrl(id=-1, name="txtXlabel", parent=self, pos=wx.Point(240, 2), size=wx.Size(70, 21), style=wx.TE_DONTWRAP, value="X-label")
+		self.txtXlabel = wx.TextCtrl(id=-1, name="txtXlabel", parent=self, pos=wx.Point(240, 2), size=wx.Size(70, -1), style=wx.TE_DONTWRAP, value="X-label")
 		self.txtXlabel.SetToolTip("Abscissa (X-axis) Label")
 		self.txtXlabel.Bind(wx.EVT_TEXT_ENTER, self.OnTxtXlabel)
 		self.AddControl(self.txtXlabel)
@@ -129,12 +129,12 @@ class PlotToolBar(wx.ToolBar):
 		self.stYlabel = wx.lib.stattext.GenStaticText(self, -1, "Y-label:", pos=wx.Point(314, 5), style=wx.TRANSPARENT_WINDOW)
 		self.AddControl(self.stYlabel)
 
-		self.txtYlabel = wx.TextCtrl(id=-1, name="txtYlabel", parent=self, pos=wx.Point(352, 2), size=wx.Size(70, 21), style=wx.TE_DONTWRAP, value="Y-label")
+		self.txtYlabel = wx.TextCtrl(id=-1, name="txtYlabel", parent=self, pos=wx.Point(352, 2), size=wx.Size(70, -1), style=wx.TE_DONTWRAP, value="Y-label")
 		self.txtYlabel.SetToolTip("Ordinate (Y-axis) Label")
 		self.txtYlabel.Bind(wx.EVT_TEXT_ENTER, self.OnTxtYlabel)
 		self.AddControl(self.txtYlabel)
 
-		self.spnAxesFont = wx.SpinCtrl(id=-1, initial=12, max=76, min=5, name="spnTitleFont", parent=self, pos=wx.Point(424, 2), size=wx.Size(50, 21), style=wx.SP_ARROW_KEYS)
+		self.spnAxesFont = wx.SpinCtrl(id=-1, initial=12, max=76, min=5, name="spnTitleFont", parent=self, pos=wx.Point(424, 2), size=wx.Size(50, -1), style=wx.SP_ARROW_KEYS)
 		self.spnAxesFont.SetToolTip("Axes Font Size")
 		self.spnAxesFont.Bind(wx.EVT_SPIN, self.OnSpnAxesFont)
 		self.AddControl(self.spnAxesFont)
@@ -144,11 +144,11 @@ class PlotToolBar(wx.ToolBar):
 		self.stXrange = wx.lib.stattext.GenStaticText(self, -1, "X-range:", pos=wx.Point(480, 5), style=wx.TRANSPARENT_WINDOW)
 		self.AddControl(self.stXrange)
 
-		self.txtXmin = wx.TextCtrl(id=-1, name="txtXmin", parent=self, pos=wx.Point(522, 2), size=wx.Size(40, 21), style=wx.TE_DONTWRAP, value="0.0")
+		self.txtXmin = wx.TextCtrl(id=-1, name="txtXmin", parent=self, pos=wx.Point(522, 2), size=wx.Size(40, -1), style=wx.TE_DONTWRAP, value="0.0")
 		self.txtXmin.SetToolTip("Minimum X-axis range")
 		self.AddControl(self.txtXmin)
 
-		self.spnXmin = wx.SpinButton(id=-1, name="spnXmin", parent=self, pos=wx.Point(562, 2), size=wx.Size(15, 21), style=wx.SP_VERTICAL)
+		self.spnXmin = wx.SpinButton(id=-1, name="spnXmin", parent=self, pos=wx.Point(562, 2), size=wx.Size(15, -1), style=wx.SP_VERTICAL)
 		self.spnXmin.SetToolTip("Minimum X-axis range")
 		self.spnXmin.Bind(wx.EVT_SPIN_DOWN, self.OnSpnXminSpinDown)
 		self.spnXmin.Bind(wx.EVT_SPIN_UP, self.OnSpnXminSpinUp)
@@ -158,11 +158,11 @@ class PlotToolBar(wx.ToolBar):
 		self.stDummy1 = wx.lib.stattext.GenStaticText(self, -1, " : ", pos=wx.Point(579, 5), style=wx.TRANSPARENT_WINDOW)
 		self.AddControl(self.stDummy1)
 
-		self.txtXmax = wx.TextCtrl(id=-1, name="txtXmax", parent=self, pos=wx.Point(590, 2), size=wx.Size(40, 21), style=wx.TE_DONTWRAP, value="0.0")
+		self.txtXmax = wx.TextCtrl(id=-1, name="txtXmax", parent=self, pos=wx.Point(590, 2), size=wx.Size(40, -1), style=wx.TE_DONTWRAP, value="0.0")
 		self.txtXmax.SetToolTip("Maximum X-axis range")
 		self.AddControl(self.txtXmax)
 
-		self.spnXmax = wx.SpinButton(id=-1, name="spnXmax", parent=self, pos=wx.Point(630, 2), size=wx.Size(15, 21), style=wx.SP_VERTICAL)
+		self.spnXmax = wx.SpinButton(id=-1, name="spnXmax", parent=self, pos=wx.Point(630, 2), size=wx.Size(15, -1), style=wx.SP_VERTICAL)
 		self.spnXmax.SetToolTip("Maximum X-axis range")
 		self.spnXmax.Bind(wx.EVT_SPIN_DOWN, self.OnSpnXmaxSpinDown)
 		self.spnXmax.Bind(wx.EVT_SPIN_UP, self.OnSpnXmaxSpinUp)
@@ -174,25 +174,25 @@ class PlotToolBar(wx.ToolBar):
 		self.stYrange = wx.lib.stattext.GenStaticText(self, -1, "Y-range:", pos=wx.Point(647, 5), style=wx.TRANSPARENT_WINDOW)
 		self.AddControl(self.stYrange)
 
-		self.txtYmin = wx.TextCtrl(id=-1, name="txtYmin", parent=self, pos=wx.Point(690, 2), size=wx.Size(40, 21), style=wx.TE_DONTWRAP, value="0.0")
+		self.txtYmin = wx.TextCtrl(id=-1, name="txtYmin", parent=self, pos=wx.Point(1000, 2), size=wx.Size(40, -1), style=wx.TE_DONTWRAP, value="0.0")
 		self.txtYmin.SetToolTip("Minimum Y-axis range")
 		self.AddControl(self.txtYmin)
 
-		self.spnYmin = wx.SpinButton(id=-1, name="spnYmin", parent=self, pos=wx.Point(732, 2), size=wx.Size(15, 21), style=wx.SP_VERTICAL)
+		self.spnYmin = wx.SpinButton(id=-1, name="spnYmin", parent=self, pos=wx.Point(731, 2), size=wx.Size(15, -1), style=wx.SP_VERTICAL)
 		self.spnYmin.SetToolTip("Minimum Y-axis range")
 		self.spnYmin.Bind(wx.EVT_SPIN_DOWN, self.OnSpnYminSpinDown)
 		self.spnYmin.Bind(wx.EVT_SPIN_UP, self.OnSpnYminSpinUp)
 		self.spnYmin.Bind(wx.EVT_SPIN, self.OnSpnYmin)
 		self.AddControl(self.spnYmin)
 
-		self.stDummy2 = wx.lib.stattext.GenStaticText(self, -1, " : ", pos=wx.Point(749, 5), style=wx.TRANSPARENT_WINDOW)
-		self.AddControl(self.stDummy1)
+		self.stDummy2 = wx.lib.stattext.GenStaticText(self, -1, " : ", pos=wx.Point(748, 5), style=wx.TRANSPARENT_WINDOW)
+		self.AddControl(self.stDummy2)
 
-		self.txtYmax = wx.TextCtrl(id=-1, name="txtYmax", parent=self, pos=wx.Point(760, 2), size=wx.Size(40, 21), style=wx.TE_DONTWRAP, value="0.0")
-		self.txtYmin.SetToolTip("Maximum Y-axis range")
-		self.AddControl(self.txtYmin)
+		self.txtYmax = wx.TextCtrl(id=-1, name="txtYmax", parent=self, pos=wx.Point(759, 2), size=wx.Size(40, -1), style=wx.TE_DONTWRAP, value="0.0")
+		self.txtYmax.SetToolTip("Maximum Y-axis range")
+		self.AddControl(self.txtYmax)
 
-		self.spnYmax = wx.SpinButton(id=-1, name="spnYmax", parent=self, pos=wx.Point(800, 2), size=wx.Size(15, 21), style=wx.SP_VERTICAL)
+		self.spnYmax = wx.SpinButton(id=-1, name="spnYmax", parent=self, pos=wx.Point(802, 2), size=wx.Size(15, -1), style=wx.SP_VERTICAL)
 		self.spnYmax.SetToolTip("Maximum Y-axis range")
 		self.spnYmax.Bind(wx.EVT_SPIN_DOWN, self.OnSpnYmaxSpinDown)
 		self.spnYmax.Bind(wx.EVT_SPIN_UP, self.OnSpnYmaxSpinUp)
@@ -201,21 +201,21 @@ class PlotToolBar(wx.ToolBar):
 
 		self.AddSeparator()
 
-		self.tbConf = wx.lib.buttons.GenBitmapToggleButton(bitmap=wx.Bitmap(os.path.join("bmp", "conf_int.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbConf", parent=self, pos=wx.Point(817, 2), size=wx.Size(21, 21))
+		self.tbConf = wx.lib.buttons.GenBitmapToggleButton(bitmap=wx.Bitmap(os.path.join("bmp", "conf_int.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbConf", parent=self, pos=wx.Point(819, 2), size=wx.Size(21, -1))
 		self.tbConf.SetValue(False)
 		self.tbConf.SetToolTip("")
 		self.tbConf.Enable(False)
-		self.AddControl(self.tbConf)
 		self.tbConf.Bind(wx.EVT_BUTTON, self.OnTbConfButton)
+		self.AddControl(self.tbConf)
 
-		self.tbPoints = wx.lib.buttons.GenBitmapToggleButton(bitmap=wx.Bitmap(os.path.join("bmp", "plot_text.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbPoints", parent=self, pos=wx.Point(839, 2), size=wx.Size(21, 21))
+		self.tbPoints = wx.lib.buttons.GenBitmapToggleButton(bitmap=wx.Bitmap(os.path.join("bmp", "plot_text.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbPoints", parent=self, pos=wx.Point(842, 2), size=wx.Size(21, -1))
 		self.tbPoints.SetValue(True)
 		self.tbPoints.SetToolTip("Plot using text labels")
 		self.tbPoints.Enable(True)
 		self.tbPoints.Bind(wx.EVT_BUTTON, self.OnTbPointsButton)
 		self.AddControl(self.tbPoints)
 
-		self.tbSymbols = wx.lib.buttons.GenBitmapToggleButton(bitmap=wx.Bitmap(os.path.join("bmp", "plot_symbol.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbSymbols", parent=self, pos=wx.Point(861, 2), size=wx.Size(21, 21))
+		self.tbSymbols = wx.lib.buttons.GenBitmapToggleButton(bitmap=wx.Bitmap(os.path.join("bmp", "plot_symbol.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbSymbols", parent=self, pos=wx.Point(865, 2), size=wx.Size(21, -1))
 		self.tbSymbols.SetValue(False)
 		self.tbSymbols.SetToolTip("Plot using colored symbols")
 		self.tbSymbols.Enable(True)
@@ -223,25 +223,25 @@ class PlotToolBar(wx.ToolBar):
 		self.tbSymbols.Bind(wx.EVT_RIGHT_DOWN, self.OnTbSymbolsRightClick)
 		self.AddControl(self.tbSymbols)
 
-		self.tbLoadLabels = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "conf_0.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbLoadLabels", parent=self, pos=wx.Point(883, 2), size=wx.Size(20, 21))
+		self.tbLoadLabels = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "conf_0.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbLoadLabels", parent=self, pos=wx.Point(888, 2), size=wx.Size(20, -1))
 		self.tbLoadLabels.SetToolTip("")
 		self.tbLoadLabels.Enable(False)
 		self.tbLoadLabels.Bind(wx.EVT_BUTTON, self.OnTbLoadLabelsButton)
 		self.AddControl(self.tbLoadLabels)
 
-		self.tbLoadLabStd1 = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "conf_1.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbLoadLabStd1", parent=self, pos=wx.Point(905, 2), size=wx.Size(20, 21))
+		self.tbLoadLabStd1 = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "conf_1.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbLoadLabStd1", parent=self, pos=wx.Point(910, 2), size=wx.Size(20, -1))
 		self.tbLoadLabStd1.SetToolTip("")
 		self.tbLoadLabStd1.Enable(False)
 		self.tbLoadLabStd1.Bind(wx.EVT_BUTTON, self.OnTbLoadLabStd1Button)
 		self.AddControl(self.tbLoadLabStd1)
 
-		self.tbLoadLabStd2 = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "conf_2.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbLoadLabStd2", parent=self, pos=wx.Point(927, 2), size=wx.Size(20, 21))
+		self.tbLoadLabStd2 = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "conf_2.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbLoadLabStd2", parent=self, pos=wx.Point(932, 2), size=wx.Size(20, -1))
 		self.tbLoadLabStd2.SetToolTip("")
 		self.tbLoadLabStd2.Enable(False)
 		self.tbLoadLabStd2.Bind(wx.EVT_BUTTON, self.OnTbLoadLabStd2Button)
 		self.AddControl(self.tbLoadLabStd2)
 
-		self.tbLoadSymStd2 = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "conf_2_sym.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbLoadSymStd2", parent=self, pos=wx.Point(949, 2), size=wx.Size(20, 21))
+		self.tbLoadSymStd2 = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "conf_2_sym.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbLoadSymStd2", parent=self, pos=wx.Point(954, 2), size=wx.Size(20, -1))
 		self.tbLoadSymStd2.SetToolTip("")
 		self.tbLoadSymStd2.Enable(False)
 		self.tbLoadSymStd2.Bind(wx.EVT_BUTTON, self.OnTbLoadSymStd2Button)
@@ -250,17 +250,17 @@ class PlotToolBar(wx.ToolBar):
 
 		self.AddSeparator()
 
-		self.tbXlog = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "xlog.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbXlog", parent=self, pos=wx.Point(971, 2), size=wx.Size(20, 21))
+		self.tbXlog = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "xlog.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbXlog", parent=self, pos=wx.Point(976, 2), size=wx.Size(20, -1))
 		self.tbXlog.SetToolTip("")
 		self.tbXlog.Bind(wx.EVT_BUTTON, self.OnTbXLogButton)
 		self.AddControl(self.tbXlog)
 
-		self.tbYlog = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "ylog.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbYlog", parent=self, pos=wx.Point(993, 2), size=wx.Size(20, 21))
+		self.tbYlog = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "ylog.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbYlog", parent=self, pos=wx.Point(998, 2), size=wx.Size(20, -1))
 		self.tbYlog.SetToolTip("")
 		self.tbYlog.Bind(wx.EVT_BUTTON, self.OnTbYLogButton)
 		self.AddControl(self.tbYlog)
 
-		self.tbScinote = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "scinote.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbScinote", parent=self, pos=wx.Point(1015, 2), size=wx.Size(20, 21))
+		self.tbScinote = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "scinote.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbScinote", parent=self, pos=wx.Point(1020, 2), size=wx.Size(20, -1))
 		self.tbScinote.SetToolTip("")
 		self.tbScinote.Bind(wx.EVT_BUTTON, self.OnTbScinoteButton)
 		self.AddControl(self.tbScinote)
@@ -268,6 +268,8 @@ class PlotToolBar(wx.ToolBar):
 		self.SymPopUpWin = SymColSelectTool(self)
 
 		self.loadIdx = 0
+
+	# 		 self.Realize()
 
 	def GetLoadPlotIdx(self):
 		return self.loadIdx
@@ -1962,7 +1964,6 @@ class wxWorkspaceDialog(wx.Dialog):
 		self.btnOK.Bind(wx.EVT_BUTTON, self.OnBtnOKButton, id=wxID_WXWORKSPACEDIALOGBTNOK)
 
 		self.lbSaveWorkspace = wx.ListCtrl(id=wxID_WXWORKSPACEDIALOGLBSAVEWORKSPACE, name="lbSaveWorkspace", parent=self, pos=wx.Point(96, 8), size=wx.Size(264, 232), style=wx.LC_REPORT | wx.LC_SORT_ASCENDING | wx.LC_SINGLE_SEL)
-		self.lbSaveWorkspace.SetConstraints(LayoutAnchors(self.lbSaveWorkspace, True, True, True, True))
 		self.lbSaveWorkspace.SetAutoLayout(True)
 		self.lbSaveWorkspace.SetToolTip("")
 		self._init_coll_lbSaveWorkspace_Columns(self.lbSaveWorkspace)
