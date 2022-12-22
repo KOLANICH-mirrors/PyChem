@@ -15,9 +15,9 @@ import copy
 import string
 
 import scipy
-from expSetup import valSplit
 from scipy import newaxis as nA
 
+from ..expSetup import valSplit
 from .chemometrics import *
 from .chemometrics import _BW, _diag, _flip, _index, _put, _slice, _split
 from .genetic import _remdup
