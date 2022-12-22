@@ -1404,10 +1404,10 @@ class TitleBar(bp.ButtonPanel):
 			plotLine(self.parent.plcPcaLoadsV, self.data["pcloads"], xaxis=self.data["xaxis"], rownum=idx, tit="PCA Loadings", type="single", xLabel="Variable", yLabel="w[" + str(idx + 1) + "]", wdth=1, ledge=[])
 
 		# Plot % variance
-		plotLine(self.parent.plcPCvar, scipy.transpose(self.data["pcpervar"]), xaxis=scipy.arange(0, len(self.data["pcpervar"]))[:, nA], rownum=0, tit="Percentage Explained Variance", tit="", type="single", xLabel="Principal Component", yLabel="Cumulative % Variance", wdth=3, ledge=[])
+		plotLine(self.parent.plcPCvar, scipy.transpose(self.data["pcpervar"]), xaxis=scipy.arange(0, len(self.data["pcpervar"]))[:, nA], rownum=0, tit="Percentage Explained Variance", type="single", xLabel="Principal Component", yLabel="Cumulative % Variance", wdth=3, ledge=[])
 
 		# Plot eigenvalues
-		plotLine(self.parent.plcPCeigs, scipy.transpose(self.data["pceigs"]), xaxis=scipy.arange(1, len(self.data["pceigs"]) + 1)[:, nA], rownum=0, tit="Eigenvalues", xLabel="Principal Component", yLabel="Eigenvalue", wdth=3, tit="", type="single", ledge=[])
+		plotLine(self.parent.plcPCeigs, scipy.transpose(self.data["pceigs"]), xaxis=scipy.arange(1, len(self.data["pceigs"]) + 1)[:, nA], rownum=0, tit="Eigenvalues", xLabel="Principal Component", yLabel="Eigenvalue", wdth=3, type="single", ledge=[])
 
 		# make sure ctrls enabled
 		self.spnNumPcs1.Enable(True)
