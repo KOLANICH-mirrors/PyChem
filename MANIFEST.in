@@ -1,0 +1,1 @@
+include *.md .editorconfig tests docs examples 

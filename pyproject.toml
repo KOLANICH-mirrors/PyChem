@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=61.2.0", "setuptools_scm[toml]>=3.4.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "PyChem"
+readme = "ReadMe.md"
+description = ""
+authors = [{name = "Roger M. Jarvis", email="Roger.Jarvis@manchester.ac.uk"}, {name = "Roger M. Jarvis", email="admin@pychem.org.uk"}]
+classifiers = [
+	"Development Status :: 4 - Beta",
+	"Environment :: Other Environment",
+	"Intended Audience :: Developers",
+	"License :: OSI Approved :: GNU General Public License (GPL)",
+	"Operating System :: OS Independent",
+	"Programming Language :: Python",
+	"Programming Language :: Python :: 3",
+	"Programming Language :: Python :: 3 :: Only",
+	"Topic :: Scientific/Engineering :: Chemistry",
+	"Topic :: Scientific/Engineering :: Bio-Informatics",
+	"Topic :: Scientific/Engineering :: Physics",
+	"Environment :: X11 Applications :: GTK",
+]
+keywords = ["PyChem"]
+license = {text = "GPL-3.0-or-later"}
+requires-python = ">=3.4"
+dynamic = ["version"]
+dependencies = [
+	"numpy",
+	"scipy",
+	"matplotlib",
+	"biopython", # https://github.com/biopython/biopython
+	"numarray", # https://pypi.org/project/numarray/
+	"wxPython", # https://github.com/wxWidgets/Phoenix/
+]
+
+[project.urls]
+Homepage = "https://github.com/KOLANICH-mirrors/PyChem.py"
+"Original Homepage" = "https://sourceforge.net/projects/pychem/"
+"Website" = "https://pychem.sourceforge.net/"
+"Paper" = "https://academic.oup.com/bioinformatics/article-pdf/22/20/2565/580465/btl416.pdf"
+
+[project.scripts] # intentionally not gui-scripts to show a console window with errors
+PyChem = "PyChem.__main__:main"
+
+[tool.setuptools]
+zip-safe = false
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["PyChem", "PyChem.*"]
+
+[tool.setuptools_scm]
+
+[tool.black]
+line-length = 100500
+

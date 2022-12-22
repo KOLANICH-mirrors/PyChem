@@ -1,0 +1,95 @@
+cff-version: 1.2.0
+title: PyChem fork
+license: GPL-3.0-or-later
+repository-code: https://github.com/KOLANICH-mirrors/PyChem.py
+url: https://pychem.sourceforge.net/
+message: It is a fork of abandonware PyChem.
+repository: https://sourceforge.net/projects/pychem/
+identifiers:
+  - type: url
+    value: https://pypi.org/project/PyChem/
+    description: PyPI
+
+
+preferred-citation:
+  type: article
+  title: 'PYCHEM: a multivariate analysis package for python'
+  issn: 1367-4803
+  languages: [en]
+  authors:
+    - &rmj01
+      given-names: Roger
+      family-names: Jarvis M
+      alias: rmj01
+      email: Roger.Jarvis@manchester.ac.uk
+      affiliation: &shared_affiliation |
+        School of Chemistry, The University of Manchester, PO Box 88, Sackville Street, Manchester M60 1QD, UK
+        Manchester Interdisciplinary Biocentre, 131 Princess Street, Manchester M1 7DN, UK
+      #affiliation: &shared_affiliation
+      #  - name: School of Chemistry, The University of Manchester
+      #    city: Manchester
+      #    country: UK
+      #    location: PO Box 88, Sackville Street, M60 1QD
+      #  - name: Manchester Interdisciplinary Biocentre
+      #    city: Manchester
+      #    country: UK
+      #    location: 131 Princess Street, M1 7DN
+      # orcid:
+    - &dvd
+      given-names: David
+      family-names: Broadhurst
+      affiliation: *shared_affiliation
+      # orcid:
+    - &hln
+      given-names: Helen
+      family-names: Johnson
+      #email: hej93@aber.ac.uk # not from that affiliation
+      affiliation: Faculty of Life Sciences, University of Manchester, Stopford Building, Oxford Road, Manchester M13 9PT, UK
+      #affiliation:
+      #  - name: Faculty of Life Sciences, University of Manchester
+      #    city: Manchester
+      #    country: UK
+      #    location: Stopford Building, Oxford Road, M13 9PT
+      # orcid:
+    - &noel
+      given-names: Noel
+      family-names: O'Boyle M
+      #email: oel.oboyle2@mail.dcu.ie  # not from that affiliation
+      affiliation: Unilever Centre for Molecular Science Informatics, Department of Chemistry, University of Cambridge, Lensfield Road, CB2 1EW, UK
+      #affiliation:
+      #  - name: Unilever Centre for Molecular Science Informatics, Department of Chemistry, University of Cambridge
+      #    city: Cambridge
+      #    country: UK
+      #    location: Lensfield Road, CB2 1EW
+      # orcid:
+    - &rrg
+      given-names: Royston
+      family-names: Goodacre
+      #email: rrg@aber.ac.uk  # not from that affiliation
+      affiliation: *shared_affiliation
+      # orcid:
+  doi: 10.1093/bioinformatics/btl416
+  journal: Bioinformatics
+  month: 7
+  start: 2565
+  end: 2566
+  issue: 20
+  volume: 22
+  year: 2006
+  publisher:
+    name: Oxford University Press (OUP)
+  #date: 2022-12-23
+  editors:
+    - given-names: Martin
+      family-names: Bishop
+  url: https://academic.oup.com/bioinformatics/article-pdf/22/20/2565/580465/btl416.pdf
+  abstract: |
+    We have implemented a multivariate statistical analysis toolbox, with an optional standalone graphical user interface (GUI), using the Python scripting language. This is a free and open source project that addresses the need for a multivariate analysis toolbox in Python. Although the functionality provided does not cover the full range of multivariate tools that are available, it has a broad complement of methods that are widely used in the biological sciences. In contrast to tools like MATLAB, PyChem 2.0.0 is easily accessible and free, allows for rapid extension using a range of Python modules and is part of the growing amount of complementary and interoperable scientific software in Python based upon SciPy. One of the attractions of PyChem is that it is an open source project and so there is an opportunity, through collaboration, to increase the scope of the software and to continually evolve a user-friendly platform that has applicability across a wide range of analytical and post-genomic disciplines.
+    AVAILABILITY: http://sourceforge.net/projects/pychem
+
+authors:
+  - *rmj01
+  - *dvd
+  - *hln
+  - *noel
+  - *rrg

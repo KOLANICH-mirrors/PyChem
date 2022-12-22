@@ -1,0 +1,16 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: PyChem
+Upstream-Contact: Roger M. Jarvis <Roger.Jarvis@manchester.ac.uk>
+Source: https://sourceforge.net/p/pychem/code/
+
+Files: PyChem/* docs/* examples/* setup_win32.py setup_standalone.py
+Copyright: 2006-2012, Roger M. Jarvis
+License: GPL-1.0-or-later OR GPL-2.0-or-later OR GPL-3.0-or-later
+
+Files: tests/*
+Copyright: 2022 KOLANICH
+License: GPL-3.0-or-later
+
+Files: .github/* .editorconfig .gitmodules .gitignore .gitlab-ci.yml Code_Of_Conduct.md MANIFEST.in ReadMe.md pyproject.toml CITATION.cff
+Copyright: 2022 KOLANICH
+License: Unlicense
