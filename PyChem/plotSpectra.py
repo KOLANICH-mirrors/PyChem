@@ -17,7 +17,6 @@ import string
 
 import scipy
 import wx
-import wx.combo
 import wx.lib.agw.buttonpanel as bp
 import wx.lib.agw.customtreectrl as ctc
 import wx.lib.agw.foldpanelbar as fpb
