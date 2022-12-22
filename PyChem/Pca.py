@@ -944,17 +944,15 @@ class SymDialog(wx.Dialog):
 class MyPlotCanvas(wx.lib.plot.PlotCanvas):
 	def _init_plot_menu_Items(self, parent):
 
-		parent.Append(help="", id=MNUPLOTCOPY, kind=wx.ITEM_NORMAL, text="Copy Figure")
-		parent.Append(help="", id=MNUPLOTCOORDS, kind=wx.ITEM_NORMAL, text="Copy Coordinates")
-		parent.Append(help="", id=MNUPLOTPRINT, kind=wx.ITEM_NORMAL, text="Print")
-		parent.Append(help="", id=MNUPLOTSAVE, kind=wx.ITEM_NORMAL, text="Save")
-		##		  parent.Append(help='', id=MNUPLOTPROPS, kind=wx.ITEM_NORMAL,
-		##				text='Properties')
+		parent.Append(id=MNUPLOTCOPY, item="Copy Figure", helpString="", kind=wx.ITEM_NORMAL)
+		parent.Append(id=MNUPLOTCOORDS, item="Copy Coordinates", helpString="", kind=wx.ITEM_NORMAL)
+		parent.Append(id=MNUPLOTPRINT, item="Print", helpString="", kind=wx.ITEM_NORMAL)
+		parent.Append(id=MNUPLOTSAVE, item="Save", helpString="", kind=wx.ITEM_NORMAL)
+		##		  parent.Append(id=MNUPLOTPROPS, item="Properties", helpString="", kind=wx.ITEM_NORMAL)
 		self.Bind(wx.EVT_MENU, self.OnMnuPlotCopy, id=MNUPLOTCOPY)
 		self.Bind(wx.EVT_MENU, self.OnMnuPlotPrint, id=MNUPLOTPRINT)
 		self.Bind(wx.EVT_MENU, self.OnMnuPlotSave, id=MNUPLOTSAVE)
-		##		  self.Bind(wx.EVT_MENU, self.OnMnuPlotProperties,
-		##				id=MNUPLOTPROPS)
+		##		  self.Bind(wx.EVT_MENU, self.OnMnuPlotProperties, id=MNUPLOTPROPS)
 		self.Bind(wx.EVT_MENU, self.OnMnuPlotCoords, id=MNUPLOTCOORDS)
 
 	def _init_utils(self):

@@ -511,15 +511,15 @@ class PyChemMain(wx.Frame):
 	def _init_coll_mnuTools_Items(self, parent):
 		# generated method, don't edit
 
-		parent.Append(help="", id=wxID_PYCHEMMAINMNUTOOLSEXPSET, kind=wx.ITEM_NORMAL, text="Experiment Setup")
-		parent.Append(help="", id=wxID_PYCHEMMAINMNUTOOLSPREPROC, kind=wx.ITEM_NORMAL, text="Spectral Pre-processing")
-		parent.Append(help="", id=wxID_PYCHEMMAINPLUNIVARIATE, kind=wx.ITEM_NORMAL, text="Univariate Tests")
-		parent.Append(help="", id=wxID_PYCHEMMAINMNUTOOLSMNUPCA, kind=wx.ITEM_NORMAL, text="Principal Component Analysis (PCA)")
-		parent.Append(help="", id=wxID_PYCHEMMAINMNUTOOLSMNUCLUSTER, kind=wx.ITEM_NORMAL, text="Cluster Analysis")
-		parent.Append(help="", id=wxID_PYCHEMMAINMNUTOOLSMNUDFA, kind=wx.ITEM_NORMAL, text="Discriminant Function Analysis (DFA)")
-		parent.Append(help="", id=wxID_PYCHEMMAINMNUTOOLSMNUPLSR, kind=wx.ITEM_NORMAL, text="Partial Least Squares Regression (PLSR)")
-		parent.Append(help="", id=wxID_PYCHEMMAINMNUTOOLSMNUGADFA, kind=wx.ITEM_NORMAL, text="GA-Discriminant Function Analysis")
-		parent.Append(help="", id=wxID_PYCHEMMAINMNUTOOLSMNUGAPLSC, kind=wx.ITEM_NORMAL, text="GA-Partial Least Squares Calibration")
+		parent.Append(id=wxID_PYCHEMMAINMNUTOOLSEXPSET, item="Experiment Setup", helpString="", kind=wx.ITEM_NORMAL)
+		parent.Append(id=wxID_PYCHEMMAINMNUTOOLSPREPROC, item="Spectral Pre-processing", helpString="", kind=wx.ITEM_NORMAL)
+		parent.Append(id=wxID_PYCHEMMAINPLUNIVARIATE, item="Univariate Tests", helpString="", kind=wx.ITEM_NORMAL)
+		parent.Append(id=wxID_PYCHEMMAINMNUTOOLSMNUPCA, item="Principal Component Analysis (PCA)", helpString="", kind=wx.ITEM_NORMAL)
+		parent.Append(id=wxID_PYCHEMMAINMNUTOOLSMNUCLUSTER, item="Cluster Analysis", helpString="", kind=wx.ITEM_NORMAL)
+		parent.Append(id=wxID_PYCHEMMAINMNUTOOLSMNUDFA, item="Discriminant Function Analysis (DFA)", helpString="", kind=wx.ITEM_NORMAL)
+		parent.Append(id=wxID_PYCHEMMAINMNUTOOLSMNUPLSR, item="Partial Least Squares Regression (PLSR)", helpString="", kind=wx.ITEM_NORMAL)
+		parent.Append(id=wxID_PYCHEMMAINMNUTOOLSMNUGADFA, item="GA-Discriminant Function Analysis", helpString="", kind=wx.ITEM_NORMAL)
+		parent.Append(id=wxID_PYCHEMMAINMNUTOOLSMNUGAPLSC, item="GA-Partial Least Squares Calibration", helpString="", kind=wx.ITEM_NORMAL)
 		self.Bind(wx.EVT_MENU, self.OnMnuToolsExpsetMenu, id=wxID_PYCHEMMAINMNUTOOLSEXPSET)
 		self.Bind(wx.EVT_MENU, self.OnMnuToolsPreprocMenu, id=wxID_PYCHEMMAINMNUTOOLSPREPROC)
 		self.Bind(wx.EVT_MENU, self.OnMnuToolsMnuunivariateMenu, id=wxID_PYCHEMMAINPLUNIVARIATE)
@@ -533,12 +533,12 @@ class PyChemMain(wx.Frame):
 	def _init_coll_mnuFile_Items(self, parent):
 		# generated method, don't edit
 
-		parent.Append(help="", id=wxID_PYCHEMMAINMNUFILELOADEXP, kind=wx.ITEM_NORMAL, text="Load Experiment")
-		parent.Append(help="", id=wxID_PYCHEMMAINMNUFILELOADWS, kind=wx.ITEM_NORMAL, text="Load Workspace")
-		parent.Append(help="", id=wxID_PYCHEMMAINMNUFILESAVEEXP, kind=wx.ITEM_NORMAL, text="Save Experiment As..")
-		parent.Append(help="", id=wxID_PYCHEMMAINMNUFILESAVEWS, kind=wx.ITEM_NORMAL, text="Save Workspace As...")
-		parent.Append(help="", id=wxID_PYCHEMMAINMNUFILEFILEIMPORT, kind=wx.ITEM_NORMAL, text="Import")
-		parent.Append(help="", id=wxID_PYCHEMMAINMNUFILEAPPEXIT, kind=wx.ITEM_NORMAL, text="Exit")
+		parent.Append(id=wxID_PYCHEMMAINMNUFILELOADEXP, item="Load Experiment", helpString="", kind=wx.ITEM_NORMAL)
+		parent.Append(id=wxID_PYCHEMMAINMNUFILELOADWS, item="Load Workspace", helpString="", kind=wx.ITEM_NORMAL)
+		parent.Append(id=wxID_PYCHEMMAINMNUFILESAVEEXP, item="Save Experiment As..", helpString="", kind=wx.ITEM_NORMAL)
+		parent.Append(id=wxID_PYCHEMMAINMNUFILESAVEWS, item="Save Workspace As...", helpString="", kind=wx.ITEM_NORMAL)
+		parent.Append(id=wxID_PYCHEMMAINMNUFILEFILEIMPORT, item="Import", helpString="", kind=wx.ITEM_NORMAL)
+		parent.Append(id=wxID_PYCHEMMAINMNUFILEAPPEXIT, item="Exit", helpString="", kind=wx.ITEM_NORMAL)
 		self.Bind(wx.EVT_MENU, self.OnMnuFileLoadexpMenu, id=wxID_PYCHEMMAINMNUFILELOADEXP)
 		self.Bind(wx.EVT_MENU, self.OnMnuFileLoadwsMenu, id=wxID_PYCHEMMAINMNUFILELOADWS)
 		self.Bind(wx.EVT_MENU, self.OnMnuFileSaveexpMenu, id=wxID_PYCHEMMAINMNUFILESAVEEXP)
@@ -556,8 +556,8 @@ class PyChemMain(wx.Frame):
 	def _init_coll_mnuHelp_Items(self, parent):
 		# generated method, don't edit
 
-		parent.Append(help="", id=wxID_PYCHEMMAINMNUHELPCONTENTS, kind=wx.ITEM_NORMAL, text="Contents")
-		parent.Append(help="", id=wxID_PYCHEMMAINMNUABOUTCONTENTS, kind=wx.ITEM_NORMAL, text="About")
+		parent.Append(id=wxID_PYCHEMMAINMNUHELPCONTENTS, item="Contents", helpString="", kind=wx.ITEM_NORMAL)
+		parent.Append(id=wxID_PYCHEMMAINMNUABOUTCONTENTS, item="About", helpString="", kind=wx.ITEM_NORMAL)
 		self.Bind(wx.EVT_MENU, self.OnMnuHelpContentsMenu, id=wxID_PYCHEMMAINMNUHELPCONTENTS)
 		self.Bind(wx.EVT_MENU, self.OnMnuAboutContentsMenu, id=wxID_PYCHEMMAINMNUABOUTCONTENTS)
 
@@ -589,11 +589,11 @@ class PyChemMain(wx.Frame):
 	def _init_grid_menu_Items(self, parent):
 		# generated method, don't edit
 
-		parent.Append(help="", id=MNUGRIDCOPY, kind=wx.ITEM_NORMAL, text="Copy")
-		parent.Append(help="", id=MNUGRIDPASTE, kind=wx.ITEM_NORMAL, text="Paste")
-		parent.Append(help="", id=MNUGRIDRENAMECOL, kind=wx.ITEM_NORMAL, text="Rename column")
-		parent.Append(help="", id=MNUGRIDDELETECOL, kind=wx.ITEM_NORMAL, text="Delete column")
-		parent.Append(help="", id=MNUGRIDRESETSORT, kind=wx.ITEM_NORMAL, text="Reset row sort")
+		parent.Append(id=MNUGRIDCOPY, item="Copy", helpString="", kind=wx.ITEM_NORMAL)
+		parent.Append(id=MNUGRIDPASTE, item="Paste", helpString="", kind=wx.ITEM_NORMAL)
+		parent.Append(id=MNUGRIDRENAMECOL, item="Rename column", helpString="", kind=wx.ITEM_NORMAL)
+		parent.Append(id=MNUGRIDDELETECOL, item="Delete column", helpString="", kind=wx.ITEM_NORMAL)
+		parent.Append(id=MNUGRIDRESETSORT, item="Reset row sort", helpString="", kind=wx.ITEM_NORMAL)
 		self.Bind(wx.EVT_MENU, self.OnMnuGridCopy, id=MNUGRIDCOPY)
 		self.Bind(wx.EVT_MENU, self.OnMnuGridPaste, id=MNUGRIDPASTE)
 		self.Bind(wx.EVT_MENU, self.OnMnuGridRenameColumn, id=MNUGRIDRENAMECOL)
@@ -601,7 +601,7 @@ class PyChemMain(wx.Frame):
 		self.Bind(wx.EVT_MENU, self.OnMnuGridResetSort, id=MNUGRIDRESETSORT)
 
 	def _init_grid_row_menu_Items(self, parent):
-		parent.Append(help="", id=MNUGRIDROWDEL, kind=wx.ITEM_NORMAL, text="Delete User Defined Variable")
+		parent.Append(id=MNUGRIDROWDEL, item="Delete User Defined Variable", helpString="", kind=wx.ITEM_NORMAL)
 		self.Bind(wx.EVT_MENU, self.OnMnuGridRowDel, id=MNUGRIDROWDEL)
 
 	def _init_utils(self):
