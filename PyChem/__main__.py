@@ -18,7 +18,7 @@ import time
 
 import wx
 
-from . import PyChemMain, mva
+from . import PyChemMain, mva, thisDir
 
 modules = {
 	"Cluster": [0, "", "Cluster.py"],
@@ -41,7 +41,7 @@ modules = {
 class pychemapp(wx.App):
 	def OnInit(self):
 		# create splash object
-		# 		 bmp = wx.Image(os.path.join('bmp', 'pychemsplash.png')).ConvertToBitmap()
+		# 		 bmp = wx.Image(str(thisDir / 'bmp' / 'pychemsplash.png')).ConvertToBitmap()
 		# 		 splash = wx.SplashScreen(bmp,wx.SPLASH_CENTRE_ON_SCREEN,
 		# 			   5000, None, id=-1)
 		# 		 self.SetTopWindow(splash)

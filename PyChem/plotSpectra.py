@@ -24,6 +24,7 @@ import wx.lib.plot
 from scipy import newaxis as nA
 from wx.lib.anchors import LayoutAnchors
 
+from . import thisDir
 from .mva import process
 from .Pca import MyPlotCanvas, plotLine
 
@@ -96,32 +97,32 @@ class PeakCalculations(wx.Dialog):
 		self.SetClientSize(wx.Size(258, 133))
 		self.Center(wx.BOTH)
 
-		self.btnIntensity = wx.lib.buttons.GenBitmapToggleButton(bitmap=wx.Bitmap(os.path.join("bmp", "peakimax.png")), id=-1, name="btnIntensity", parent=self, pos=wx.Point(0, 0), size=wx.Size(128, 31), style=0)
+		self.btnIntensity = wx.lib.buttons.GenBitmapToggleButton(bitmap=wx.Bitmap(str(thisDir / "bmp" / "peakimax.png")), id=-1, name="btnIntensity", parent=self, pos=wx.Point(0, 0), size=wx.Size(128, 31), style=0)
 		self.btnIntensity.SetToggle(True)
 		self.btnIntensity.SetLabel("")
 		self.btnIntensity.SetToolTip("Calculate the maximum intensity in the selected region")
 
-		self.btnAreaAxis = wx.lib.buttons.GenBitmapToggleButton(bitmap=wx.Bitmap(os.path.join("bmp", "peakareaaxis.png")), id=-1, name="btnAreaAxis", parent=self, pos=wx.Point(130, 0), size=wx.Size(128, 31), style=0)
+		self.btnAreaAxis = wx.lib.buttons.GenBitmapToggleButton(bitmap=wx.Bitmap(str(thisDir / "bmp" / "peakareaaxis.png")), id=-1, name="btnAreaAxis", parent=self, pos=wx.Point(130, 0), size=wx.Size(128, 31), style=0)
 		self.btnAreaAxis.SetToggle(True)
 		self.btnAreaAxis.SetLabel("")
 		self.btnAreaAxis.SetToolTip("Calculate the total area to the axis")
 
-		self.btnAreaBaseline = wx.lib.buttons.GenBitmapToggleButton(bitmap=wx.Bitmap(os.path.join("bmp", "peakareabase.png")), id=-1, name="btnAreaBaseline", parent=self, pos=wx.Point(0, 33), size=wx.Size(128, 31), style=0)
+		self.btnAreaBaseline = wx.lib.buttons.GenBitmapToggleButton(bitmap=wx.Bitmap(str(thisDir / "bmp" / "peakareabase.png")), id=-1, name="btnAreaBaseline", parent=self, pos=wx.Point(0, 33), size=wx.Size(128, 31), style=0)
 		self.btnAreaBaseline.SetToggle(True)
 		self.btnAreaBaseline.SetLabel("")
 		self.btnAreaBaseline.SetToolTip("Calculate the total area to the baseline")
 
-		self.btnAreaFitAxis = wx.lib.buttons.GenBitmapToggleButton(bitmap=wx.Bitmap(os.path.join("bmp", "peakcfitareaaxis.png")), id=-1, name="btnAreaFitAxis", parent=self, pos=wx.Point(130, 33), size=wx.Size(128, 31), style=0)
+		self.btnAreaFitAxis = wx.lib.buttons.GenBitmapToggleButton(bitmap=wx.Bitmap(str(thisDir / "bmp" / "peakcfitareaaxis.png")), id=-1, name="btnAreaFitAxis", parent=self, pos=wx.Point(130, 33), size=wx.Size(128, 31), style=0)
 		self.btnAreaFitAxis.SetToggle(True)
 		self.btnAreaFitAxis.SetLabel("")
 		self.btnAreaFitAxis.SetToolTip("Curvefit peak and calculate area to the X-axis")
 
-		self.btnAreaFitBaseline = wx.lib.buttons.GenBitmapToggleButton(bitmap=wx.Bitmap(os.path.join("bmp", "peakcfitareabase.png")), id=-1, name="btnAreaFitBaseline", parent=self, pos=wx.Point(0, 66), size=wx.Size(128, 31), style=0)
+		self.btnAreaFitBaseline = wx.lib.buttons.GenBitmapToggleButton(bitmap=wx.Bitmap(str(thisDir / "bmp" / "peakcfitareabase.png")), id=-1, name="btnAreaFitBaseline", parent=self, pos=wx.Point(0, 66), size=wx.Size(128, 31), style=0)
 		self.btnAreaFitBaseline.SetToggle(True)
 		self.btnAreaFitBaseline.SetLabel("")
 		self.btnAreaFitBaseline.SetToolTip("Curvefit peak and calculate area to baseline")
 
-		self.btnIntensityFit = wx.lib.buttons.GenBitmapToggleButton(bitmap=wx.Bitmap(os.path.join("bmp", "peakifitmax.png")), id=-1, name="btnSpare", parent=self, pos=wx.Point(130, 66), size=wx.Size(128, 31), style=0)
+		self.btnIntensityFit = wx.lib.buttons.GenBitmapToggleButton(bitmap=wx.Bitmap(str(thisDir / "bmp" / "peakifitmax.png")), id=-1, name="btnSpare", parent=self, pos=wx.Point(130, 66), size=wx.Size(128, 31), style=0)
 		self.btnIntensityFit.SetToggle(True)
 		self.btnIntensityFit.SetLabel("")
 		self.btnIntensityFit.SetToolTip("Curvefit peak and find maximum intensity")
@@ -382,18 +383,18 @@ class TitleBar(bp.ButtonPanel):
 	def _init_btnpanel_ctrls(self, prnt):
 		bp.ButtonPanel.__init__(self, parent=prnt, id=-1, text="Spectral Preprocessing", agwStyle=bp.BP_USE_GRADIENT, alignment=bp.BP_ALIGN_LEFT)
 
-		self.btnSetProc = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "params.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Select Preprocessing Options", longHelp="Select Preprocessing Options")
+		self.btnSetProc = bp.ButtonInfo(self, -1, wx.Bitmap(str(thisDir / "bmp" / "params.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Select Preprocessing Options", longHelp="Select Preprocessing Options")
 		self.Bind(wx.EVT_BUTTON, self.OnBtnSetProcButton, id=self.btnSetProc.GetId())
 
-		self.btnInteractive = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "peak.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Interactive Mode", longHelp="Interactive mode for peak area calculations, intensities etc.")
+		self.btnInteractive = bp.ButtonInfo(self, -1, wx.Bitmap(str(thisDir / "bmp" / "peak.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Interactive Mode", longHelp="Interactive mode for peak area calculations, intensities etc.")
 		self.btnInteractive.Enable(False)
 		self.Bind(wx.EVT_BUTTON, self.OnBtnInteractiveButton, id=self.btnInteractive.GetId())
 
-		self.btnPlot = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "run.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Execute Plot", longHelp="Execute Plot")
+		self.btnPlot = bp.ButtonInfo(self, -1, wx.Bitmap(str(thisDir / "bmp" / "run.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Execute Plot", longHelp="Execute Plot")
 		self.btnPlot.Enable(False)
 		self.Bind(wx.EVT_BUTTON, self.OnBtnPlotButton, id=self.btnPlot.GetId())
 
-		self.btnExportData = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "export.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Export Data", longHelp="Export Data")
+		self.btnExportData = bp.ButtonInfo(self, -1, wx.Bitmap(str(thisDir / "bmp" / "export.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Export Data", longHelp="Export Data")
 		self.btnExportData.Enable(False)
 		self.Bind(wx.EVT_BUTTON, self.OnBtnExportDataButton, id=self.btnExportData.GetId())
 

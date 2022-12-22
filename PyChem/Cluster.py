@@ -24,6 +24,7 @@ from Bio.Cluster import *
 from scipy import newaxis as nA
 from wx.lib.anchors import LayoutAnchors
 
+from . import thisDir
 from .mva import chemometrics
 from .mva.chemometrics import _index
 from .Pca import MyPlotCanvas
@@ -154,15 +155,15 @@ class TitleBar(bp.ButtonPanel):
 		self.cbxData = wx.Choice(choices=["Raw spectra", "Processed spectra", "PC Scores", "DF Scores"], id=-1, name="cbxData", parent=self, pos=wx.Point(118, 21), size=wx.Size(100, 23), style=0)
 		self.cbxData.SetSelection(0)
 
-		self.btnRunClustering = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "run.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Run Cluster Analysis", longHelp="Run Cluster Analysis")
+		self.btnRunClustering = bp.ButtonInfo(self, -1, wx.Bitmap(str(thisDir / "bmp" / "run.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Run Cluster Analysis", longHelp="Run Cluster Analysis")
 		self.btnRunClustering.Enable(False)
 		self.Bind(wx.EVT_BUTTON, self.OnBtnRunClusteringButton, id=self.btnRunClustering.GetId())
 
-		self.btnExportCluster = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "export.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Export Cluster Results", longHelp="Export Cluster Results")
+		self.btnExportCluster = bp.ButtonInfo(self, -1, wx.Bitmap(str(thisDir / "bmp" / "export.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Export Cluster Results", longHelp="Export Cluster Results")
 		self.btnExportCluster.Enable(False)
 		self.Bind(wx.EVT_BUTTON, self.OnBtnExportClusterButton, id=self.btnExportCluster.GetId())
 
-		self.setParams = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "params.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Clustering Options", longHelp="Clustering Options")
+		self.setParams = bp.ButtonInfo(self, -1, wx.Bitmap(str(thisDir / "bmp" / "params.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Clustering Options", longHelp="Clustering Options")
 		self.Bind(wx.EVT_BUTTON, self.OnBtnSetParamsButton, id=self.setParams.GetId())
 
 	def __init__(self, parent, id, text, style, alignment):
@@ -717,8 +718,8 @@ class selFun(fpb.FoldPanelBar):
 		self.SetAutoLayout(True)
 
 		icons = wx.ImageList(16, 16)
-		icons.Add(wx.Bitmap(os.path.join("bmp", "arrown.png"), wx.BITMAP_TYPE_PNG))
-		icons.Add(wx.Bitmap(os.path.join("bmp", "arrows.png"), wx.BITMAP_TYPE_PNG))
+		icons.Add(wx.Bitmap(str(thisDir / "bmp" / "arrown.png"), wx.BITMAP_TYPE_PNG))
+		icons.Add(wx.Bitmap(str(thisDir / "bmp" / "arrows.png"), wx.BITMAP_TYPE_PNG))
 
 		self.clustType = self.AddFoldPanel("Cluster method", collapsed=True, foldIcons=icons)
 

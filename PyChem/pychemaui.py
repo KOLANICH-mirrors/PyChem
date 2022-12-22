@@ -10,6 +10,7 @@ import wx.lib.filebrowsebutton as fbb
 import wx.wizard
 from numpy import loadtxt
 
+from . import thisDir
 from .mva import chemometrics
 
 
@@ -92,7 +93,7 @@ class Pychem(wx.Frame):
 
 	def _init_ctrls(self, prnt):
 		wx.Frame.__init__(self, id=-1, name="Pychem", parent=prnt, pos=wx.Point(124, 10), size=wx.Size(950, 698), style=wx.DEFAULT_FRAME_STYLE | wx.SUNKEN_BORDER | wx.CLIP_CHILDREN, title="PyChem 4.0")
-		self.SetIcon(wx.Icon(os.path.join("ico", "pychem.ico"), wx.BITMAP_TYPE_ICO))
+		self.SetIcon(wx.Icon(str(thisDir / "ico" / "pychem.ico"), wx.BITMAP_TYPE_ICO))
 		# 		 self._init_utils()
 		# 		 self.SetMenuBar(self.mbMain)
 		self.SetToolTip("")

@@ -23,6 +23,7 @@ import wx.lib.agw.foldpanelbar as fpb
 import wx.lib.stattext
 from wx.lib.anchors import LayoutAnchors
 
+from . import thisDir
 from .mva.chemometrics import _index, _sample
 
 [
@@ -379,8 +380,8 @@ class expSetup(wx.Panel):
 	def InitialiseFoldBar(self):
 		# get fold panel icons
 		icons = wx.ImageList(16, 16)
-		icons.Add(wx.Bitmap(os.path.join("bmp", "arrown.png"), wx.BITMAP_TYPE_PNG))
-		icons.Add(wx.Bitmap(os.path.join("bmp", "arrows.png"), wx.BITMAP_TYPE_PNG))
+		icons.Add(wx.Bitmap(str(thisDir / "bmp" / "arrown.png"), wx.BITMAP_TYPE_PNG))
+		icons.Add(wx.Bitmap(str(thisDir / "bmp" / "arrows.png"), wx.BITMAP_TYPE_PNG))
 
 		# meta-data input
 		self.depparamsitem = self.pnl.AddFoldPanel("Experiment setup parameters", collapsed=False, foldIcons=icons)
@@ -578,19 +579,19 @@ class DepTitleBar(bp.ButtonPanel):
 	def _init_depbtnpanel_ctrls(self, prnt):
 		bp.ButtonPanel.__init__(self, parent=prnt, id=-1, text="Experiment setup", agwStyle=bp.BP_USE_GRADIENT, alignment=bp.BP_ALIGN_LEFT)
 
-		self.btnImportMetaData = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "import.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Import metadata", longHelp="Import metadata describing the samples")
+		self.btnImportMetaData = bp.ButtonInfo(self, -1, wx.Bitmap(str(thisDir / "bmp" / "import.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Import metadata", longHelp="Import metadata describing the samples")
 		self.btnImportMetaData.Enable(False)
 		self.Bind(wx.EVT_BUTTON, self.OnBtnImportMetaDataButton, id=self.btnImportMetaData.GetId())
 
-		self.btnAddName = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "addlabel.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Add label column", longHelp="Add label column")
+		self.btnAddName = bp.ButtonInfo(self, -1, wx.Bitmap(str(thisDir / "bmp" / "addlabel.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Add label column", longHelp="Add label column")
 		self.btnAddName.Enable(False)
 		self.Bind(wx.EVT_BUTTON, self.OnBtnAddNameButton, id=self.btnAddName.GetId())
 
-		self.btnAddClass = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "addclass.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Add class column", longHelp="Add class column")
+		self.btnAddClass = bp.ButtonInfo(self, -1, wx.Bitmap(str(thisDir / "bmp" / "addclass.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Add class column", longHelp="Add class column")
 		self.btnAddClass.Enable(False)
 		self.Bind(wx.EVT_BUTTON, self.OnBtnAddClassButton, id=self.btnAddClass.GetId())
 
-		self.btnAddMask = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "addvalidation.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Add validation column", longHelp="Add validation column")
+		self.btnAddMask = bp.ButtonInfo(self, -1, wx.Bitmap(str(thisDir / "bmp" / "addvalidation.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Add validation column", longHelp="Add validation column")
 		self.btnAddMask.Enable(False)
 		self.Bind(wx.EVT_BUTTON, self.OnBtnAddMaskButton, id=self.btnAddMask.GetId())
 
@@ -761,7 +762,7 @@ class IndTitleBar(bp.ButtonPanel):
 	def _init_indbtnpanel_ctrls(self, prnt):
 		bp.ButtonPanel.__init__(self, parent=prnt, id=-1, text="Experiment setup", agwStyle=bp.BP_USE_GRADIENT, alignment=bp.BP_ALIGN_LEFT)
 
-		self.btnImportIndVar = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "import.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Import independent variable IDs", longHelp="Import independent variable IDs")
+		self.btnImportIndVar = bp.ButtonInfo(self, -1, wx.Bitmap(str(thisDir / "bmp" / "import.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Import independent variable IDs", longHelp="Import independent variable IDs")
 		self.btnImportIndVar.Enable(False)
 		self.Bind(wx.EVT_BUTTON, self.OnBtnImportIndVarButton, id=self.btnImportIndVar.GetId())
 
@@ -771,7 +772,7 @@ class IndTitleBar(bp.ButtonPanel):
 		self.stcRangeTo = wx.TextCtrl(id=-1, name="stcRangeTo", parent=self, pos=wx.Point(136, 56), size=wx.Size(75, 21), style=0, value="")
 		self.stcRangeTo.SetToolTip("")
 
-		self.btnInsertRange = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "insertxvar.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Insert X-variables", longHelp="Insert X-variables using range")
+		self.btnInsertRange = bp.ButtonInfo(self, -1, wx.Bitmap(str(thisDir / "bmp" / "insertxvar.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Insert X-variables", longHelp="Insert X-variables using range")
 		self.btnInsertRange.Enable(False)
 		self.Bind(wx.EVT_BUTTON, self.OnBtnInsertRangeButton, id=self.btnInsertRange.GetId())
 

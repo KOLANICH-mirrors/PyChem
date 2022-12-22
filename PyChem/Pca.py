@@ -27,6 +27,7 @@ import wx.lib.stattext
 from scipy import newaxis as nA
 from wx.lib.anchors import LayoutAnchors
 
+from . import thisDir
 from .mva import chemometrics
 from .mva.chemometrics import _index
 from .utils import getByPath
@@ -127,7 +128,7 @@ def CreateSymColSelect(canvas, output):
 	canvas.tbMain.SymPopUpWin.symctrls = []
 	for each in output:
 		exec("canvas.tbMain.SymPopUpWin.st" + str(count) + " = wx.StaticText(canvas.tbMain.SymPopUpWin, -1," + "each[0])")
-		exec("canvas.tbMain.SymPopUpWin.btn" + str(count) + " = wx.BitmapButton(canvas.tbMain.SymPopUpWin, " + 'bitmap=wx.Bitmap(os.path.join("bmp","' + each[1] + '.bmp"), wx.BITMAP_TYPE_BMP), id=-1)')
+		exec("canvas.tbMain.SymPopUpWin.btn" + str(count) + " = wx.BitmapButton(canvas.tbMain.SymPopUpWin, " + 'bitmap=wx.Bitmap(str(thisDir / "bmp" / "' + each[1] + '.bmp"), wx.BITMAP_TYPE_BMP), id=-1)')
 		exec("canvas.tbMain.SymPopUpWin.btn" + str(count) + '.symname = "' + each[1] + '"')
 		exec("canvas.tbMain.SymPopUpWin.btn" + str(count) + ".Bind(wx.EVT_BUTTON, canvas.tbMain.SymPopUpWin.OnBtnSymbol" + ")")
 		exec("canvas.tbMain.SymPopUpWin.cp" + str(count) + " = wx.ColourPickerCtrl(canvas.tbMain.SymPopUpWin," + "-1, col=" + str(each[2]) + ", style=wx.CLRP_DEFAULT_STYLE)")
@@ -885,22 +886,22 @@ class SymDialog(wx.Dialog):
 		self.SetClientSize(wx.Size(140, 119))
 		self.SetToolTip("")
 
-		self.tbSquare = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "square.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbSquare", parent=self, pos=wx.Point(0, 0), size=wx.Size(69, 38), style=0)
+		self.tbSquare = wx.BitmapButton(bitmap=wx.Bitmap(str(thisDir / "bmp" / "square.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbSquare", parent=self, pos=wx.Point(0, 0), size=wx.Size(69, 38), style=0)
 		self.tbSquare.Bind(wx.EVT_BUTTON, self.OnTbSquareButton)
 
-		self.tbCircle = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "circle.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbCircle", parent=self, pos=wx.Point(71, 0), size=wx.Size(69, 38), style=0)
+		self.tbCircle = wx.BitmapButton(bitmap=wx.Bitmap(str(thisDir / "bmp" / "circle.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbCircle", parent=self, pos=wx.Point(71, 0), size=wx.Size(69, 38), style=0)
 		self.tbCircle.Bind(wx.EVT_BUTTON, self.OnTbCircleButton)
 
-		self.tbPlus = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "plus.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbPlus", parent=self, pos=wx.Point(0, 40), size=wx.Size(69, 38), style=0)
+		self.tbPlus = wx.BitmapButton(bitmap=wx.Bitmap(str(thisDir / "bmp" / "plus.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbPlus", parent=self, pos=wx.Point(0, 40), size=wx.Size(69, 38), style=0)
 		self.tbPlus.Bind(wx.EVT_BUTTON, self.OnTbPlusButton)
 
-		self.tbTriangleUp = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "triangle.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbTriangleUp", parent=self, pos=wx.Point(71, 40), size=wx.Size(69, 38), style=0)
+		self.tbTriangleUp = wx.BitmapButton(bitmap=wx.Bitmap(str(thisDir / "bmp" / "triangle.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbTriangleUp", parent=self, pos=wx.Point(71, 40), size=wx.Size(69, 38), style=0)
 		self.tbTriangleUp.Bind(wx.EVT_BUTTON, self.OnTbTriangleUpButton)
 
-		self.tbTriangleDown = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "triangle_down.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbTriangleDown", parent=self, pos=wx.Point(0, 80), size=wx.Size(69, 38), style=0)
+		self.tbTriangleDown = wx.BitmapButton(bitmap=wx.Bitmap(str(thisDir / "bmp" / "triangle_down.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbTriangleDown", parent=self, pos=wx.Point(0, 80), size=wx.Size(69, 38), style=0)
 		self.tbTriangleDown.Bind(wx.EVT_BUTTON, self.OnTbTriangleDownButton)
 
-		self.tbCross = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "cross.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbCross", parent=self, pos=wx.Point(71, 80), size=wx.Size(69, 38), style=0)
+		self.tbCross = wx.BitmapButton(bitmap=wx.Bitmap(str(thisDir / "bmp" / "cross.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbCross", parent=self, pos=wx.Point(71, 80), size=wx.Size(69, 38), style=0)
 		self.tbCross.Bind(wx.EVT_BUTTON, self.OnTbCrossButton)
 
 		self._init_sizers()
@@ -911,32 +912,32 @@ class SymDialog(wx.Dialog):
 		self.btn = btn
 
 	def OnTbSquareButton(self, event):
-		self.btn.SetBitmapLabel(wx.Bitmap(os.path.join("bmp", "square.bmp")))
+		self.btn.SetBitmapLabel(wx.Bitmap(str(thisDir / "bmp" / "square.bmp")))
 		self.btn.symname = "square"
 		self.Destroy()
 
 	def OnTbCircleButton(self, event):
-		self.btn.SetBitmapLabel(wx.Bitmap(os.path.join("bmp", "circle.bmp")))
+		self.btn.SetBitmapLabel(wx.Bitmap(str(thisDir / "bmp" / "circle.bmp")))
 		self.btn.symname = "circle"
 		self.Destroy()
 
 	def OnTbPlusButton(self, event):
-		self.btn.SetBitmapLabel(wx.Bitmap(os.path.join("bmp", "plus.bmp")))
+		self.btn.SetBitmapLabel(wx.Bitmap(str(thisDir / "bmp" / "plus.bmp")))
 		self.btn.symname = "plus"
 		self.Destroy()
 
 	def OnTbTriangleUpButton(self, event):
-		self.btn.SetBitmapLabel(wx.Bitmap(os.path.join("bmp", "triangle.bmp")))
+		self.btn.SetBitmapLabel(wx.Bitmap(str(thisDir / "bmp" / "triangle.bmp")))
 		self.btn.symname = "triangle"
 		self.Destroy()
 
 	def OnTbTriangleDownButton(self, event):
-		self.btn.SetBitmapLabel(wx.Bitmap(os.path.join("bmp", "triangle_down.bmp")))
+		self.btn.SetBitmapLabel(wx.Bitmap(str(thisDir / "bmp" / "triangle_down.bmp")))
 		self.btn.symname = "triangle_down"
 		self.Destroy()
 
 	def OnTbCrossButton(self, event):
-		self.btn.SetBitmapLabel(wx.Bitmap(os.path.join("bmp", "cross.bmp")))
+		self.btn.SetBitmapLabel(wx.Bitmap(str(thisDir / "bmp" / "cross.bmp")))
 		self.btn.symname = "cross"
 		self.Destroy()
 
@@ -1217,11 +1218,11 @@ class TitleBar(bp.ButtonPanel):
 		bp.ButtonPanel.__init__(self, parent=prnt, id=-1, text="Principal Component Analysis", agwStyle=bp.BP_USE_GRADIENT, alignment=bp.BP_ALIGN_LEFT)
 		self.Bind(wx.EVT_PAINT, self.OnButtonPanelPaint)
 
-		self.btnRunPCA = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "run.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Run PCA", longHelp="Run Principal Component Analysis")
+		self.btnRunPCA = bp.ButtonInfo(self, -1, wx.Bitmap(str(thisDir / "bmp" / "run.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Run PCA", longHelp="Run Principal Component Analysis")
 		self.btnRunPCA.Enable(False)
 		self.Bind(wx.EVT_BUTTON, self.OnBtnRunPCAButton, id=self.btnRunPCA.GetId())
 
-		self.btnExportPcaResults = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "export.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Export PCA Results", longHelp="Export PCA Results")
+		self.btnExportPcaResults = bp.ButtonInfo(self, -1, wx.Bitmap(str(thisDir / "bmp" / "export.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Export PCA Results", longHelp="Export PCA Results")
 		self.btnExportPcaResults.Enable(False)
 		self.Bind(wx.EVT_BUTTON, self.OnBtnExportPcaResultsButton, id=self.btnExportPcaResults.GetId())
 
@@ -1520,8 +1521,8 @@ class plotProperties(wx.Dialog):
 		self.foldPnl.SetAutoLayout(True)
 
 		icons = wx.ImageList(16, 16)
-		icons.Add(wx.Bitmap(os.path.join("bmp", "arrown.png"), wx.BITMAP_TYPE_PNG))
-		icons.Add(wx.Bitmap(os.path.join("bmp", "arrows.png"), wx.BITMAP_TYPE_PNG))
+		icons.Add(wx.Bitmap(str(thisDir / "bmp" / "arrown.png"), wx.BITMAP_TYPE_PNG))
+		icons.Add(wx.Bitmap(str(thisDir / "bmp" / "arrows.png"), wx.BITMAP_TYPE_PNG))
 
 		self.genSets = self.foldPnl.AddFoldPanel("General properties", collapsed=True, foldIcons=icons)
 

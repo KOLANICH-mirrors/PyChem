@@ -24,6 +24,7 @@ from Bio.Cluster import *
 from scipy import newaxis as nA
 from wx.lib.anchors import LayoutAnchors
 
+from . import thisDir
 from .mva import chemometrics
 from .mva.chemometrics import _index
 from .Pca import MyPlotCanvas, SetButtonState, plotLine, plotLoads, plotScores, plotStem, plotText
@@ -188,7 +189,7 @@ class TitleBar(bp.ButtonPanel):
 		self.cbxData.SetSelection(0)
 		self.Bind(wx.EVT_CHOICE, self.OnCbxData, id=self.cbxData.GetId())
 
-		self.btnRunDfa = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "run.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Run DFA", longHelp="Run Discriminant Function Analysis")
+		self.btnRunDfa = bp.ButtonInfo(self, -1, wx.Bitmap(str(thisDir / "bmp" / "run.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Run DFA", longHelp="Run Discriminant Function Analysis")
 		self.btnRunDfa.Enable(False)
 		self.Bind(wx.EVT_BUTTON, self.OnBtnRunDfaButton, id=self.btnRunDfa.GetId())
 
@@ -204,7 +205,7 @@ class TitleBar(bp.ButtonPanel):
 		self.cbDfaXval.SetValue(False)
 		self.cbDfaXval.SetToolTip("")
 
-		self.btnExpDfa = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "export.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Export DFA Results", longHelp="Export DFA Results")
+		self.btnExpDfa = bp.ButtonInfo(self, -1, wx.Bitmap(str(thisDir / "bmp" / "export.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Export DFA Results", longHelp="Export DFA Results")
 		self.btnExpDfa.Enable(False)
 		self.Bind(wx.EVT_BUTTON, self.OnBtnExpDfaButton, id=self.btnExpDfa.GetId())
 

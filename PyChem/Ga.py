@@ -24,6 +24,7 @@ import wx.lib.stattext
 from scipy import newaxis as nA
 from wx.lib.anchors import LayoutAnchors
 
+from . import thisDir
 from .expSetup import valSplit
 from .mva import fitfun, genetic, process
 from .mva.chemometrics import _index
@@ -242,11 +243,11 @@ class TitleBar(bp.ButtonPanel):
 		self.cbxData = wx.Choice(choices=["Raw spectra", "Processed spectra"], id=-1, name="cbxData", parent=self, pos=wx.Point(118, 23), size=wx.Size(100, 23), style=0)
 		self.cbxData.SetSelection(0)
 
-		self.btnRunGa = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "run.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Run Genetic Algorithm", longHelp="Run Genetic Algorithm")
+		self.btnRunGa = bp.ButtonInfo(self, -1, wx.Bitmap(str(thisDir / "bmp" / "run.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Run Genetic Algorithm", longHelp="Run Genetic Algorithm")
 		self.btnRunGa.Enable(False)
 		self.Bind(wx.EVT_BUTTON, self.OnBtnrungaButton, id=self.btnRunGa.GetId())
 
-		self.btnExportGa = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "export.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Export GA Results", longHelp="Export Genetic Algorithm Results")
+		self.btnExportGa = bp.ButtonInfo(self, -1, wx.Bitmap(str(thisDir / "bmp" / "export.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Export GA Results", longHelp="Export Genetic Algorithm Results")
 		self.btnExportGa.Enable(False)
 		self.Bind(wx.EVT_BUTTON, self.OnBtnexportgaButton, id=self.btnExportGa.GetId())
 
@@ -266,7 +267,7 @@ class TitleBar(bp.ButtonPanel):
 		self.spnGaScoreTo.SetToolTip("")
 		self.spnGaScoreTo.Bind(wx.EVT_SPINCTRL, self.OnSpnGascoretoSpinctrl, id=-1)
 
-		self.btnSetParams = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "params.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Set GA Parameters", longHelp="Set Genetic Algorithm Parameters")
+		self.btnSetParams = bp.ButtonInfo(self, -1, wx.Bitmap(str(thisDir / "bmp" / "params.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Set GA Parameters", longHelp="Set Genetic Algorithm Parameters")
 		self.Bind(wx.EVT_BUTTON, self.OnBtnbtnSetParamsButton, id=self.btnSetParams.GetId())
 
 	def __init__(self, parent, id, text, style, alignment, gatype):
@@ -755,8 +756,8 @@ class selParam(fpb.FoldPanelBar):
 		self.SetAutoLayout(True)
 
 		icons = wx.ImageList(16, 16)
-		icons.Add(wx.Bitmap(os.path.join("bmp", "arrown.png"), wx.BITMAP_TYPE_PNG))
-		icons.Add(wx.Bitmap(os.path.join("bmp", "arrows.png"), wx.BITMAP_TYPE_PNG))
+		icons.Add(wx.Bitmap(str(thisDir / "bmp" / "arrown.png"), wx.BITMAP_TYPE_PNG))
+		icons.Add(wx.Bitmap(str(thisDir / "bmp" / "arrows.png"), wx.BITMAP_TYPE_PNG))
 
 		self.fpParams = self.AddFoldPanel("Parameters", collapsed=True, foldIcons=icons)
 		self.fpParams.SetAutoLayout(True)

@@ -26,6 +26,7 @@ import wx.lib.stattext
 from scipy import newaxis as nA
 from wx.lib.anchors import LayoutAnchors
 
+from . import thisDir
 from .mva.process import meancent, norm01
 from .Pca import BoxPlot, MyPlotCanvas, PlotPlsModel, SetButtonState, plotScores
 
@@ -210,7 +211,7 @@ class TitleBar(bp.ButtonPanel):
 		self.cbxTest.Bind(wx.EVT_CHOICE, self.OnCbxTest, id=-1)
 		self.cbxTest.SetSelection(0)
 
-		self.btnRunTest = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "run.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Run Test", longHelp="Run Test")
+		self.btnRunTest = bp.ButtonInfo(self, -1, wx.Bitmap(str(thisDir / "bmp" / "run.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Run Test", longHelp="Run Test")
 		self.btnRunTest.Enable(False)
 		self.Bind(wx.EVT_BUTTON, self.OnBtnRunTestButton, id=self.btnRunTest.GetId())
 

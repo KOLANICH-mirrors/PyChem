@@ -26,7 +26,7 @@ import wx.richtext
 from numpy import loadtxt
 from scipy import newaxis as nA
 
-from . import Cluster, Dfa, Ga, Pca, Plsr, Univariate, expSetup, mva, plotSpectra
+from . import Cluster, Dfa, Ga, Pca, Plsr, Univariate, expSetup, mva, plotSpectra, thisDir
 from .mva.chemometrics import _index
 from .Pca import PlotPlsModel, SymColSelectTool, plotLine, plotLoads, plotScores, plotStem, plotText
 from .plotSpectra import GridRowDel
@@ -201,21 +201,21 @@ class PlotToolBar(wx.ToolBar):
 
 		self.AddSeparator()
 
-		self.tbConf = wx.lib.buttons.GenBitmapToggleButton(bitmap=wx.Bitmap(os.path.join("bmp", "conf_int.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbConf", parent=self, pos=wx.Point(819, 2), size=wx.Size(21, -1))
+		self.tbConf = wx.lib.buttons.GenBitmapToggleButton(bitmap=wx.Bitmap(str(thisDir / "bmp" / "conf_int.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbConf", parent=self, pos=wx.Point(819, 2), size=wx.Size(21, -1))
 		self.tbConf.SetValue(False)
 		self.tbConf.SetToolTip("")
 		self.tbConf.Enable(False)
 		self.tbConf.Bind(wx.EVT_BUTTON, self.OnTbConfButton)
 		self.AddControl(self.tbConf)
 
-		self.tbPoints = wx.lib.buttons.GenBitmapToggleButton(bitmap=wx.Bitmap(os.path.join("bmp", "plot_text.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbPoints", parent=self, pos=wx.Point(842, 2), size=wx.Size(21, -1))
+		self.tbPoints = wx.lib.buttons.GenBitmapToggleButton(bitmap=wx.Bitmap(str(thisDir / "bmp" / "plot_text.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbPoints", parent=self, pos=wx.Point(842, 2), size=wx.Size(21, -1))
 		self.tbPoints.SetValue(True)
 		self.tbPoints.SetToolTip("Plot using text labels")
 		self.tbPoints.Enable(True)
 		self.tbPoints.Bind(wx.EVT_BUTTON, self.OnTbPointsButton)
 		self.AddControl(self.tbPoints)
 
-		self.tbSymbols = wx.lib.buttons.GenBitmapToggleButton(bitmap=wx.Bitmap(os.path.join("bmp", "plot_symbol.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbSymbols", parent=self, pos=wx.Point(865, 2), size=wx.Size(21, -1))
+		self.tbSymbols = wx.lib.buttons.GenBitmapToggleButton(bitmap=wx.Bitmap(str(thisDir / "bmp" / "plot_symbol.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbSymbols", parent=self, pos=wx.Point(865, 2), size=wx.Size(21, -1))
 		self.tbSymbols.SetValue(False)
 		self.tbSymbols.SetToolTip("Plot using colored symbols")
 		self.tbSymbols.Enable(True)
@@ -223,25 +223,25 @@ class PlotToolBar(wx.ToolBar):
 		self.tbSymbols.Bind(wx.EVT_RIGHT_DOWN, self.OnTbSymbolsRightClick)
 		self.AddControl(self.tbSymbols)
 
-		self.tbLoadLabels = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "conf_0.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbLoadLabels", parent=self, pos=wx.Point(888, 2), size=wx.Size(20, -1))
+		self.tbLoadLabels = wx.BitmapButton(bitmap=wx.Bitmap(str(thisDir / "bmp" / "conf_0.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbLoadLabels", parent=self, pos=wx.Point(888, 2), size=wx.Size(20, -1))
 		self.tbLoadLabels.SetToolTip("")
 		self.tbLoadLabels.Enable(False)
 		self.tbLoadLabels.Bind(wx.EVT_BUTTON, self.OnTbLoadLabelsButton)
 		self.AddControl(self.tbLoadLabels)
 
-		self.tbLoadLabStd1 = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "conf_1.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbLoadLabStd1", parent=self, pos=wx.Point(910, 2), size=wx.Size(20, -1))
+		self.tbLoadLabStd1 = wx.BitmapButton(bitmap=wx.Bitmap(str(thisDir / "bmp" / "conf_1.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbLoadLabStd1", parent=self, pos=wx.Point(910, 2), size=wx.Size(20, -1))
 		self.tbLoadLabStd1.SetToolTip("")
 		self.tbLoadLabStd1.Enable(False)
 		self.tbLoadLabStd1.Bind(wx.EVT_BUTTON, self.OnTbLoadLabStd1Button)
 		self.AddControl(self.tbLoadLabStd1)
 
-		self.tbLoadLabStd2 = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "conf_2.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbLoadLabStd2", parent=self, pos=wx.Point(932, 2), size=wx.Size(20, -1))
+		self.tbLoadLabStd2 = wx.BitmapButton(bitmap=wx.Bitmap(str(thisDir / "bmp" / "conf_2.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbLoadLabStd2", parent=self, pos=wx.Point(932, 2), size=wx.Size(20, -1))
 		self.tbLoadLabStd2.SetToolTip("")
 		self.tbLoadLabStd2.Enable(False)
 		self.tbLoadLabStd2.Bind(wx.EVT_BUTTON, self.OnTbLoadLabStd2Button)
 		self.AddControl(self.tbLoadLabStd2)
 
-		self.tbLoadSymStd2 = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "conf_2_sym.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbLoadSymStd2", parent=self, pos=wx.Point(954, 2), size=wx.Size(20, -1))
+		self.tbLoadSymStd2 = wx.BitmapButton(bitmap=wx.Bitmap(str(thisDir / "bmp" / "conf_2_sym.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbLoadSymStd2", parent=self, pos=wx.Point(954, 2), size=wx.Size(20, -1))
 		self.tbLoadSymStd2.SetToolTip("")
 		self.tbLoadSymStd2.Enable(False)
 		self.tbLoadSymStd2.Bind(wx.EVT_BUTTON, self.OnTbLoadSymStd2Button)
@@ -250,17 +250,17 @@ class PlotToolBar(wx.ToolBar):
 
 		self.AddSeparator()
 
-		self.tbXlog = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "xlog.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbXlog", parent=self, pos=wx.Point(976, 2), size=wx.Size(20, -1))
+		self.tbXlog = wx.BitmapButton(bitmap=wx.Bitmap(str(thisDir / "bmp" / "xlog.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbXlog", parent=self, pos=wx.Point(976, 2), size=wx.Size(20, -1))
 		self.tbXlog.SetToolTip("")
 		self.tbXlog.Bind(wx.EVT_BUTTON, self.OnTbXLogButton)
 		self.AddControl(self.tbXlog)
 
-		self.tbYlog = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "ylog.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbYlog", parent=self, pos=wx.Point(998, 2), size=wx.Size(20, -1))
+		self.tbYlog = wx.BitmapButton(bitmap=wx.Bitmap(str(thisDir / "bmp" / "ylog.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbYlog", parent=self, pos=wx.Point(998, 2), size=wx.Size(20, -1))
 		self.tbYlog.SetToolTip("")
 		self.tbYlog.Bind(wx.EVT_BUTTON, self.OnTbYLogButton)
 		self.AddControl(self.tbYlog)
 
-		self.tbScinote = wx.BitmapButton(bitmap=wx.Bitmap(os.path.join("bmp", "scinote.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbScinote", parent=self, pos=wx.Point(1020, 2), size=wx.Size(20, -1))
+		self.tbScinote = wx.BitmapButton(bitmap=wx.Bitmap(str(thisDir / "bmp" / "scinote.bmp"), wx.BITMAP_TYPE_BMP), id=-1, name="tbScinote", parent=self, pos=wx.Point(1020, 2), size=wx.Size(20, -1))
 		self.tbScinote.SetToolTip("")
 		self.tbScinote.Bind(wx.EVT_BUTTON, self.OnTbScinoteButton)
 		self.AddControl(self.tbScinote)
@@ -633,7 +633,7 @@ class PyChemMain(wx.Frame):
 		self.SetToolTip("")
 		self.SetHelpText("")
 		self.Center(wx.BOTH)
-		self.SetIcon(wx.Icon(os.path.join("ico", "pychem.ico"), wx.BITMAP_TYPE_ICO))
+		self.SetIcon(wx.Icon(str(thisDir / "ico" / "pychem.ico"), wx.BITMAP_TYPE_ICO))
 		self.SetMinSize(wx.Size(200, 400))
 		self.SetMenuBar(self.mnuMain)
 		self.Bind(wx.EVT_SIZE, self.OnMainFrameSize)
@@ -708,7 +708,7 @@ class PyChemMain(wx.Frame):
 	def OnMnuHelpContentsMenu(self, event):
 		from wx.tools import helpviewer
 
-		helpviewer.main(["", os.path.join("docs", "PAChelp.hhp")])
+		helpviewer.main(["", str(thisDir / "docs" / "PAChelp.hhp")])
 
 	def OnMnuAboutContentsMenu(self, event):
 		from wx.lib.wordwrap import wordwrap

@@ -23,6 +23,7 @@ import wx.lib.stattext
 from scipy import newaxis as nA
 from wx.lib.anchors import LayoutAnchors
 
+from . import thisDir
 from .mva import chemometrics
 from .mva.chemometrics import _BW, _index, _put
 from .Pca import MyPlotCanvas, PlotPlsModel, SetButtonState, plotLine, plotLoads, plotScores, plotStem, plotText
@@ -233,7 +234,7 @@ class TitleBar(bp.ButtonPanel):
 		self.spnPLSmaxfac.SetValue(1)
 		self.spnPLSmaxfac.SetToolTip("")
 
-		self.btnRunFullPls = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "run.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Run PLS", longHelp="Run Partial Least Squares")
+		self.btnRunFullPls = bp.ButtonInfo(self, -1, wx.Bitmap(str(thisDir / "bmp" / "run.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Run PLS", longHelp="Run Partial Least Squares")
 		self.btnRunFullPls.Enable(False)
 		self.Bind(wx.EVT_BUTTON, self.OnBtnRunFullPlsButton, id=self.btnRunFullPls.GetId())
 
@@ -247,7 +248,7 @@ class TitleBar(bp.ButtonPanel):
 		self.spnPLSfactor2.Enable(0)
 		self.spnPLSfactor2.Bind(wx.EVT_SPINCTRL, self.OnSpnPLSfactor2Spinctrl, id=-1)
 
-		self.btnExpPls = bp.ButtonInfo(self, -1, wx.Bitmap(os.path.join("bmp", "export.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Export PLS Results", longHelp="Export PLS Results")
+		self.btnExpPls = bp.ButtonInfo(self, -1, wx.Bitmap(str(thisDir / "bmp" / "export.png"), wx.BITMAP_TYPE_PNG), kind=wx.ITEM_NORMAL, shortHelp="Export PLS Results", longHelp="Export PLS Results")
 		self.btnExpPls.Enable(False)
 		self.Bind(wx.EVT_BUTTON, self.OnBtnExpPlsButton, id=self.btnExpPls.GetId())
 
