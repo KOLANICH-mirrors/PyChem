@@ -565,11 +565,11 @@ class PyChemMain(wx.Frame):
 		# generated method, don't edit
 		parent.SetFieldsCount(5)
 
-		parent.SetStatusText(number=0, text="Status")
-		parent.SetStatusText(number=1, text="")
-		parent.SetStatusText(number=2, text="")
-		parent.SetStatusText(number=3, text="")
-		parent.SetStatusText(number=4, text="")
+		parent.SetStatusText(text="Status", i=0)
+		parent.SetStatusText(text="", i=1)
+		parent.SetStatusText(text="", i=2)
+		parent.SetStatusText(text="", i=3)
+		parent.SetStatusText(text="", i=4)
 
 		parent.SetStatusWidths([-2, -2, -2, -2, -5])
 
