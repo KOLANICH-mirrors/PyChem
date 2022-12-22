@@ -713,7 +713,7 @@ class selFun(fpb.FoldPanelBar):
 		self.distType.SetSizer(self.gbsDistanceMeasure)
 
 	def _init_selfun_ctrls(self, prnt):
-		fpb.FoldPanelBar.__init__(self, prnt, -1, pos=wx.DefaultPosition, size=wx.DefaultSize, style=fpb.FPB_DEFAULT_STYLE | fpb.FPB_SINGLE_FOLD)
+		fpb.FoldPanelBar.__init__(self, prnt, -1, pos=wx.DefaultPosition, size=wx.DefaultSize, style=fpb.FPB_SINGLE_FOLD)
 		self.SetConstraints(LayoutAnchors(self, True, True, True, True))
 		self.SetAutoLayout(True)
 

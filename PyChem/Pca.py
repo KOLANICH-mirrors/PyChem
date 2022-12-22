@@ -1516,7 +1516,7 @@ class plotProperties(wx.Dialog):
 		wx.Dialog.__init__(self, id=-1, name="", parent=prnt, pos=wx.Point(0, 0), size=wx.Size(530, 480), style=wx.MAXIMIZE_BOX | wx.DIALOG_MODAL | wx.DEFAULT_DIALOG_STYLE, title="Plot Properties")
 		self.SetAutoLayout(True)
 
-		self.foldPnl = fpb.FoldPanelBar(self, -1, wx.DefaultPosition, (525, 450), fpb.FPB_DEFAULT_STYLE, fpb.FPB_EXCLUSIVE_FOLD)
+		self.foldPnl = fpb.FoldPanelBar(self, -1, wx.DefaultPosition, (525, 450), 0, fpb.FPB_EXCLUSIVE_FOLD)
 		self.foldPnl.SetConstraints(LayoutAnchors(self.foldPnl, True, True, True, True))
 		self.foldPnl.SetAutoLayout(True)
 

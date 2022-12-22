@@ -348,7 +348,7 @@ class expSetup(wx.Panel):
 		self.SetAutoLayout(True)
 		self.SetToolTip("")
 
-		self.pnl = fpb.FoldPanelBar(self, -1, wx.DefaultPosition, wx.DefaultSize, fpb.FPB_DEFAULT_STYLE, fpb.FPB_EXCLUSIVE_FOLD)
+		self.pnl = fpb.FoldPanelBar(self, -1, wx.DefaultPosition, wx.DefaultSize, 0, fpb.FPB_EXCLUSIVE_FOLD)
 		self.pnl.SetConstraints(LayoutAnchors(self.pnl, True, True, True, True))
 		self.pnl.SetAutoLayout(True)
 		##		  self.pnl.Bind(wx.EVT_SIZE,self.OnPanelSize)
