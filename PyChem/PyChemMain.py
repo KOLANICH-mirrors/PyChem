@@ -14,7 +14,7 @@
 import os
 import string
 import sys
-from xml.etree import cElementTree as ET
+from xml.etree import ElementTree as ET
 
 import scipy
 import wx
@@ -799,7 +799,7 @@ class PyChemMain(wx.Frame):
 			dlg.Destroy()
 
 			# workspace dialog for editing
-			if wsName is not "":
+			if wsName != "":
 				# save workspace to xml file
 				self.xmlSave(self.data["exppath"], wsName.replace(" ", "_"), type=self.data["exppath"])
 
@@ -1143,7 +1143,7 @@ class PyChemMain(wx.Frame):
 		wx.BeginBusyCursor()
 
 		proceed = 1
-		if type is "new":
+		if type == "new":
 			# build a tree structure
 			root = ET.Element("pychem_305_experiment")
 			# save raw data

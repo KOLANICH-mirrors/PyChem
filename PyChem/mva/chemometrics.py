@@ -389,7 +389,7 @@ def pca_nipals(myarray, comps, type="covar", stb=None):
 		E = newarray - scipy.dot(tt[:, 0:n], pp[0:n, :])
 		s.append(scipy.sum(scipy.sum(E**2)))
 
-	pr = (1 - ((scipy.asarray(s) / s0))) * 100
+	pr = (1 - (scipy.asarray(s) / s0)) * 100
 	pr = scipy.reshape(pr, (1, len(pr)))
 	pr = scipy.concatenate((np.array([[0.0]]), pr), 1)
 	pr = scipy.reshape(pr, (pr.shape[1],))

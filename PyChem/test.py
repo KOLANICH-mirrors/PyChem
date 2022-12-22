@@ -4,7 +4,7 @@
 help("object")  # test
 
 
-class Class1(object):
+class Class1:
 	"""
 	Class1 inherits the most basic container class object (just a place holder)
 	this is the newer class writing convention, adding (object) is "still" optional
