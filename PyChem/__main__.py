@@ -16,9 +16,9 @@ import os  # , psyco, pychemaui
 import string
 import time
 
-import mva
-import PyChemMain
 import wx
+
+from . import PyChemMain, mva
 
 modules = {
 	"Cluster": [0, "", "Cluster.py"],
