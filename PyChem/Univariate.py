@@ -303,7 +303,7 @@ class TitleBar(bp.ButtonPanel):
 			uG = scipy.unique(np.array(self.data["label"]))
 			p_aur = [[]] * len(uG)
 			# plotting colours
-			colours = ["black", "blue", "red", "cyan", "green"]
+			colours = ["BLACK", "BLUE", "RED", "CYAN", "GREEN"]
 			for variable in vr:
 				# report to status bar
 				self.parent.prnt.parent.sbMain.SetStatusText("Calculating " + self.data["indlabels"][variable], 0)

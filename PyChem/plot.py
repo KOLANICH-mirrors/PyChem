@@ -208,7 +208,7 @@ class PolyLine(PolyPoints):
 	- All methods except __init__ are private.
 	"""
 
-	_attributes = {"colour": "black", "width": 1, "style": wx.SOLID, "legend": ""}
+	_attributes = {"colour": "BLACK", "width": 1, "style": wx.SOLID, "legend": ""}
 
 	def __init__(self, points, **attr):
 		"""Creates PolyLine object
@@ -246,7 +246,7 @@ class PolyLine(PolyPoints):
 class PolyEllipse(PolyPoints):
 	"""Added by rmj 14.05.07 - class for plotting ellipse"""
 
-	_attributes = {"colour": "black", "width": 1, "dim": (1, 1), "style": wx.SOLID, "legend": ""}
+	_attributes = {"colour": "BLACK", "width": 1, "dim": (1, 1), "style": wx.SOLID, "legend": ""}
 
 	def __init__(self, points, **attr):
 		"""Creates PolyEllipse object
@@ -289,7 +289,7 @@ class PolyMarker(PolyPoints):
 	- All methods except __init__ are private.
 	"""
 
-	_attributes = {"colour": "black", "width": 1, "size": 2, "fillcolour": None, "fillstyle": wx.SOLID, "marker": "circle", "legend": "", "labels": None, "text_colour": "black"}
+	_attributes = {"colour": "BLACK", "width": 1, "size": 2, "fillcolour": None, "fillstyle": wx.SOLID, "marker": "circle", "legend": "", "labels": None, "text_colour": "black"}
 
 	def __init__(self, points, **attr):
 		"""Creates PolyMarker object
@@ -634,7 +634,7 @@ class PlotCanvas(wx.Panel):
 		# platforms at initialization, but little harm done.
 		self.OnSize(None)  # sets the initial size based on client size
 
-		self._gridColour = wx.TheColourDatabase.Find("black")
+		self._gridColour = wx.TheColourDatabase.Find("BLACK")
 
 	def SetCursor(self, cursor):
 		self.canvas.SetCursor(cursor)
