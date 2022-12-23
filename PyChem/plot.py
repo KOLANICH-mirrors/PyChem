@@ -744,6 +744,8 @@ class PlotCanvas(wx.Panel):
 		"""Get current tick and axis label font size in points"""
 		return self._fontSizeAxis
 
+	fontSizeAxis = property(GetFontSizeAxis).setter(SetFontSizeAxis)
+
 	def SetFontSizeTitle(self, point=15):
 		"""Set Title font size (default is 15 point)"""
 		self._fontSizeTitle = point
