@@ -760,6 +760,8 @@ class PlotCanvas(wx.Panel):
 		"""Get current Legend font size in points"""
 		return self._fontSizeLegend
 
+	fontSizeLegend = property(GetFontSizeLegend).setter(SetFontSizeLegend)
+
 	def SetShowScrollbars(self, value):
 		"""Set True to show scrollbars"""
 		if value not in [True, False]:
