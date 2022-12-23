@@ -215,7 +215,7 @@ class PolyLine(PolyPoints):
 		points - sequence (array, tuple or list) of (x,y) points making up line
 		**attr - key word attributes
 			Defaults:
-				'colour'= 'black',			- wx.Pen Colour any wx.NamedColour
+				'colour'= 'black',			- wx.Pen Colour any wx.Colour
 				'width'= 1,					- Pen width
 				'style'= wx.SOLID,			- wx.Pen style
 				'legend'= ''				- Line Legend to display
@@ -227,7 +227,7 @@ class PolyLine(PolyPoints):
 		width = self.attributes["width"] * printerScale
 		style = self.attributes["style"]
 		if not isinstance(colour, wx.Colour):
-			colour = wx.NamedColour(colour)
+			colour = wx.TheColourDatabase.Find(colour)
 		pen = wx.Pen(colour, width, style)
 		pen.SetCap(wx.CAP_BUTT)
 		dc.SetPen(pen)
@@ -253,7 +253,7 @@ class PolyEllipse(PolyPoints):
 		points - sequence array of (x,y) points for each ellipse
 		**attr - key word attributes
 			Defaults:
-				'colour'= 'black',			- wx.Pen Colour any wx.NamedColour
+				'colour'= 'black',			- wx.Pen Colour any wx.Colour
 				'width'= 1,					- Pen width
 				'dim'=(1,1),				- width & height of ellipse
 				'style'= wx.SOLID,			- wx.Pen style
@@ -265,7 +265,7 @@ class PolyEllipse(PolyPoints):
 		width = self.attributes["width"] * printerScale
 		dim = self.attributes["dim"]
 		style = self.attributes["style"]
-		dc.SetPen(wx.Pen(wx.NamedColour(colour), int(width), style))
+		dc.SetPen(wx.Pen(wx.TheColourDatabase.Find(colour), int(width), style))
 		dc.SetBrush(wx.TRANSPARENT_BRUSH)
 
 		# set ellipse
@@ -296,15 +296,15 @@ class PolyMarker(PolyPoints):
 		points - sequence (array, tuple or list) of (x,y) points
 		**attr - key word attributes
 			Defaults:
-				'colour'= 'black',			- wx.Pen Colour any wx.NamedColour
+				'colour'= 'black',			- wx.Pen Colour any wx.Colour
 				'width'= 1,					- Pen width
 				'size'= 2,					- Marker size
-				'fillcolour'= same as colour,	   - wx.Brush Colour any wx.NamedColour
+				'fillcolour'= same as colour,	   - wx.Brush Colour any wx.Colour
 				'fillstyle'= wx.SOLID,		- wx.Brush fill style (use wx.TRANSPARENT for no fill)
 				'marker'= 'circle'			- Marker shape
 				'legend'= ''				- Marker Legend to display
 				'labels'= None				- list of strings
-				'text_color'= 'black'		- wx.Pen Colour any wx.NamedColour
+				'text_color'= 'black'		- wx.Pen Colour any wx.Colour
 
 			Marker Shapes:
 				- 'circle'
@@ -328,9 +328,9 @@ class PolyMarker(PolyPoints):
 		marker = self.attributes["marker"]
 
 		if colour and not isinstance(colour, wx.Colour):
-			colour = wx.NamedColour(colour)
+			colour = wx.TheColourDatabase.Find(colour)
 		if fillcolour and not isinstance(fillcolour, wx.Colour):
-			fillcolour = wx.NamedColour(fillcolour)
+			fillcolour = wx.TheColourDatabase.Find(fillcolour)
 
 		dc.SetPen(wx.Pen(colour, width))
 		if fillcolour:
@@ -634,7 +634,7 @@ class PlotCanvas(wx.Panel):
 		# platforms at initialization, but little harm done.
 		self.OnSize(None)  # sets the initial size based on client size
 
-		self._gridColour = wx.NamedColour("black")
+		self._gridColour = wx.TheColourDatabase.Find("black")
 
 	def SetCursor(self, cursor):
 		self.canvas.SetCursor(cursor)
@@ -646,7 +646,7 @@ class PlotCanvas(wx.Panel):
 		if isinstance(colour, wx.Colour):
 			self._gridColour = colour
 		else:
-			self._gridColour = wx.NamedColour(colour)
+			self._gridColour = wx.TheColourDatabase.Find(colour)
 
 	# SaveFile
 	def SaveFile(self, fileName=""):

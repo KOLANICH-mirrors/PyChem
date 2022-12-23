@@ -395,7 +395,7 @@ def plotLine(plotCanvas, plotArr, **_attr):
 			'wdth'= 1,		   - Line width
 	"""
 
-	colourList = [wx.NamedColour("blue"), wx.NamedColour("red"), wx.NamedColour("green"), wx.NamedColour("light_grey"), wx.NamedColour("cyan"), wx.NamedColour("black")]
+	colourList = [wx.TheColourDatabase.Find("blue"), wx.TheColourDatabase.Find("red"), wx.TheColourDatabase.Find("green"), wx.TheColourDatabase.Find("light_grey"), wx.TheColourDatabase.Find("cyan"), wx.TheColourDatabase.Find("black")]
 
 	if type == "single":
 		pA = plotArr[rownum, 0 : len(xaxis)][:, nA]
@@ -468,7 +468,7 @@ def plotSymbols(plotCanvas, coords, **_attr):
 	desCl = scipy.unique(text)
 	eCount = 0
 	if usecol == []:
-		colours = [wx.NamedColour("blue"), wx.NamedColour("red"), wx.NamedColour("green"), wx.NamedColour("cyan"), wx.NamedColour("black")]
+		colours = [wx.TheColourDatabase.Find("blue"), wx.TheColourDatabase.Find("red"), wx.TheColourDatabase.Find("green"), wx.TheColourDatabase.Find("cyan"), wx.TheColourDatabase.Find("black")]
 	else:
 		colours = usecol
 
@@ -515,10 +515,10 @@ def plotSymbols(plotCanvas, coords, **_attr):
 					if m > 0:
 						if symbols[countSym] not in ["cross", "plus"]:
 							# overlay white circle/square to indicate validation/test sample
-							plotSym.append(wx.lib.plot.PolyMarker(list[listM == m], marker=valSym[m - 1], colour=wx.NamedColour("white"), fillcolour=wx.NamedColour("white"), size=1))
+							plotSym.append(wx.lib.plot.PolyMarker(list[listM == m], marker=valSym[m - 1], colour=wx.TheColourDatabase.Find("white"), fillcolour=wx.TheColourDatabase.Find("white"), size=1))
 						else:
 							# overlay white square to indicate validation sample
-							plotSym.insert(len(plotSym) - 1, wx.lib.plot.PolyMarker(list[listM == m], marker=valSym[m - 1], colour=wx.NamedColour("black"), fillcolour=wx.NamedColour("white"), size=2.5))
+							plotSym.insert(len(plotSym) - 1, wx.lib.plot.PolyMarker(list[listM == m], marker=valSym[m - 1], colour=wx.TheColourDatabase.Find("black"), fillcolour=wx.TheColourDatabase.Find("white"), size=2.5))
 
 		countSym += 1
 		countColour += 1

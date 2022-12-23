@@ -448,10 +448,10 @@ class TitleBar(bp.ButtonPanel):
 			ch = self.convex_hull(scipy.transpose(scipy.concatenate((fp, tp), 1)))
 
 			# plot roc
-			rocPlot.append(wx.lib.plot.PolyLine(scipy.concatenate((fp, tp), 1), legend=ugrp[each] + ": Area = " + "%.2f" % self.RocArea(tp, fp) + " (" + "%.2f" % self.RocArea(ch[:, 1][:, nA], ch[:, 0][:, nA]) + ")", colour=wx.NamedColour(colours[colCount])))
+			rocPlot.append(wx.lib.plot.PolyLine(scipy.concatenate((fp, tp), 1), legend=ugrp[each] + ": Area = " + "%.2f" % self.RocArea(tp, fp) + " (" + "%.2f" % self.RocArea(ch[:, 1][:, nA], ch[:, 0][:, nA]) + ")", colour=wx.TheColourDatabase.Find(colours[colCount])))
 
 			# plot roc ch
-			rocPlot.append(wx.lib.plot.PolyLine(ch, style=wx.SHORT_DASH, colour=wx.NamedColour(colours[colCount])))
+			rocPlot.append(wx.lib.plot.PolyLine(ch, style=wx.SHORT_DASH, colour=wx.TheColourDatabase.Find(colours[colCount])))
 
 			# colour index
 			colCount += 1
@@ -474,8 +474,8 @@ class TitleBar(bp.ButtonPanel):
 			for each in range(len(ugrp)):
 				slice = self.data["p_aur"][scipy.asarray(self.data["p_aur"][:, 0], dtype="i") == each, :]
 				if len(slice) > 0:
-					pRoc.append(wx.lib.plot.PolyMarker(scipy.asarray(slice[:, 1:3], dtype="float64"), marker="circle", colour=wx.NamedColour(slice[0, 3]), fillcolour=wx.NamedColour(slice[0, 3]), size=1, legend=ugrp[each]))
-					pRoc.append(wx.lib.plot.PolyMarker(scipy.asarray(slice[:, 1:3], dtype="float64"), marker="text", labels=slice[:, 4], colour=wx.NamedColour(slice[0, 3])))
+					pRoc.append(wx.lib.plot.PolyMarker(scipy.asarray(slice[:, 1:3], dtype="float64"), marker="circle", colour=wx.TheColourDatabase.Find(slice[0, 3]), fillcolour=wx.TheColourDatabase.Find(slice[0, 3]), size=1, legend=ugrp[each]))
+					pRoc.append(wx.lib.plot.PolyMarker(scipy.asarray(slice[:, 1:3], dtype="float64"), marker="text", labels=slice[:, 4], colour=wx.TheColourDatabase.Find(slice[0, 3])))
 				chkSum += len(slice)
 			if chkSum > 0:
 				self.parent.plcPsumm.Draw(wx.lib.plot.PlotGraphics(pRoc, title="p-value vs. Area under ROC", xLabel="log(p)", yLabel="Area under ROC"))
