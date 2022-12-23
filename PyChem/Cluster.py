@@ -671,14 +671,14 @@ class selFun(fpb.FoldPanelBar):
 		parent.Add(self.rbHcluster, (3, 0), flag=wx.EXPAND, span=(1, 2))
 		parent.Add(wx.StaticText(self.methPnl, -1, "No. iterations", style=wx.ALIGN_LEFT), (4, 0), flag=wx.EXPAND, span=(1, 1))
 		parent.Add(self.spnNoPass, (4, 1), flag=wx.EXPAND, span=(1, 1))
-		parent.AddSpacer(wx.Size(8, 8), (5, 0), flag=wx.EXPAND, span=(2, 2))
+		parent.Add(wx.Size(8, 8), (5, 0), flag=wx.EXPAND, span=(2, 2))
 
 	def _init_coll_gbsLinkageMethod_Items(self, parent):
 		parent.Add(self.rbSingleLink, (0, 0), flag=wx.EXPAND, span=(1, 1))
 		parent.Add(self.rbMaxLink, (1, 0), flag=wx.EXPAND, span=(1, 1))
 		parent.Add(self.rbAvLink, (2, 0), flag=wx.EXPAND, span=(1, 1))
 		parent.Add(self.rbCentLink, (3, 0), flag=wx.EXPAND, span=(1, 1))
-		parent.AddSpacer(wx.Size(8, 8), (4, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.Add(wx.Size(8, 8), (4, 0), flag=wx.EXPAND, span=(1, 1))
 
 	def _init_coll_gbsDistanceMeasure_Items(self, parent):
 		parent.Add(self.rbAbsUncentCorr, (0, 0), flag=wx.EXPAND, span=(1, 1))
@@ -689,7 +689,7 @@ class selFun(fpb.FoldPanelBar):
 		parent.Add(self.rbKendalls, (5, 0), flag=wx.EXPAND, span=(1, 1))
 		parent.Add(self.rbSpearmans, (6, 0), flag=wx.EXPAND, span=(1, 1))
 		parent.Add(self.rbUncentredCorr, (7, 0), flag=wx.EXPAND, span=(1, 1))
-		parent.AddSpacer(wx.Size(8, 8), (8, 0), flag=wx.EXPAND, span=(2, 1))
+		parent.Add(wx.Size(8, 8), (8, 0), flag=wx.EXPAND, span=(2, 1))
 
 	def _init_selparam_sizers(self):
 		self.gbsClusterMethod = wx.GridBagSizer(5, 5)

@@ -1843,7 +1843,7 @@ class wxImportDialog(wx.Dialog):
 	def _init_coll_gbsImportDialog_Items(self, parent):
 
 		parent.Add(self.fileBrowse, (0, 0), border=10, flag=wx.EXPAND, span=(1, 4))
-		parent.AddSpacer(wx.Size(0, 0), (1, 0), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(wx.Size(0, 0), (1, 0), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.Add(self.cbTranspose, (1, 1), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.Add(self.btnCancel, (1, 2), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.Add(self.btnOK, (1, 3), border=10, flag=wx.EXPAND, span=(1, 1))

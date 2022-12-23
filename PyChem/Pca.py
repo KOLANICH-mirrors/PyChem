@@ -1486,7 +1486,7 @@ class plotProperties(wx.Dialog):
 		parent.Add(self.tbZoom, (6, 4), border=4, flag=wx.EXPAND, span=(1, 1))
 		parent.Add(self.cbApply, (7, 0), border=4, flag=wx.EXPAND, span=(1, 1))
 		parent.Add(self.btnApply, (7, 1), border=4, flag=wx.EXPAND, span=(1, 5))
-		parent.AddSpacer(wx.Size(8, 8), (8, 0), flag=wx.EXPAND, span=(2, 6))
+		parent.Add(wx.Size(8, 8), (8, 0), flag=wx.EXPAND, span=(2, 6))
 
 	def _init_coll_gbsPlotProps_Growables(self, parent):
 		# generated method, don't edit
