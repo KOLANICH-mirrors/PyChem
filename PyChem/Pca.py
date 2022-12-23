@@ -284,10 +284,7 @@ def PlotPlsModel(canvas, model="full", tbar=None, **_attr):
 		prnt = canvas.prnt.prnt.prnt.splitPrnt
 		nBook = canvas.prnt
 
-	if predictions.shape[1] > 1:
-		canvas.prnt.SetTabSize((80, 15))
-	else:
-		canvas.prnt.SetTabSize((0, 1))
+	if predictions.shape[1] < 1:
 		canvas.prnt.SetPageText(0, "")
 
 	if type == 0:

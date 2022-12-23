@@ -122,7 +122,7 @@ class Ga(wx.Panel):
 		self.nbGaPlsPreds.SetToolTip("")
 		self.nbGaPlsPreds.SetAutoLayout(True)
 		self.nbGaPlsPreds.SetConstraints(LayoutAnchors(self.nbGaPlsPreds, True, True, True, True))
-		self.nbGaPlsPreds.SetTabSize((0, 1))
+
 		self.nbGaPlsPreds.prnt = self.p1
 
 		self.plcGaModelPlot1 = MyPlotCanvas(id=-1, name="plcGaModelPlot1", parent=self.nbGaPlsPreds, pos=wx.Point(0, 0), size=wx.Size(310, 272), style=0, toolbar=self.nbGaPlsPreds.prnt.prnt.splitPrnt.prnt.parent.tbMain)
@@ -136,7 +136,6 @@ class Ga(wx.Panel):
 		self.nbGaModPlot = wx.Notebook(id=-1, name="nbGaModPlot", parent=self.p1, pos=wx.Point(760, 326), size=wx.Size(310, 272), style=wx.NB_BOTTOM)
 		self.nbGaModPlot.prnt = self.p1
 		self.nbGaModPlot.SetToolTip("")
-		self.nbGaModPlot.SetTabSize((40, 15))
 
 		##		  self.plcGaEigsFigure = Figure(facecolor='w')
 		##		  self.plcGaEigs = FigureCanvas(self.nbGaModPlot, -1, self.plcGaEigsFigure)
@@ -217,7 +216,6 @@ class Ga(wx.Panel):
 		# delete multiple scores plots
 		self.plcGaModelPlot1.prnt.SetSelection(0)
 		self.plcGaModelPlot1.prnt.SetPageText(0, "")
-		self.plcGaModelPlot1.prnt.SetTabSize((0, 1))
 		for page in range(self.plcGaModelPlot1.prnt.GetPageCount() - 1, 0, -1):
 			self.plcGaModelPlot1.prnt.DeletePage(page)
 

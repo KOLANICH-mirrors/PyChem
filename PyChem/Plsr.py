@@ -121,13 +121,12 @@ class Plsr(wx.Panel):
 		self.nbFullPls.SetToolTip("")
 		self.nbFullPls.SetAutoLayout(True)
 		self.nbFullPls.SetConstraints(LayoutAnchors(self.nbFullPls, True, True, True, True))
-		self.nbFullPls.SetTabSize((40, 15))
 
 		self.nbPlsPreds = wx.Notebook(id=-1, name="nbPlsPreds", parent=self, pos=wx.Point(176, 274), size=wx.Size(310, 272), style=wx.NB_BOTTOM)
 		self.nbPlsPreds.SetToolTip("")
 		self.nbPlsPreds.SetAutoLayout(True)
 		self.nbPlsPreds.SetConstraints(LayoutAnchors(self.nbPlsPreds, True, True, True, True))
-		self.nbPlsPreds.SetTabSize((0, 1))
+
 		self.nbPlsPreds.prnt = self
 
 		self.plcPLSerror = MyPlotCanvas(id=-1, name="plcPLSerror", parent=self.nbFullPls, pos=wx.Point(0, 0), size=wx.Size(302, 246), style=0, toolbar=self.prnt.parent.tbMain)
@@ -198,7 +197,6 @@ class Plsr(wx.Panel):
 		# delete multiple scores plots
 		self.plcPredPls1.prnt.SetSelection(0)
 		self.plcPredPls1.prnt.SetPageText(0, "")
-		self.plcPredPls1.prnt.SetTabSize((0, 1))
 		for page in range(self.plcPredPls1.prnt.GetPageCount() - 1, 0, -1):
 			self.plcPredPls1.prnt.DeletePage(page)
 

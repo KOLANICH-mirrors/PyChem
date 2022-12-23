@@ -156,7 +156,6 @@ class Univariate(wx.Panel):
 		self.nbUniRes.SetToolTip("")
 		self.nbUniRes.SetAutoLayout(True)
 		self.nbUniRes.SetConstraints(LayoutAnchors(self.nbUniRes, True, True, True, True))
-		self.nbUniRes.SetTabSize((40, 15))
 
 		self.plcScatter = MyPlotCanvas(id=-1, name="plcScatter", parent=self.nbUniRes, pos=wx.Point(0, 0), size=wx.Size(302, 246), style=0, toolbar=self.prnt.parent.tbMain)
 		self.plcScatter.fontSizeAxis = 8
