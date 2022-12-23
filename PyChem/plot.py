@@ -835,6 +835,8 @@ class PlotCanvas(wx.Panel):
 		"""True if Legend enabled."""
 		return self._legendEnabled
 
+	enableLegend = property(GetEnableLegend).setter(SetEnableLegend)
+
 	def SetEnablePointLabel(self, value):
 		"""Set True to enable pointLabel."""
 		if value not in [True, False]:
