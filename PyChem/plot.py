@@ -933,6 +933,9 @@ class PlotCanvas(wx.Panel):
 		"""Returns current YSpec for axis"""
 		return self._ySpec
 
+	xSpec = property(GetXSpec).setter(SetXSpec)
+	ySpec = property(GetYSpec).setter(SetYSpec)
+
 	def GetXMaxRange(self):
 		xAxis = self._getXMaxRange()
 		if self.getLogScale()[0]:
