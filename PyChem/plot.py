@@ -815,6 +815,8 @@ class PlotCanvas(wx.Panel):
 		"""True if zooming enabled."""
 		return self._zoomEnabled
 
+	enableZoom = property(GetEnableZoom).setter(SetEnableZoom)
+
 	def SetEnableGrid(self, value):
 		"""Set True to enable grid."""
 		if value not in [True, False, "Horizontal", "Vertical"]:
