@@ -645,9 +645,10 @@ class selFun(wx.Panel):
 
 		self.tb = wx.ToolBar(self, style=wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT)
 		self.tb.SetToolBitmapSize((16, 16))
-		self.tb.AddSimpleTool(10, new_bmp, "Add Method", "Add Method'")
-		self.tb.AddSimpleTool(20, del_bmp, "Delete Method", "Delete Method'")
-		# 		 self.tb.AddSimpleTool(30, ref_bmp, "Reset", "Reset")
+
+		self.tb.AddTool(10, "Add Method", new_bmp, wx.NullBitmap, longHelp="Add Method'")
+		self.tb.AddTool(20, "Delete Method", del_bmp, wx.NullBitmap, longHelp="Delete Method'")
+		# self.tb.AddTool(30, "Reset", ref_bmp, wx.NullBitmap, longHelp="Reset")
 		self.tb.Bind(wx.EVT_TOOL, self.OnNewMethod, id=10)
 		self.tb.Bind(wx.EVT_TOOL, self.OnNewMethod, id=20)
 
