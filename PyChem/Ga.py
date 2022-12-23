@@ -57,21 +57,21 @@ class Ga(wx.Panel):
 	def _init_coll_bxsGa1_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.bxsGa2, 1, border=0, flag=wx.EXPAND)
+		parent.Add(self.bxsGa2, 1, border=0, flag=wx.EXPAND)
 
 	def _init_coll_bxsGa2_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.titleBar, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.Splitter, 1, border=0, flag=wx.EXPAND)
+		parent.Add(self.titleBar, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.Splitter, 1, border=0, flag=wx.EXPAND)
 
 	def _init_coll_grsGa_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.nbGaPlsPreds, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.plcGaFreqPlot, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.plcGaFeatPlot, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.nbGaModPlot, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.nbGaPlsPreds, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.plcGaFreqPlot, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.plcGaFeatPlot, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.nbGaModPlot, 0, border=0, flag=wx.EXPAND)
 
 	def _init_coll_nbGaPlsPreds_Pages(self, parent):
 		# generated method, don't edit
@@ -705,38 +705,38 @@ class selParam(fpb.FoldPanelBar):
 
 	def _init_coll_gbsGaParams_Items(self, parent):
 
-		parent.AddWindow(wx.StaticText(self.plParams, -1, "No. vars. from", style=wx.ALIGN_RIGHT), (0, 0), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.spnGaVarsFrom, (0, 1), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(wx.StaticText(self.plParams, -1, "No. vars. from", style=wx.ALIGN_RIGHT), (0, 0), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.spnGaVarsFrom, (0, 1), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddSpacer(wx.Size(8, 8), (0, 2), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(wx.StaticText(self.plParams, -1, "No. vars. to", style=wx.ALIGN_RIGHT), (1, 0), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.spnGaVarsTo, (1, 1), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(wx.StaticText(self.plParams, -1, "No. vars. to", style=wx.ALIGN_RIGHT), (1, 0), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.spnGaVarsTo, (1, 1), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddSpacer(wx.Size(8, 8), (1, 2), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(wx.StaticText(self.plParams, -1, "No. inds.", style=wx.ALIGN_RIGHT), (2, 0), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.spnGaNoInds, (2, 1), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(wx.StaticText(self.plParams, -1, "No. inds.", style=wx.ALIGN_RIGHT), (2, 0), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.spnGaNoInds, (2, 1), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddSpacer(wx.Size(8, 8), (2, 2), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(wx.StaticText(self.plParams, -1, "No. runs", style=wx.ALIGN_RIGHT), (3, 0), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.spnGaNoRuns, (3, 1), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(wx.StaticText(self.plParams, -1, "No. runs", style=wx.ALIGN_RIGHT), (3, 0), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.spnGaNoRuns, (3, 1), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddSpacer(wx.Size(8, 8), (3, 2), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(wx.StaticText(self.plParams, -1, "Crossover rate", style=wx.ALIGN_RIGHT), (4, 0), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.stGaXoverRate, (4, 1), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.cbGaXover, (4, 2), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(wx.StaticText(self.plParams, -1, "Mutation rate", style=wx.ALIGN_RIGHT), (5, 0), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.stGaMutRate, (5, 1), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.cbGaMut, (5, 2), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(wx.StaticText(self.plParams, -1, "Insertion rate", style=wx.ALIGN_RIGHT), (6, 0), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.stGaInsRate, (6, 1), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(wx.StaticText(self.plParams, -1, "Crossover rate", style=wx.ALIGN_RIGHT), (4, 0), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.stGaXoverRate, (4, 1), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.cbGaXover, (4, 2), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(wx.StaticText(self.plParams, -1, "Mutation rate", style=wx.ALIGN_RIGHT), (5, 0), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.stGaMutRate, (5, 1), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.cbGaMut, (5, 2), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(wx.StaticText(self.plParams, -1, "Insertion rate", style=wx.ALIGN_RIGHT), (6, 0), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.stGaInsRate, (6, 1), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddSpacer(wx.Size(8, 8), (6, 2), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(wx.StaticText(self.plParams, -1, "Max. factors", style=wx.ALIGN_RIGHT), (7, 0), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.spnGaMaxFac, (7, 1), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(wx.StaticText(self.plParams, -1, "Max. factors", style=wx.ALIGN_RIGHT), (7, 0), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.spnGaMaxFac, (7, 1), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddSpacer(wx.Size(8, 8), (7, 2), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(wx.StaticText(self.plParams, -1, "Max. gens", style=wx.ALIGN_RIGHT), (8, 0), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.spnGaMaxGen, (8, 1), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.cbGaMaxGen, (8, 2), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(wx.StaticText(self.plParams, -1, "Repeat until", style=wx.ALIGN_RIGHT), (9, 0), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.spnGaRepUntil, (9, 1), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.cbGaRepUntil, (9, 2), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(wx.StaticText(self.plParams, -1, "Resample", style=wx.ALIGN_RIGHT), (10, 0), border=10, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.spnResample, (10, 1), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(wx.StaticText(self.plParams, -1, "Max. gens", style=wx.ALIGN_RIGHT), (8, 0), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.spnGaMaxGen, (8, 1), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.cbGaMaxGen, (8, 2), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(wx.StaticText(self.plParams, -1, "Repeat until", style=wx.ALIGN_RIGHT), (9, 0), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.spnGaRepUntil, (9, 1), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.cbGaRepUntil, (9, 2), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(wx.StaticText(self.plParams, -1, "Resample", style=wx.ALIGN_RIGHT), (10, 0), border=10, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.spnResample, (10, 1), border=10, flag=wx.EXPAND, span=(1, 1))
 		parent.AddSpacer(wx.Size(8, 8), (11, 2), border=10, flag=wx.EXPAND, span=(2, 3))
 
 	def _init_selparam_sizers(self):

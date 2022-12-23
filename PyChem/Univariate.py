@@ -36,21 +36,21 @@ class Univariate(wx.Panel):
 	def _init_coll_bxsPls2_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.titleBar, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.grsPls1, 1, border=0, flag=wx.EXPAND)
+		parent.Add(self.titleBar, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.grsPls1, 1, border=0, flag=wx.EXPAND)
 
 	def _init_coll_bxsPls1_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.bxsPls2, 1, border=0, flag=wx.EXPAND)
+		parent.Add(self.bxsPls2, 1, border=0, flag=wx.EXPAND)
 
 	def _init_coll_grsPls1_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.plcBoxplot, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.plcRoc, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.nbUniRes, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.plcPsumm, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.plcBoxplot, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.plcRoc, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.nbUniRes, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.plcPsumm, 0, border=0, flag=wx.EXPAND)
 
 	def _init_sizers(self):
 		# generated method, don't edit
@@ -78,10 +78,10 @@ class Univariate(wx.Panel):
 		self.plcRoc.Show(True)
 		self.plcPsumm.Show(True)
 
-		self.grsPls1.AddWindow(self.plcBoxplot, 0, border=0, flag=wx.EXPAND)
-		self.grsPls1.AddWindow(self.plcRoc, 0, border=0, flag=wx.EXPAND)
-		self.grsPls1.AddWindow(self.nbUniRes, 0, border=0, flag=wx.EXPAND)
-		self.grsPls1.AddWindow(self.plcPsumm, 0, border=0, flag=wx.EXPAND)
+		self.grsPls1.Add(self.plcBoxplot, 0, border=0, flag=wx.EXPAND)
+		self.grsPls1.Add(self.plcRoc, 0, border=0, flag=wx.EXPAND)
+		self.grsPls1.Add(self.nbUniRes, 0, border=0, flag=wx.EXPAND)
+		self.grsPls1.Add(self.plcPsumm, 0, border=0, flag=wx.EXPAND)
 
 		self.Reset()
 
@@ -99,8 +99,8 @@ class Univariate(wx.Panel):
 		self.plcRoc.Show(False)
 		self.plcPsumm.Show(False)
 
-		self.grsPls1.AddWindow(self.plcBoxplot, 0, border=0, flag=wx.EXPAND)
-		self.grsPls1.AddWindow(self.nbUniRes, 0, border=0, flag=wx.EXPAND)
+		self.grsPls1.Add(self.plcBoxplot, 0, border=0, flag=wx.EXPAND)
+		self.grsPls1.Add(self.nbUniRes, 0, border=0, flag=wx.EXPAND)
 
 		self.Reset()
 

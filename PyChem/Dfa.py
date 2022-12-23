@@ -79,21 +79,21 @@ class Dfa(wx.Panel):
 	def _init_coll_grsDfa_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.plcDFAscores, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.plcDfaLoadsV, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.plcDfaCluster, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.plcDFAeigs, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.plcDFAscores, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.plcDfaLoadsV, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.plcDfaCluster, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.plcDFAeigs, 0, border=0, flag=wx.EXPAND)
 
 	def _init_coll_bxsDfa1_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.bxsDfa2, 1, border=0, flag=wx.EXPAND)
+		parent.Add(self.bxsDfa2, 1, border=0, flag=wx.EXPAND)
 
 	def _init_coll_bxsDfa2_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.titleBar, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.grsDfa, 1, border=0, flag=wx.EXPAND)
+		parent.Add(self.titleBar, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.grsDfa, 1, border=0, flag=wx.EXPAND)
 
 	def _init_sizers(self):
 		# generated method, don't edit

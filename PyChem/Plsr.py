@@ -67,21 +67,21 @@ class Plsr(wx.Panel):
 	def _init_coll_bxsPls2_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.titleBar, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.grsPls1, 1, border=0, flag=wx.EXPAND)
+		parent.Add(self.titleBar, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.grsPls1, 1, border=0, flag=wx.EXPAND)
 
 	def _init_coll_bxsPls1_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.bxsPls2, 1, border=0, flag=wx.EXPAND)
+		parent.Add(self.bxsPls2, 1, border=0, flag=wx.EXPAND)
 
 	def _init_coll_grsPls1_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.nbPlsPreds, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.plcPLSloading, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.nbFullPls, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.plcPlsHetero, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.nbPlsPreds, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.plcPLSloading, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.nbFullPls, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.plcPlsHetero, 0, border=0, flag=wx.EXPAND)
 
 	def _init_coll_nbFullPls_Pages(self, parent):
 		# generated method, don't edit

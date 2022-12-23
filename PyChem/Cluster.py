@@ -73,13 +73,13 @@ class Cluster(wx.Panel):
 	def _init_coll_bxsClust1_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.bxsClust2, 1, border=0, flag=wx.EXPAND)
+		parent.Add(self.bxsClust2, 1, border=0, flag=wx.EXPAND)
 
 	def _init_coll_bxsClust2_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.titleBar, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.Splitter, 1, border=0, flag=wx.EXPAND)
+		parent.Add(self.titleBar, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.Splitter, 1, border=0, flag=wx.EXPAND)
 
 	def _init_cluster_sizers(self):
 		# generated method, don't edit
@@ -665,30 +665,30 @@ class TitleBar(bp.ButtonPanel):
 
 class selFun(fpb.FoldPanelBar):
 	def _init_coll_gbsClusterMethod_Items(self, parent):
-		parent.AddWindow(self.rbKmeans, (0, 0), flag=wx.EXPAND, span=(1, 2))
-		parent.AddWindow(self.rbKmedian, (1, 0), flag=wx.EXPAND, span=(1, 2))
-		parent.AddWindow(self.rbKmedoids, (2, 0), flag=wx.EXPAND, span=(1, 2))
-		parent.AddWindow(self.rbHcluster, (3, 0), flag=wx.EXPAND, span=(1, 2))
-		parent.AddWindow(wx.StaticText(self.methPnl, -1, "No. iterations", style=wx.ALIGN_LEFT), (4, 0), flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.spnNoPass, (4, 1), flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.rbKmeans, (0, 0), flag=wx.EXPAND, span=(1, 2))
+		parent.Add(self.rbKmedian, (1, 0), flag=wx.EXPAND, span=(1, 2))
+		parent.Add(self.rbKmedoids, (2, 0), flag=wx.EXPAND, span=(1, 2))
+		parent.Add(self.rbHcluster, (3, 0), flag=wx.EXPAND, span=(1, 2))
+		parent.Add(wx.StaticText(self.methPnl, -1, "No. iterations", style=wx.ALIGN_LEFT), (4, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.spnNoPass, (4, 1), flag=wx.EXPAND, span=(1, 1))
 		parent.AddSpacer(wx.Size(8, 8), (5, 0), flag=wx.EXPAND, span=(2, 2))
 
 	def _init_coll_gbsLinkageMethod_Items(self, parent):
-		parent.AddWindow(self.rbSingleLink, (0, 0), flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.rbMaxLink, (1, 0), flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.rbAvLink, (2, 0), flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.rbCentLink, (3, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.rbSingleLink, (0, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.rbMaxLink, (1, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.rbAvLink, (2, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.rbCentLink, (3, 0), flag=wx.EXPAND, span=(1, 1))
 		parent.AddSpacer(wx.Size(8, 8), (4, 0), flag=wx.EXPAND, span=(1, 1))
 
 	def _init_coll_gbsDistanceMeasure_Items(self, parent):
-		parent.AddWindow(self.rbAbsUncentCorr, (0, 0), flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.rbAbsCorr, (1, 0), flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.rbCityBlock, (2, 0), flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.rbCorrelation, (3, 0), flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.rbEuclidean, (4, 0), flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.rbKendalls, (5, 0), flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.rbSpearmans, (6, 0), flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.rbUncentredCorr, (7, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.rbAbsUncentCorr, (0, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.rbAbsCorr, (1, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.rbCityBlock, (2, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.rbCorrelation, (3, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.rbEuclidean, (4, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.rbKendalls, (5, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.rbSpearmans, (6, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.rbUncentredCorr, (7, 0), flag=wx.EXPAND, span=(1, 1))
 		parent.AddSpacer(wx.Size(8, 8), (8, 0), flag=wx.EXPAND, span=(2, 1))
 
 	def _init_selparam_sizers(self):

@@ -138,14 +138,14 @@ def CreateSymColSelect(canvas, output):
 	# create sizer
 	canvas.tbMain.SymPopUpWin.grsSelect = wx.GridSizer(cols=3, hgap=2, rows=count + 1, vgap=2)
 	# add standard ctrls
-	canvas.tbMain.SymPopUpWin.grsSelect.AddWindow(canvas.tbMain.SymPopUpWin.btnClose, 0, border=0, flag=wx.EXPAND)
-	canvas.tbMain.SymPopUpWin.grsSelect.AddWindow(canvas.tbMain.SymPopUpWin.btnApply, 0, border=0, flag=wx.EXPAND)
-	canvas.tbMain.SymPopUpWin.grsSelect.AddWindow(canvas.tbMain.SymPopUpWin.stSpacer, 0, border=0, flag=wx.EXPAND)
+	canvas.tbMain.SymPopUpWin.grsSelect.Add(canvas.tbMain.SymPopUpWin.btnClose, 0, border=0, flag=wx.EXPAND)
+	canvas.tbMain.SymPopUpWin.grsSelect.Add(canvas.tbMain.SymPopUpWin.btnApply, 0, border=0, flag=wx.EXPAND)
+	canvas.tbMain.SymPopUpWin.grsSelect.Add(canvas.tbMain.SymPopUpWin.stSpacer, 0, border=0, flag=wx.EXPAND)
 	# add dynamic ctrls to sizer
 	for nwin in range(count):
-		canvas.tbMain.SymPopUpWin.grsSelect.AddWindow(getByPath(canvas.tbMain.SymPopUpWin, "st" + str(nwin)), 0, border=0, flag=wx.EXPAND)
-		canvas.tbMain.SymPopUpWin.grsSelect.AddWindow(getByPath(canvas.tbMain.SymPopUpWin, "btn" + str(nwin)), 0, border=0, flag=wx.EXPAND)
-		canvas.tbMain.SymPopUpWin.grsSelect.AddWindow(getByPath(canvas.tbMain.SymPopUpWin, "cp" + str(nwin)), 0, border=0, flag=wx.EXPAND)
+		canvas.tbMain.SymPopUpWin.grsSelect.Add(getByPath(canvas.tbMain.SymPopUpWin, "st" + str(nwin)), 0, border=0, flag=wx.EXPAND)
+		canvas.tbMain.SymPopUpWin.grsSelect.Add(getByPath(canvas.tbMain.SymPopUpWin, "btn" + str(nwin)), 0, border=0, flag=wx.EXPAND)
+		canvas.tbMain.SymPopUpWin.grsSelect.Add(getByPath(canvas.tbMain.SymPopUpWin, "cp" + str(nwin)), 0, border=0, flag=wx.EXPAND)
 
 	# set sizer and resize
 	canvas.tbMain.SymPopUpWin.SetSizer(canvas.tbMain.SymPopUpWin.grsSelect)
@@ -872,12 +872,12 @@ class SymDialog(wx.Dialog):
 	def _init_coll_grsSymDialog_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.tbSquare, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.tbCircle, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.tbPlus, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.tbTriangleUp, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.tbTriangleDown, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.tbCross, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.tbSquare, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.tbCircle, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.tbPlus, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.tbTriangleUp, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.tbTriangleDown, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.tbCross, 0, border=0, flag=wx.EXPAND)
 
 	def _init_ctrls(self, prnt):
 		# generated method, don't edit
@@ -1123,21 +1123,21 @@ class Pca(wx.Panel):
 	def _init_coll_grsPca1_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.plcPCAscore, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.plcPcaLoadsV, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.plcPCvar, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.plcPCeigs, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.plcPCAscore, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.plcPcaLoadsV, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.plcPCvar, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.plcPCeigs, 0, border=0, flag=wx.EXPAND)
 
 	def _init_coll_bxsPca1_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.bxsPca2, 1, border=0, flag=wx.EXPAND)
+		parent.Add(self.bxsPca2, 1, border=0, flag=wx.EXPAND)
 
 	def _init_coll_bxsPca2_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.titleBar, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.grsPca1, 1, border=0, flag=wx.EXPAND)
+		parent.Add(self.titleBar, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.grsPca1, 1, border=0, flag=wx.EXPAND)
 
 	def _init_sizers(self):
 		# generated method, don't edit
@@ -1435,9 +1435,9 @@ class plotProperties(wx.Dialog):
 	def _init_coll_grsDfscores_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.tbConf, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.tbPoints, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.tbSymbols, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.tbConf, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.tbPoints, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.tbSymbols, 0, border=0, flag=wx.EXPAND)
 
 	def _init_grsLoadings(self):
 		# generated method, don't edit
@@ -1450,42 +1450,42 @@ class plotProperties(wx.Dialog):
 	def _init_coll_grsLoadings_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.tbLoadLabels, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.tbLoadLabStd1, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.tbLoadLabStd2, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.tbLoadSymStd2, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.tbLoadLabels, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.tbLoadLabStd1, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.tbLoadLabStd2, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.tbLoadSymStd2, 0, border=0, flag=wx.EXPAND)
 
 	def _init_coll_gbsPlotProps_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.stTitle, (0, 0), border=4, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.txtTitle, (0, 1), border=4, flag=wx.EXPAND, span=(1, 5))
-		parent.AddWindow(wx.StaticText(self.genPnl, -1, "Axes font", style=wx.ALIGN_LEFT), (1, 0), flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.spnFontSizeAxes, (1, 1), border=4, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(wx.StaticText(self.genPnl, -1, "Title font", style=wx.ALIGN_LEFT), (1, 2), flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.spnFontSizeTitle, (1, 3), border=4, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.stXlabel, (2, 0), border=4, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.txtXlabel, (2, 1), border=4, flag=wx.EXPAND, span=(1, 5))
-		parent.AddWindow(self.stYlabel, (3, 0), border=4, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.txtYlabel, (3, 1), border=4, flag=wx.EXPAND, span=(1, 5))
-		parent.AddWindow(self.stXfrom, (4, 0), border=4, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.txtXmin, (4, 1), border=4, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.spnXmin, (4, 2), border=4, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.stXto, (4, 3), border=4, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.txtXmax, (4, 4), border=4, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.spnXmax, (4, 5), border=4, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.stYfrom, (5, 0), border=4, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.txtYmin, (5, 1), border=4, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.spnYmin, (5, 2), border=4, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.stYto, (5, 3), border=4, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.txtYmax, (5, 4), border=4, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.spnYmax, (5, 5), border=4, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.tbDrag, (6, 1), border=4, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.tbGrid, (6, 2), border=4, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.tbPointLabel, (6, 3), border=4, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.tbZoom, (6, 4), border=4, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.cbApply, (7, 0), border=4, flag=wx.EXPAND, span=(1, 1))
-		parent.AddWindow(self.btnApply, (7, 1), border=4, flag=wx.EXPAND, span=(1, 5))
+		parent.Add(self.stTitle, (0, 0), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.txtTitle, (0, 1), border=4, flag=wx.EXPAND, span=(1, 5))
+		parent.Add(wx.StaticText(self.genPnl, -1, "Axes font", style=wx.ALIGN_LEFT), (1, 0), flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.spnFontSizeAxes, (1, 1), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(wx.StaticText(self.genPnl, -1, "Title font", style=wx.ALIGN_LEFT), (1, 2), flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.spnFontSizeTitle, (1, 3), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.stXlabel, (2, 0), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.txtXlabel, (2, 1), border=4, flag=wx.EXPAND, span=(1, 5))
+		parent.Add(self.stYlabel, (3, 0), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.txtYlabel, (3, 1), border=4, flag=wx.EXPAND, span=(1, 5))
+		parent.Add(self.stXfrom, (4, 0), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.txtXmin, (4, 1), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.spnXmin, (4, 2), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.stXto, (4, 3), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.txtXmax, (4, 4), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.spnXmax, (4, 5), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.stYfrom, (5, 0), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.txtYmin, (5, 1), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.spnYmin, (5, 2), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.stYto, (5, 3), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.txtYmax, (5, 4), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.spnYmax, (5, 5), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.tbDrag, (6, 1), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.tbGrid, (6, 2), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.tbPointLabel, (6, 3), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.tbZoom, (6, 4), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.cbApply, (7, 0), border=4, flag=wx.EXPAND, span=(1, 1))
+		parent.Add(self.btnApply, (7, 1), border=4, flag=wx.EXPAND, span=(1, 5))
 		parent.AddSpacer(wx.Size(8, 8), (8, 0), flag=wx.EXPAND, span=(2, 6))
 
 	def _init_coll_gbsPlotProps_Growables(self, parent):

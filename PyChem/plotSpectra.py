@@ -82,14 +82,14 @@ class PeakCalculations(wx.Dialog):
 	def _init_coll_grsPeakCalcs_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.btnIntensity, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.btnIntensityFit, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.btnAreaAxis, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.btnAreaFitAxis, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.btnAreaBaseline, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.btnAreaFitBaseline, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.btnCalculate, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.btnCancel, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.btnIntensity, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.btnIntensityFit, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.btnAreaAxis, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.btnAreaFitAxis, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.btnAreaBaseline, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.btnAreaFitBaseline, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.btnCalculate, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.btnCancel, 0, border=0, flag=wx.EXPAND)
 
 	def _init_pc_ctrls(self, prnt):
 		# generated method, don't edit
@@ -304,13 +304,13 @@ class plotSpectra(wx.Panel):
 	def _init_coll_bxsPspc1_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.bxsPspc2, 1, border=0, flag=wx.EXPAND)
+		parent.Add(self.bxsPspc2, 1, border=0, flag=wx.EXPAND)
 
 	def _init_coll_bxsPspc2_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.titleBar, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.Splitter, 1, border=0, flag=wx.EXPAND)
+		parent.Add(self.titleBar, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.Splitter, 1, border=0, flag=wx.EXPAND)
 
 	def _init_sizers(self):
 		# generated method, don't edit

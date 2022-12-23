@@ -299,13 +299,13 @@ class expSetup(wx.Panel):
 	def _init_coll_bxsDep1_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.bxsDep2, 1, border=0, flag=wx.EXPAND)
+		parent.Add(self.bxsDep2, 1, border=0, flag=wx.EXPAND)
 
 	def _init_coll_bxsDep2_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.depTitleBar, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.pnl, 1, border=0, flag=wx.EXPAND)
+		parent.Add(self.depTitleBar, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.pnl, 1, border=0, flag=wx.EXPAND)
 
 	def _init_dep_sizers(self):
 		# generated method, don't edit
@@ -321,13 +321,13 @@ class expSetup(wx.Panel):
 	def _init_coll_bxsInd1_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.bxsInd2, 1, border=0, flag=wx.EXPAND)
+		parent.Add(self.bxsInd2, 1, border=0, flag=wx.EXPAND)
 
 	def _init_coll_bxsInd2_Items(self, parent):
 		# generated method, don't edit
 
-		parent.AddWindow(self.indTitleBar, 0, border=0, flag=wx.EXPAND)
-		parent.AddWindow(self.pnl, 1, border=0, flag=wx.EXPAND)
+		parent.Add(self.indTitleBar, 0, border=0, flag=wx.EXPAND)
+		parent.Add(self.pnl, 1, border=0, flag=wx.EXPAND)
 
 	def _init_ind_sizers(self):
 		# generated method, don't edit
