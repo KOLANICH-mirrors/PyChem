@@ -532,90 +532,90 @@ class TitleBar(bp.ButtonPanel):
 		self.data["proc"] = copy.deepcopy(self.data["raw"])
 		for each in self.data["processlist"]:
 			if each == 3:
-				self.data["proc"] = mva.process.norm01(self.data["proc"])
+				self.data["proc"] = process.norm01(self.data["proc"])
 			elif each == 4:
-				self.data["proc"] = mva.process.normhigh(self.data["proc"])
+				self.data["proc"] = process.normhigh(self.data["proc"])
 			elif each == 5:
-				self.data["proc"] = mva.process.normtot(self.data["proc"])
+				self.data["proc"] = process.normtot(self.data["proc"])
 			elif each == 6:
-				self.data["proc"] = mva.process.meancent(self.data["proc"])
+				self.data["proc"] = process.meancent(self.data["proc"])
 			elif each == 7:
-				self.data["proc"] = mva.process.autoscale(self.data["proc"])
+				self.data["proc"] = process.autoscale(self.data["proc"])
 			elif each == 8:
-				self.data["proc"] = scipy.transpose(mva.process.autoscale(scipy.transpose(self.data["proc"])))
+				self.data["proc"] = scipy.transpose(process.autoscale(scipy.transpose(self.data["proc"])))
 			elif each == 9:
-				self.data["proc"] = mva.process.emsc(self.data["proc"], 0)
+				self.data["proc"] = process.emsc(self.data["proc"], 0)
 			elif each == 10:
-				self.data["proc"] = mva.process.emsc(self.data["proc"], 1)
+				self.data["proc"] = process.emsc(self.data["proc"], 1)
 			elif each == 11:
-				self.data["proc"] = mva.process.emsc(self.data["proc"], 2)
+				self.data["proc"] = process.emsc(self.data["proc"], 2)
 			elif each == 12:
-				self.data["proc"] = mva.process.emsc(self.data["proc"], 3)
+				self.data["proc"] = process.emsc(self.data["proc"], 3)
 			elif each == 13:
-				self.data["proc"] = mva.process.emsc(self.data["proc"], 4)
+				self.data["proc"] = process.emsc(self.data["proc"], 4)
 			elif each == 14:
-				self.data["proc"] = mva.process.emsc(self.data["proc"], 5)
+				self.data["proc"] = process.emsc(self.data["proc"], 5)
 			elif each == 15:
-				self.data["proc"] = mva.process.emsc(self.data["proc"], 6)
+				self.data["proc"] = process.emsc(self.data["proc"], 6)
 			elif each == 16:
-				self.data["proc"] = mva.process.emsc(self.data["proc"], 7)
+				self.data["proc"] = process.emsc(self.data["proc"], 7)
 			elif each == 17:
-				self.data["proc"] = mva.process.emsc(self.data["proc"], 8)
+				self.data["proc"] = process.emsc(self.data["proc"], 8)
 			elif each == 18:
-				self.data["proc"] = mva.process.emsc(self.data["proc"], 9)
+				self.data["proc"] = process.emsc(self.data["proc"], 9)
 			elif each == 19:
-				self.data["proc"] = mva.process.emsc(self.data["proc"], 10)
+				self.data["proc"] = process.emsc(self.data["proc"], 10)
 			elif each == 20:
-				self.data["proc"] = mva.process.emsc(self.data["proc"], 11)
+				self.data["proc"] = process.emsc(self.data["proc"], 11)
 			elif each == 21:
-				self.data["proc"] = mva.process.emsc(self.data["proc"], 12)
+				self.data["proc"] = process.emsc(self.data["proc"], 12)
 			elif each == 22:
-				self.data["proc"] = mva.process.emsc(self.data["proc"], 13)
+				self.data["proc"] = process.emsc(self.data["proc"], 13)
 			elif each == 23:
-				self.data["proc"] = mva.process.emsc(self.data["proc"], 14)
+				self.data["proc"] = process.emsc(self.data["proc"], 14)
 			elif each == 24:
-				self.data["proc"] = mva.process.emsc(self.data["proc"], 15)
+				self.data["proc"] = process.emsc(self.data["proc"], 15)
 
 			elif each == 27:
-				self.data["proc"] = mva.process.avgfilt(self.data["proc"], 3, "c")
+				self.data["proc"] = process.avgfilt(self.data["proc"], 3, "c")
 			elif each == 28:
-				self.data["proc"] = mva.process.avgfilt(self.data["proc"], 4, "c")
+				self.data["proc"] = process.avgfilt(self.data["proc"], 4, "c")
 			elif each == 29:
-				self.data["proc"] = mva.process.avgfilt(self.data["proc"], 5, "c")
+				self.data["proc"] = process.avgfilt(self.data["proc"], 5, "c")
 			elif each == 30:
-				self.data["proc"] = mva.process.avgfilt(self.data["proc"], 6, "c")
+				self.data["proc"] = process.avgfilt(self.data["proc"], 6, "c")
 			elif each == 31:
-				self.data["proc"] = mva.process.avgfilt(self.data["proc"], 7, "c")
+				self.data["proc"] = process.avgfilt(self.data["proc"], 7, "c")
 			elif each == 32:
-				self.data["proc"] = mva.process.avgfilt(self.data["proc"], 8, "c")
+				self.data["proc"] = process.avgfilt(self.data["proc"], 8, "c")
 			elif each == 33:
-				self.data["proc"] = mva.process.avgfilt(self.data["proc"], 9, "c")
+				self.data["proc"] = process.avgfilt(self.data["proc"], 9, "c")
 			elif each == 34:
-				self.data["proc"] = mva.process.avgfilt(self.data["proc"], 10, "c")
+				self.data["proc"] = process.avgfilt(self.data["proc"], 10, "c")
 
 			elif each == 37:
-				self.data["proc"] = mva.process.baseline1(self.data["proc"])
+				self.data["proc"] = process.baseline1(self.data["proc"])
 			elif each == 38:
-				self.data["proc"] = mva.process.baseline2(self.data["proc"])
+				self.data["proc"] = process.baseline2(self.data["proc"])
 			elif each == 39:
-				self.data["proc"] = mva.process.lintrend(self.data["proc"])
+				self.data["proc"] = process.lintrend(self.data["proc"])
 
 			elif each == 42:
-				self.data["proc"] = mva.process.derivlin(self.data["proc"], 3)
+				self.data["proc"] = process.derivlin(self.data["proc"], 3)
 			elif each == 43:
-				self.data["proc"] = mva.process.derivlin(self.data["proc"], 4)
+				self.data["proc"] = process.derivlin(self.data["proc"], 4)
 			elif each == 44:
-				self.data["proc"] = mva.process.derivlin(self.data["proc"], 5)
+				self.data["proc"] = process.derivlin(self.data["proc"], 5)
 			elif each == 45:
-				self.data["proc"] = mva.process.derivlin(self.data["proc"], 6)
+				self.data["proc"] = process.derivlin(self.data["proc"], 6)
 			elif each == 46:
-				self.data["proc"] = mva.process.derivlin(self.data["proc"], 7)
+				self.data["proc"] = process.derivlin(self.data["proc"], 7)
 			elif each == 47:
-				self.data["proc"] = mva.process.derivlin(self.data["proc"], 8)
+				self.data["proc"] = process.derivlin(self.data["proc"], 8)
 			elif each == 48:
-				self.data["proc"] = mva.process.derivlin(self.data["proc"], 9)
+				self.data["proc"] = process.derivlin(self.data["proc"], 9)
 			elif each == 49:
-				self.data["proc"] = mva.process.derivlin(self.data["proc"], 10)
+				self.data["proc"] = process.derivlin(self.data["proc"], 10)
 
 		self.parent.parent.parent.GetExperimentDetails(case=1)
 

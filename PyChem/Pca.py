@@ -1353,7 +1353,7 @@ class TitleBar(bp.ButtonPanel):
 
 			if self.cbxPcaType.GetSelection() == 1:
 				# run PCA using SVD
-				self.data["pcscores"], self.data["pcloads"], self.data["pcpervar"], self.data["pceigs"] = mva.chemometrics.pca_svd(xdata, self.data["pcatype"])
+				self.data["pcscores"], self.data["pcloads"], self.data["pcpervar"], self.data["pceigs"] = chemometrics.pca_svd(xdata, self.data["pcatype"])
 
 				self.data["pcscores"] = self.data["pcscores"][:, 0 : len(self.data["pceigs"])]
 
@@ -1363,7 +1363,7 @@ class TitleBar(bp.ButtonPanel):
 
 			elif self.cbxPcaType.GetSelection() == 0:
 				# run PCA using NIPALS
-				self.data["pcscores"], self.data["pcloads"], self.data["pcpervar"], self.data["pceigs"] = mva.chemometrics.pca_nipals(xdata, self.spnPCAnum.GetValue(), self.data["pcatype"], self.parent.parent.parent.sbMain)
+				self.data["pcscores"], self.data["pcloads"], self.data["pcpervar"], self.data["pceigs"] = chemometrics.pca_nipals(xdata, self.spnPCAnum.GetValue(), self.data["pcatype"], self.parent.parent.parent.sbMain)
 
 				self.data["niporsvd"] = "nip"
 

@@ -443,7 +443,7 @@ class TitleBar(bp.ButtonPanel):
 				for Runs in range(runs):
 					# run ga-dfa
 					# create initial population
-					chrom = mva.genetic.crtpop(inds, Vars + varFrom, xdata.shape[1])
+					chrom = genetic.crtpop(inds, Vars + varFrom, xdata.shape[1])
 
 					# evaluate initial population
 					if self.type in ["DFA"]:
@@ -453,13 +453,13 @@ class TitleBar(bp.ButtonPanel):
 						else:
 							Lvs = int(maxf)
 						# run dfa
-						scores = mva.fitfun.call_dfa(chrom, xdata, Lvs, mask, self.data)
+						scores = fitfun.call_dfa(chrom, xdata, Lvs, mask, self.data)
 
 					elif self.type in ["PLS"]:
 						# set factors
 						Lvs = int(maxf)
 						# run pls
-						scores = mva.fitfun.call_pls(chrom, xdata, Lvs, mask, self.data)
+						scores = fitfun.call_pls(chrom, xdata, Lvs, mask, self.data)
 
 					# add additional methods here
 
@@ -474,29 +474,29 @@ class TitleBar(bp.ButtonPanel):
 
 					while count < stop:
 						# linear ranking
-						ranksc, chrom, scores = mva.genetic.rank(chrom, scores)
+						ranksc, chrom, scores = genetic.rank(chrom, scores)
 
 						# select individuals from population
-						chromSel = mva.genetic.select(ranksc, chrom, insr)
+						chromSel = genetic.select(ranksc, chrom, insr)
 
 						# perform crossover
 						if self.parent.optDlg.cbGaXover.GetValue() is True:
-							chromSel = mva.genetic.xover(chromSel, xovr, xdata.shape[1])
+							chromSel = genetic.xover(chromSel, xovr, xdata.shape[1])
 
 						# perform mutation
 						if self.parent.optDlg.cbGaMut.GetValue() is True:
-							chromSel = mva.genetic.mutate(chromSel, mutr, xdata.shape[1])
+							chromSel = genetic.mutate(chromSel, mutr, xdata.shape[1])
 
 						# evaluate chromSel
 						if self.type in ["DFA"]:
-							scoresSel = mva.fitfun.call_dfa(chromSel, xdata, Lvs, mask, self.data)
+							scoresSel = fitfun.call_dfa(chromSel, xdata, Lvs, mask, self.data)
 
 						elif self.type in ["PLS"]:
-							scoresSel = mva.fitfun.call_pls(chromSel, xdata, Lvs, mask, self.data)
+							scoresSel = fitfun.call_pls(chromSel, xdata, Lvs, mask, self.data)
 						# add additional methods here
 
 						# reinsert chromSel replacing worst parents in chrom
-						chrom, scores = mva.genetic.reinsert(chrom, chromSel, scores, scoresSel)
+						chrom, scores = genetic.reinsert(chrom, chromSel, scores, scoresSel)
 
 						if count == 0:
 							scoresOut = [min(min(scores))]
@@ -894,7 +894,7 @@ class selParam(fpb.FoldPanelBar):
 
 		# run dfa
 		if self.prnt.splitPrnt.type in ["DFA"]:
-			self.prnt.splitPrnt.titleBar.data["gadfadfscores"], self.prnt.splitPrnt.titleBar.data["gadfadfaloads"], gaError = mva.fitfun.rerun_dfa(currentChrom, xdata, self.prnt.splitPrnt.titleBar.data["validation"], self.prnt.splitPrnt.titleBar.data["class"][:, 0], self.prnt.splitPrnt.titleBar.data["label"], Lvs)
+			self.prnt.splitPrnt.titleBar.data["gadfadfscores"], self.prnt.splitPrnt.titleBar.data["gadfadfaloads"], gaError = fitfun.rerun_dfa(currentChrom, xdata, self.prnt.splitPrnt.titleBar.data["validation"], self.prnt.splitPrnt.titleBar.data["class"][:, 0], self.prnt.splitPrnt.titleBar.data["label"], Lvs)
 
 			# plot scores
 			self.prnt.splitPrnt.titleBar.spnGaScoreFrom.SetRange(1, self.prnt.splitPrnt.titleBar.data["gadfadfaloads"].shape[1])
@@ -908,7 +908,7 @@ class selParam(fpb.FoldPanelBar):
 
 		if self.prnt.splitPrnt.type in ["PLS"]:
 			# select only chrom vars from x
-			pls_output = mva.fitfun.rerun_pls(currentChrom, xdata, self.prnt.splitPrnt.titleBar.data["class"], self.prnt.splitPrnt.titleBar.data["validation"], Lvs)
+			pls_output = fitfun.rerun_pls(currentChrom, xdata, self.prnt.splitPrnt.titleBar.data["class"], self.prnt.splitPrnt.titleBar.data["validation"], Lvs)
 
 			self.prnt.splitPrnt.titleBar.data["gaplsplsloads"] = pls_output["W"]
 			self.prnt.splitPrnt.titleBar.data["gaplsscores"] = pls_output["predictions"]
@@ -978,7 +978,7 @@ class selParam(fpb.FoldPanelBar):
 			else:
 				LineObj.append(wx.lib.plot.PolyLine(FullVarFreq, colour="black", width=2, style=wx.SOLID))
 
-		meanSpec = scipy.concatenate((scipy.reshape(self.prnt.splitPrnt.titleBar.data["xaxisfull"], (len(self.prnt.splitPrnt.titleBar.data["xaxisfull"]), 1)), scipy.reshape(mva.process.norm01(scipy.reshape(scipy.mean(xdata, 0), (1, xdata.shape[1]))) * max(VarFreq[:, 1]), (xdata.shape[1], 1))), 1)
+		meanSpec = scipy.concatenate((scipy.reshape(self.prnt.splitPrnt.titleBar.data["xaxisfull"], (len(self.prnt.splitPrnt.titleBar.data["xaxisfull"]), 1)), scipy.reshape(process.norm01(scipy.reshape(scipy.mean(xdata, 0), (1, xdata.shape[1]))) * max(VarFreq[:, 1]), (xdata.shape[1], 1))), 1)
 		meanSpec = wx.lib.plot.PolyLine(meanSpec, colour="black", width=0.75, style=wx.SOLID)
 		LineObj.append(meanSpec)
 		DfaPlotFreq = wx.lib.plot.PlotGraphics(LineObj, "Frequency of Variable Selection", "Variable ID", "Frequency (%)")
