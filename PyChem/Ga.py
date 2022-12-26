@@ -357,7 +357,7 @@ class TitleBar(bp.ButtonPanel):
 			if dlg.ShowModal() == wx.ID_OK:
 				saveFile = dlg.GetPath()
 				out = "#CHROMOSOMES\n" + str_array(self.data["gadfachroms"], col_sep="\t") + "\n" + "#FITNESS_OPTIMISATION\n" + str_array(self.data["gadfacurves"], col_sep="\t")
-				f = file(saveFile, "w")
+				f = open(saveFile, "w")
 				f.write(out)
 				f.close()
 		finally:

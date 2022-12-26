@@ -337,7 +337,7 @@ class TitleBar(bp.ButtonPanel):
 					out = out + "P" + str(i) + "\t"
 
 				out = out + "\n" + str_array(np.array(pred), col_sep="\t") + "\n" + "#PARTIAL_LEAST_SQUARES_LOADINGS\n" + str_array(self.data["plsloads"], col_sep="\t") + "\n" + "#NUMBER_OF_PLS_FACTORS\n" + str(self.data["plsfactors"] + 1) + "\n" + "#ROOT_MEAN_SQUARED_ERROR_OF_CALIBRATION\n" + str(self.data["rmsec"]) + "\n" + "#ROOT_MEAN_SQUARED_ERROR_OF_CROSS_VALIDATION\n" + str(self.data["rmsepc"]) + "\n" + "#ROOT_MEAN_SQUARED_ERROR_FOR_INDEPENDENT_TEST_SAMPLES\n" + str(self.data["rmsept"]) + "\n" + "#PARTIAL_PREDICTION\n" + str_array(self.data["partial_pred"], col_sep="\t") + "\n" + "#SPECTRAL SCORES\n" + str_array(self.data["plst"], col_sep="\t")
-				f = file(saveFile, "w")
+				f = open(saveFile, "w")
 				f.write(out)
 				f.close()
 		except Exception as error:

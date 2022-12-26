@@ -1306,7 +1306,7 @@ class TitleBar(bp.ButtonPanel):
 			if dlg.ShowModal() == wx.ID_OK:
 				saveFile = dlg.GetPath()
 				out = "#PRINCIPAL_COMPONENT_SCORES\n" + str_array(self.data["pcscores"], col_sep="\t") + "\n" + "#PRINCIPAL_COMPONENT_LOADINGS\n" + str_array(self.data["pcloads"], col_sep="\t") + "\n" + "#EIGENVALUES\n" + str_array(self.data["pceigs"], col_sep="\t") + "\n" + "#CUMULATIVE_PERCENTAGE_EXPLAINED_VARIANCE\n" + str_array(self.data["pcpervar"], col_sep="\t") + "\n"
-				f = file(saveFile, "w")
+				f = open(saveFile, "w")
 				f.write(out)
 				f.close()
 		finally:

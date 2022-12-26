@@ -770,7 +770,7 @@ class wxImportMetaDataDialog(wx.Dialog):
 
 	def GetMetaData(self):
 		try:
-			f = file(self.ArrayFile, "r")
+			f = open(self.ArrayFile)
 			t = f.readlines()
 			c = 0
 			if self.Type == "dvar":

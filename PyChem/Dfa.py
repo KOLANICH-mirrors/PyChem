@@ -375,7 +375,7 @@ class TitleBar(bp.ButtonPanel):
 			if dlg.ShowModal() == wx.ID_OK:
 				saveFile = dlg.GetPath()
 				out = "#DISCRIMINANT_FUNCTION_SCORES\n" + str_array(self.data["dfscores"], col_sep="\t") + "\n" + "#DISCRIMINANT_FUNCTION_LOADINGS\n" + str_array(self.data["dfloads"], col_sep="\t") + "\n" + "#EIGENVALUES\n" + str_array(self.data["dfeigs"], col_sep="\t")
-				f = file(saveFile, "w")
+				f = open(saveFile, "w")
 				f.write(out)
 				f.close()
 		finally:
