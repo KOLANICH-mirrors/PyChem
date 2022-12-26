@@ -15,6 +15,7 @@ import os
 import string
 
 import scipy
+import numpy as np
 import wx
 import wx.lib.agw.buttonpanel as bp
 import wx.lib.agw.foldpanelbar as fpb

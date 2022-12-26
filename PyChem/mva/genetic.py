@@ -13,6 +13,7 @@
 
 import copy
 
+import numpy as np
 import scipy
 
 from .chemometrics import _flip, _slice

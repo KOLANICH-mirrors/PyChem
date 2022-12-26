@@ -16,6 +16,7 @@ import string
 import sys
 from xml.etree import ElementTree as ET
 
+import numpy as np
 import scipy
 import wx
 import wx.adv
@@ -1281,7 +1282,7 @@ class PyChemMain(wx.Frame):
 					locals()[name].set("key", "int")
 					locals()[name].text = str(getByPath(self, each).GetCurrentSelection())
 
-				# any scipy arrays
+				# any np.arrays
 				scipyArrays = ["pcscores", "pcloads", "pcpervar", "pceigs", "plsloads", "dfscores", "dfloads", "dfeigs", "gadfachroms", "gadfascores", "gadfacurves", "gaplschroms", "gaplsscores", "gaplscurves", "gadfadfscores", "gadfadfloads", "gaplsplsloads", "p_aur"]
 
 				Array = ET.SubElement(locals()[workspace], "Array")

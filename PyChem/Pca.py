@@ -15,6 +15,7 @@ import copy
 import os
 import string
 
+import numpy as np
 import scipy
 
 import wx

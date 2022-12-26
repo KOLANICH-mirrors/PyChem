@@ -19,6 +19,7 @@
 import copy
 import string
 
+import numpy as np
 import scipy
 import scipy.linalg
 from scipy import newaxis as nA
@@ -272,7 +273,7 @@ def pca_svd(myarray, type="covar"):
 	"""Run principal components analysis (PCA) by singular
 	value decomposition (SVD)
 
-	>>> import scipy
+	>>> import numpy as np
 	>>> a = np.array([[1,2,3],[0,1,1.5],[-1,-6,34],[8,15,2]])
 	>>> a
 	array([[  1. ,	 2. ,	3. ],

@@ -15,6 +15,7 @@
 # 			   for use on vibrational spectroscopic data
 # -----------------------------------------------------------------------------
 
+import numpy as np
 import scipy
 from scipy import newaxis as nA
 
