@@ -1318,6 +1318,8 @@ class TitleBar(bp.ButtonPanel):
 				f = open(saveFile, "w")
 				f.write(out)
 				f.close()
+		except:
+			raise
 		finally:
 			dlg.Destroy()
 
@@ -1382,6 +1384,7 @@ class TitleBar(bp.ButtonPanel):
 
 		except Exception as error:
 			errorBox(self, "%s" % str(error))
+			raise
 
 	##			  raise
 
