@@ -451,20 +451,20 @@ class TitleBar(bp.ButtonPanel):
 
 		# Write to textctrl
 		write = []
-		write.append(wx.lib.plot.PolyMarker(np.array([[0, 12]]), marker="text", labels="Root mean squared error"))
+		write.append(wx.lib.plot.PolyMarker(np.array([[0, 12]]), marker="dot", labels="Root mean squared error"))
 
-		write.append(wx.lib.plot.PolyMarker(np.array([[0, 10.5]]), marker="text", labels="Calibration"))
-		write.append(wx.lib.plot.PolyMarker(np.array([[12, 10.5]]), marker="text", labels="Validation"))
-		write.append(wx.lib.plot.PolyMarker(np.array([[24, 10.5]]), marker="text", labels="Test"))
+		write.append(wx.lib.plot.PolyMarker(np.array([[0, 10.5]]), marker="dot", labels="Calibration"))
+		write.append(wx.lib.plot.PolyMarker(np.array([[12, 10.5]]), marker="dot", labels="Validation"))
+		write.append(wx.lib.plot.PolyMarker(np.array([[24, 10.5]]), marker="dot", labels="Test"))
 		write.append(wx.lib.plot.PolyLine([[0, 9.5], [8, 9.5]]))
 		write.append(wx.lib.plot.PolyLine([[12, 9.5], [20, 9.5]]))
 		write.append(wx.lib.plot.PolyLine([[24, 9.5], [32, 9.5]]))
-		write.append(wx.lib.plot.PolyMarker(np.array([[0, 9]]), marker="text", labels="% .2f" % rmsec))
-		write.append(wx.lib.plot.PolyMarker(np.array([[12, 9]]), marker="text", labels="% .2f" % rmsecv))
+		write.append(wx.lib.plot.PolyMarker(np.array([[0, 9]]), marker="dot", labels="% .2f" % rmsec))
+		write.append(wx.lib.plot.PolyMarker(np.array([[12, 9]]), marker="dot", labels="% .2f" % rmsecv))
 		if max(mask) > 1:
-			write.append(wx.lib.plot.PolyMarker(np.array([[24, 9]]), marker="text", labels="% .2f" % rmset))
+			write.append(wx.lib.plot.PolyMarker(np.array([[24, 9]]), marker="dot", labels="% .2f" % rmset))
 
-		write.append(wx.lib.plot.PolyMarker(np.array([[0, 7.5]]), marker="text", labels="Least Squares Regression"))
+		write.append(wx.lib.plot.PolyMarker(np.array([[0, 7.5]]), marker="dot", labels="Least Squares Regression"))
 
 		##		  write.append(wx.lib.plot.PolyMarker(np.array([[0,6]]),marker='text',
 		##								  labels='Coefficient'))
@@ -477,32 +477,32 @@ class TitleBar(bp.ButtonPanel):
 		##		  write.append(wx.lib.plot.PolyMarker(np.array([[12,4.5]]),marker='text',
 		##								  labels='%.2f' %trnierr[0]))
 		# train
-		write.append(wx.lib.plot.PolyMarker(np.array([[0, 6]]), marker="text", labels="Train Intercept (Error)"))
-		write.append(wx.lib.plot.PolyMarker(np.array([[12, 6]]), marker="text", labels="Train Slope (Error)"))
+		write.append(wx.lib.plot.PolyMarker(np.array([[0, 6]]), marker="dot", labels="Train Intercept (Error)"))
+		write.append(wx.lib.plot.PolyMarker(np.array([[12, 6]]), marker="dot", labels="Train Slope (Error)"))
 		write.append(wx.lib.plot.PolyLine([[0, 5], [8, 5]]))
 		write.append(wx.lib.plot.PolyLine([[12, 5], [20, 5]]))
-		write.append(wx.lib.plot.PolyMarker(np.array([[0, 4.5]]), marker="text", labels="%.2f" % trnyi[0] + " (" + "%.2f" % trnierr[0] + ")"))
-		write.append(wx.lib.plot.PolyMarker(np.array([[12, 4.5]]), marker="text", labels="%.2f" % trngrad[0] + " (" + "%.2f" % trngerr + ")"))
+		write.append(wx.lib.plot.PolyMarker(np.array([[0, 4.5]]), marker="dot", labels="%.2f" % trnyi[0] + " (" + "%.2f" % trnierr[0] + ")"))
+		write.append(wx.lib.plot.PolyMarker(np.array([[12, 4.5]]), marker="dot", labels="%.2f" % trngrad[0] + " (" + "%.2f" % trngerr + ")"))
 
 		# cross-validation
-		write.append(wx.lib.plot.PolyMarker(np.array([[0, 3]]), marker="text", labels="Val. Intercept (Error)"))
-		write.append(wx.lib.plot.PolyMarker(np.array([[12, 3]]), marker="text", labels="Val. Slope (Error)"))
+		write.append(wx.lib.plot.PolyMarker(np.array([[0, 3]]), marker="dot", labels="Val. Intercept (Error)"))
+		write.append(wx.lib.plot.PolyMarker(np.array([[12, 3]]), marker="dot", labels="Val. Slope (Error)"))
 		write.append(wx.lib.plot.PolyLine([[0, 2], [8, 2]]))
 		write.append(wx.lib.plot.PolyLine([[12, 2], [20, 2]]))
-		write.append(wx.lib.plot.PolyMarker(np.array([[0, 1.5]]), marker="text", labels="%.2f" % cvyi[0] + " (" + "%.2f" % cvierr[0] + ")"))
-		write.append(wx.lib.plot.PolyMarker(np.array([[12, 1.5]]), marker="text", labels="%.2f" % cvgrad[0] + " (" + "%.2f" % cvgerr + ")"))
+		write.append(wx.lib.plot.PolyMarker(np.array([[0, 1.5]]), marker="dot", labels="%.2f" % cvyi[0] + " (" + "%.2f" % cvierr[0] + ")"))
+		write.append(wx.lib.plot.PolyMarker(np.array([[12, 1.5]]), marker="dot", labels="%.2f" % cvgrad[0] + " (" + "%.2f" % cvgerr + ")"))
 
 		# test
 		if max(mask) > 1:
-			write.append(wx.lib.plot.PolyMarker(np.array([[0, 0]]), marker="text", labels="Test Intercept (Error)"))
-			write.append(wx.lib.plot.PolyMarker(np.array([[12, 0]]), marker="text", labels="Test Slope (Error)"))
+			write.append(wx.lib.plot.PolyMarker(np.array([[0, 0]]), marker="dot", labels="Test Intercept (Error)"))
+			write.append(wx.lib.plot.PolyMarker(np.array([[12, 0]]), marker="dot", labels="Test Slope (Error)"))
 			write.append(wx.lib.plot.PolyLine([[0, -1], [8, -1]]))
 			write.append(wx.lib.plot.PolyLine([[12, -1], [20, -1]]))
-			write.append(wx.lib.plot.PolyMarker(np.array([[0, -1.5]]), marker="text", labels="%.2f" % tstyi[0] + " (" + "%.2f" % tstierr[0] + ")"))
-			write.append(wx.lib.plot.PolyMarker(np.array([[12, -1.5]]), marker="text", labels="%.2f" % tstgrad[0] + " (" + "%.2f" % tstgerr + ")"))
+			write.append(wx.lib.plot.PolyMarker(np.array([[0, -1.5]]), marker="dot", labels="%.2f" % tstyi[0] + " (" + "%.2f" % tstierr[0] + ")"))
+			write.append(wx.lib.plot.PolyMarker(np.array([[12, -1.5]]), marker="dot", labels="%.2f" % tstgrad[0] + " (" + "%.2f" % tstgerr + ")"))
 
 		# filler
-		write.append(wx.lib.plot.PolyMarker(np.array([[0, -3]]), marker="text", labels=""))
+		write.append(wx.lib.plot.PolyMarker(np.array([[0, -3]]), marker="dot", labels=""))
 
 		write = wx.lib.plot.PlotGraphics(write)
 
