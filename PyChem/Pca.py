@@ -568,7 +568,7 @@ def plotText(plotCanvas, coords, **_attr):
 				idx = _index(mask, getColour)
 			else:
 				idx = list(range(len(coords)))
-			plotText.append(wx.lib.plot.PolyMarker(scipy.take(scipy.take(coords, [col1, col2], 1), idx, 0), marker="dot", labels=scipy.take(text, idx, 0), text_colour=colours[getColour]))
+			plotText.append(wx.lib.plot.PolyMarker(scipy.take(scipy.take(coords, [col1, col2], 1), idx, 0), marker="dot", labels=scipy.take(text, idx, 0), colour=colours[getColour]))
 	else:  # plot 1d
 		points = scipy.take(coords, [col1], 1)
 		nCl = scipy.unique(text)
@@ -587,7 +587,7 @@ def plotText(plotCanvas, coords, **_attr):
 			else:
 				msk = np.array(mask)[np.array(text) == each].tolist()
 				for each in range(3):
-					plotText.append(wx.lib.plot.PolyMarker(scipy.take(pointSub, _index(msk, each), 0), marker="dot", labels=scipy.take(lbls, _index(msk, each)).tolist(), text_colour=colours[each]))
+					plotText.append(wx.lib.plot.PolyMarker(scipy.take(pointSub, _index(msk, each), 0), marker="dot", labels=scipy.take(lbls, _index(msk, each)).tolist(), colour=colours[each]))
 
 	if (coords.shape[1] > 1) & (col1 != col2) is True:
 		draw_plotText = wx.lib.plot.PlotGraphics(plotText, tit, xLabel=xL, yLabel=yL)
