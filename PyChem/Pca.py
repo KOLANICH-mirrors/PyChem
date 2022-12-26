@@ -564,7 +564,7 @@ def plotText(plotCanvas, coords, mask=(), cLass=(), col1: int = 0, col2: int = 1
 				idx = _index(mask, getColour)
 			else:
 				idx = list(range(len(coords)))
-			plotText.append(wx.lib.plot.PolyMarker(scipy.take(scipy.take(coords, [col1, col2], 1), idx, 0), marker="dot", labels=scipy.take(text, idx, 0), colour=colours[getColour]))
+			plotText.append(wx.lib.plot.PolyMarker(scipy.take(scipy.take(coords, [col1, col2], 1), idx, 0), marker="dot", colour=colours[getColour]))  # , labels=scipy.take(text, idx, 0).tolist() # ToDO: the API has changed
 	else:  # plot 1d
 		points = scipy.take(coords, [col1], 1)
 		nCl = scipy.unique(text)
@@ -579,11 +579,11 @@ def plotText(plotCanvas, coords, mask=(), cLass=(), col1: int = 0, col2: int = 1
 			pointSub = scipy.concatenate((scipy.arange(sCount, eCount + 1)[:, nA], slice), 1)
 
 			if usemask is False:
-				plotText.append(wx.lib.plot.PolyMarker(pointSub, marker="dot", labels=lbls.tolist()))
+				plotText.append(wx.lib.plot.PolyMarker(pointSub, marker="dot"))  # , labels=lbls.tolist()  # ToDO: the API has changed
 			else:
 				msk = np.array(mask)[np.array(text) == each].tolist()
 				for each in range(3):
-					plotText.append(wx.lib.plot.PolyMarker(scipy.take(pointSub, _index(msk, each), 0), marker="dot", labels=scipy.take(lbls, _index(msk, each)).tolist(), colour=colours[each]))
+					plotText.append(wx.lib.plot.PolyMarker(scipy.take(pointSub, _index(msk, each), 0), marker="dot", colour=colours[each]))  # , labels=scipy.take(lbls, _index(msk, each)).tolist()  # ToDO: the API has changed
 
 	if (coords.shape[1] > 1) & (col1 != col2) is True:
 		draw_plotText = wx.lib.plot.PlotGraphics(plotText, tit, xLabel=xL, yLabel=yL)
