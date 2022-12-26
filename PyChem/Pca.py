@@ -154,7 +154,7 @@ def CreateSymColSelect(canvas, output):
 	canvas.tbMain.SymPopUpWin.SetSize(wx.Size(canvas.tbMain.SymPopUpWin.GetSize()[0], count * 35))
 
 
-def BoxPlot(canvas, x, labels, **_attr):
+def BoxPlot(canvas, x, labels, title: str = None, xLabel=None, yLabel=None):
 	"""Box and whisker plot; x is a column vector, labels a list of strings"""
 
 	objects, count = [], 1
@@ -198,7 +198,7 @@ def BoxPlot(canvas, x, labels, **_attr):
 	canvas.Draw(wx.lib.plot.PlotGraphics(objects, title, xLabel, yLabel, xTickLabels=uG))
 
 
-def plotErrorBar(canvas, **_attr):
+def plotErrorBar(canvas, x=None, y=None, validation=None, title: str = "", xLabel: str = "", yLabel: str = "", lsfit: bool = False, usesym=(), usecol=()):
 	"""Errorbar plot
 	Defaults:
 		'x'= None			- xaxis values, column vector
@@ -256,24 +256,23 @@ def plotErrorBar(canvas, **_attr):
 	canvas.Draw(wx.lib.plot.PlotGraphics(objects, title, xLabel, yLabel), xAx, yAx)
 
 
-def PlotPlsModel(canvas, model="full", tbar=None, **_attr):
+def PlotPlsModel(canvas, model="full", tbar=None, predictions=None, cL=None, scores=None, plScL=None, validation=None, factors: int = 1, type: int = 0, symbols=False, usetxt=True, RMSEPT: int = 0, col1: int = 0, col2: int = 1):
 	"""Plot PLS predictions or scores; model = 'full' for PLSR,
-	   model = 'ga' for GA-PLS feature selection
+	model = 'ga' for GA-PLS feature selection
 
-	**_attr - key word _attributes
-			Defaults:
-				'predictions'= None		- pls predictions
-				'cL' = None				- constituents
-				'scores'	 = None		- pls spectral scores
-				'plScL'		 = None		- false class for pls-da
-				'validation' = None,	- split data
-				'factors'	 = 1,		- no. latent variables
-				'type'		 = 0		- plsr or pls-da
-				'symbols'	 = False	- plot with symbols
-				'usetxt'	 = True		- plot with text labels
-				'RMSEPT'	 = 0		- RMSE for independent test samples
-				'col1'		 = 0		- col for xaxis
-				'col2'		 = 1		- col for yaxis
+		 Defaults:
+			 'predictions'= None		- pls predictions
+			 'cL' = None				- constituents
+			 'scores'	 = None		- pls spectral scores
+			 'plScL'		 = None		- false class for pls-da
+			 'validation' = None,	- split data
+			 'factors'	 = 1,		- no. latent variables
+			 'type'		 = 0		- plsr or pls-da
+			 'symbols'	 = False	- plot with symbols
+			 'usetxt'	 = True		- plot with text labels
+			 'RMSEPT'	 = 0		- RMSE for independent test samples
+			 'col1'		 = 0		- col for xaxis
+			 'col2'		 = 1		- col for yaxis
 	"""
 
 	if model in ["full"]:
@@ -382,18 +381,17 @@ def PlotPlsModel(canvas, model="full", tbar=None, **_attr):
 	return canvas
 
 
-def plotLine(plotCanvas, plotArr, **_attr):
+def plotLine(plotCanvas, plotArr, xaxis=None, rownum: int = 0, tit: str = "", xLabel: str = "", yLabel: str = "", type: str = "single", ledge=[], wdth: int = 1):
 	"""Line plot
-	**_attr - key word _attributes
-		Defaults:
-			'xaxis' = None,	   - Vector of x-axis values
-			'rownum' = 0,	   - Row of plotArr to plot
-			'tit'= '',		   - A small domestic bird
-			'xLabel'= '',	   - The desired x-axis label
-			'yLabel'= '',	   - The desired y-axis label
-			'type'= 'single',  - 'single' or 'multi'
-			'ledge'= [],	   - Figure legend labels
-			'wdth'= 1,		   - Line width
+	Defaults:
+		'xaxis' = None,	   - Vector of x-axis values
+		'rownum' = 0,	   - Row of plotArr to plot
+		'tit'= '',		   - A small domestic bird
+		'xLabel'= '',	   - The desired x-axis label
+		'yLabel'= '',	   - The desired y-axis label
+		'type'= 'single',  - 'single' or 'multi'
+		'ledge'= [],	   - Figure legend labels
+		'wdth'= 1,		   - Line width
 	"""
 
 	colourList = [wx.TheColourDatabase.Find("BLUE"), wx.TheColourDatabase.Find("RED"), wx.TheColourDatabase.Find("GREEN"), wx.TheColourDatabase.Find("LIGHT GREY"), wx.TheColourDatabase.Find("CYAN"), wx.TheColourDatabase.Find("BLACK")]
@@ -423,14 +421,13 @@ def plotLine(plotCanvas, plotArr, **_attr):
 ##			xaxis.max()))
 
 
-def plotStem(plotCanvas, plotArr, **_attr):
+def plotStem(plotCanvas, plotArr, tit: str = "", xLabel: str = "", yLabel: str = "", width=1):
 	"""Stem plot
-	**_attr - key word _attributes
-		Defaults:
-			'tit'= '',	   - Figure title
-			'xLabel'= '',  - The desired x-axis label
-			'yLabel'= '',  - The desired y-axis label
-			'wdth'= 1,	   - Line width
+	Defaults:
+		'tit'= '',	   - Figure title
+		'xLabel'= '',  - The desired x-axis label
+		'yLabel'= '',  - The desired y-axis label
+		'wdth'= 1,	   - Line width
 	"""
 
 	# plotArr is an n x 2 array
@@ -446,24 +443,23 @@ def plotStem(plotCanvas, plotArr, **_attr):
 	plotCanvas.Draw(plotStem)
 
 
-def plotSymbols(plotCanvas, coords, **_attr):
+def plotSymbols(plotCanvas, coords, mask=(), cLass=(), col1: int = 0, col2: int = 1, tit: str = "", xL: str = "", yL: str = "", text=(), usemask: bool = True, usecol=(), usesym=()):
 	"""Symbol plot
-	**_attr - key word _attributes
-		Defaults:
-			'mask' = [],	- List of zeros, ones and/or twos to
-							  define train, cross-validation and
-							  test samples
-			'cLass' = [],	- List of integers from 1:n, where
-							  n=no. of groups
-			'col1' = 0,		- Column to plot along abscissa
-			'col2' = 1,		- Column to plot along ordinate
-			'tit'= '',		- A small domestic bird
-			'xL'= '',		- The desired x-axis label
-			'yL'= '',		- The desired y-axis label
-			'text'= [],		- List of labels to use in legend
-			'usemask'= True,- Flag to define whether to use 'mask'
-			'usecol'=[],	- Use a list of colours
-			'usesym'= [],	- List of symbols for plotting
+	Defaults:
+		'mask' = [],	- List of zeros, ones and/or twos to
+						  define train, cross-validation and
+						  test samples
+		'cLass' = [],	- List of integers from 1:n, where
+						  n=no. of groups
+		'col1' = 0,		- Column to plot along abscissa
+		'col2' = 1,		- Column to plot along ordinate
+		'tit'= '',		- A small domestic bird
+		'xL'= '',		- The desired x-axis label
+		'yL'= '',		- The desired y-axis label
+		'text'= [],		- List of labels to use in legend
+		'usemask'= True,- Flag to define whether to use 'mask'
+		'usecol'=[],	- Use a list of colours
+		'usesym'= [],	- List of symbols for plotting
 	"""
 
 	desCl = scipy.unique(text)
@@ -532,22 +528,21 @@ def plotSymbols(plotCanvas, coords, **_attr):
 	return plotSym, output
 
 
-def plotText(plotCanvas, coords, **_attr):
+def plotText(plotCanvas, coords, mask=(), cLass=(), col1: int = 0, col2: int = 1, tit: str = "", xL: str = "", yL: str = "", text=(), usemask: bool = True):
 	"""Text label plot
-	**_attr - key word _attributes
-		Defaults:
-			'mask' = [],	- List of zeros, ones and/or twos to
-							  define train, cross-validation and
-							  test samples
-			'cLass' = [],	- List of integers from 1:n, where
-							  n=no. of groups
-			'col1' = 0,		- Column to plot along abscissa
-			'col2' = 1,		- Column to plot along ordinate
-			'tit'= '',		- A small domestic bird
-			'xL'= '',		- The desired x-axis label
-			'yL'= '',		- The desired y-axis label
-			'text'= [],		- List of labels to use in plotting
-			'usemask'= True,- Flag to define whether to use 'mask'
+	Defaults:
+		'mask' = [],	- List of zeros, ones and/or twos to
+						  define train, cross-validation and
+						  test samples
+		'cLass' = [],	- List of integers from 1:n, where
+						  n=no. of groups
+		'col1' = 0,		- Column to plot along abscissa
+		'col2' = 1,		- Column to plot along ordinate
+		'tit'= '',		- A small domestic bird
+		'xL'= '',		- The desired x-axis label
+		'yL'= '',		- The desired y-axis label
+		'text'= [],		- List of labels to use in plotting
+		'usemask'= True,- Flag to define whether to use 'mask'
 	"""
 
 	# make sure label string
@@ -601,19 +596,18 @@ def plotText(plotCanvas, coords, **_attr):
 	return plotText
 
 
-def plotLoads(canvas, loads, **_attr):
+def plotLoads(canvas, loads, xaxis=(), col1: int = 0, col2: int = 1, title: str = "", xLabel: str = "", yLabel: str = "", type: int = 0, usecol=(), usesym=()):
 	"""Model loadings plot
-	**_attr - key word _attributes
-		Defaults:
-			'xaxis' = [],	- Vector of x-axis values
-			'col1' = 0,		- Column to plot along abscissa
-			'col2' = 1,		- Column to plot along ordinate
-			'title'= '',	- Figure title
-			'xLabel'= '',	- The desired x-axis label
-			'yLabel'= '',	- The desired y-axis label
-			'type'= 0,		- List of labels to use in plotting
-			'usecol'= [],	- List of colours for symbol plot
-			'usesym'= [],	- List of symbols for plotting
+	Defaults:
+		'xaxis' = [],	- Vector of x-axis values
+		'col1' = 0,		- Column to plot along abscissa
+		'col2' = 1,		- Column to plot along ordinate
+		'title'= '',	- Figure title
+		'xLabel'= '',	- The desired x-axis label
+		'yLabel'= '',	- The desired y-axis label
+		'type'= 0,		- List of labels to use in plotting
+		'usecol'= [],	- List of colours for symbol plot
+		'usesym'= [],	- List of symbols for plotting
 	"""
 
 	# for model loadings plots
@@ -719,24 +713,23 @@ def plotLoads(canvas, loads, **_attr):
 		canvas.Draw(wx.lib.plot.PlotGraphics(plot, title, xLabel, yLabel))
 
 
-def plotScores(canvas, scores, **_attr):
+def plotScores(canvas, scores, cl=(), labels=(), validation=(), col1: int = 0, col2: int = 1, title: str = "", xLabel: str = "", yLabel: str = "", xval=False, text=True, pconf=True, symb=False, usecol=(), usesym=()):
 	"""Model scores plot
-	**_attr - key word _attributes
-		Defaults:
-			'cl' = []			- List of integers
-			'labels' = []		- List of sample labels
-			'validation' = []	- List of zeros, ones and/or twos
-			'col1' = 0,			- Column to plot along abscissa
-			'col2' = 1,			- Column to plot along ordinate
-			'title'= '',		- Figure title
-			'xLabel'= '',		- The desired x-axis label
-			'yLabel'= '',		- The desired y-axis label
-			'xval'= False,		- Cross-validation used flag
-			'text'= True,		- Text label plotting used flag
-			'pconf'= True,		- 95% confidence limits plotted flag
-			'symb'= False,		- Symbol plotting used flag
-			'usecol'= [],		- List of colours to use in plotting
-			'usesym'= [],		- List of symbols for plotting
+	Defaults:
+		'cl' = []			- List of integers
+		'labels' = []		- List of sample labels
+		'validation' = []	- List of zeros, ones and/or twos
+		'col1' = 0,			- Column to plot along abscissa
+		'col2' = 1,			- Column to plot along ordinate
+		'title'= '',		- Figure title
+		'xLabel'= '',		- The desired x-axis label
+		'yLabel'= '',		- The desired y-axis label
+		'xval'= False,		- Cross-validation used flag
+		'text'= True,		- Text label plotting used flag
+		'pconf'= True,		- 95% confidence limits plotted flag
+		'symb'= False,		- Symbol plotting used flag
+		'usecol'= [],		- List of colours to use in plotting
+		'usesym'= [],		- List of symbols for plotting
 	"""
 
 	# make sure we can plot txt

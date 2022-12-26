@@ -380,21 +380,20 @@ class TitleBar(bp.ButtonPanel):
 	def OnCbxfeature2(self, event):
 		self.parent.optDlg.PlotGaVariables(self.parent.plcGaFeatPlot)
 
-	def runGa(self, **_attr):
+	def runGa(self, varfrom: int = 2, varto: int = 2, inds: int = 10, runs: int = 1, xovr: float = 0.8, mutr: float = 0.4, insr: float = 0.8, maxf: int = 1, mgens: int = 5, rgens: int = 5, resample: int = 1):
 		"""Runs GA
-		**_attr - key word _attributes
-			Defaults:
-				'varfrom' = 2,		- No of ind. variables from
-				'varto' = 2,	  - No of ind. variables to
-				'inds'= 10,		- No. of individuals
-				'runs'= 1,	   - No. of independent GA runs
-				'xovr'= 0.8,	 - Crossover rate
-				'mutr'= 0.4,	 - Mutation rate
-				'insr'= 0.8,	 - Insertion rate
-				'maxf'= 1,	   - Maximum no.of latent variables
-				'mgens'= 5,		 - Max. no. of generations
-				'rgens'= 5,		 - No. of repeat gens
-				'resample'= 1,	  - No. of random resampling iterations
+		Defaults:
+			'varfrom' = 2,		- No of ind. variables from
+			'varto' = 2,	  - No of ind. variables to
+			'inds'= 10,		- No. of individuals
+			'runs'= 1,	   - No. of independent GA runs
+			'xovr'= 0.8,	 - Crossover rate
+			'mutr'= 0.4,	 - Mutation rate
+			'insr'= 0.8,	 - Insertion rate
+			'maxf'= 1,	   - Maximum no.of latent variables
+			'mgens'= 5,		 - Max. no. of generations
+			'rgens'= 5,		 - No. of repeat gens
+			'resample'= 1,	  - No. of random resampling iterations
 		"""
 
 		dlg = wx.MessageDialog(self, "This can take a while, are you sure?", "Preparing to run GA", wx.OK | wx.CANCEL | wx.ICON_INFORMATION)
@@ -625,15 +624,14 @@ class TitleBar(bp.ButtonPanel):
 		self.parent.parent.sbMain.SetStatusText("", 1)
 		self.parent.parent.sbMain.SetStatusText("", 2)
 
-	def CreateGaResultsTree(self, tree, **_attr):
+	def CreateGaResultsTree(self, tree, gacurves=None, chroms=None, varfrom: int = 2, varto: int = 2, runs: int = 1):
 		"""Populates GA results tree ctrl
-		**_attr - key word _attributes
-			Defaults:
-				'gacurves' = None	   - Optimisation curves from each ind. run
-				'chroms' = None		   - Array of chromosomes
-				'varfrom' = 2		   - Min. no. of vars selected
-				'varto' = 2			   - Max. no. of vars selected
-				'runs' = 1			   - Number of ind. GA runs
+		Defaults:
+			'gacurves' = None	   - Optimisation curves from each ind. run
+			'chroms' = None		   - Array of chromosomes
+			'varfrom' = 2		   - Min. no. of vars selected
+			'varto' = 2			   - Max. no. of vars selected
+			'runs' = 1			   - Number of ind. GA runs
 
 		"""
 
