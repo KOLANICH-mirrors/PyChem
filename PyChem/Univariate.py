@@ -411,7 +411,7 @@ class TitleBar(bp.ButtonPanel):
 				lineq = "y = " + "%.2f" % pfit[0] + "x " + "%.2f" % pfit[1] + "; R = " + "%.2f" % self.data["plotp"]
 			else:
 				lineq = "y = " + "%.2f" % pfit[0] + "x + " + "%.2f" % pfit[1] + ";R = " + "%.2f" % self.data["plotp"]
-			eq = wx.lib.plot.PolyMarker(coords, labels=lineq, marker="dot")
+			eq = wx.lib.plot.PolyMarker(coords, legend=lineq, marker="dot")  # ToDo: the API has changed
 			self.parent.plcBoxplot.Draw(wx.lib.plot.PlotGraphics([points, linear, eq], title="Linear Regression", xLabel="Actual Value", yLabel=self.cbxVariable.GetStringSelection()))
 
 			if len(r) > 1:
@@ -476,7 +476,7 @@ class TitleBar(bp.ButtonPanel):
 				slice = self.data["p_aur"][scipy.asarray(self.data["p_aur"][:, 0], dtype="i") == each, :]
 				if len(slice) > 0:
 					pRoc.append(wx.lib.plot.PolyMarker(scipy.asarray(slice[:, 1:3], dtype="float64"), marker="circle", colour=wx.TheColourDatabase.Find(slice[0, 3]), fillcolour=wx.TheColourDatabase.Find(slice[0, 3]), size=1, legend=ugrp[each]))
-					pRoc.append(wx.lib.plot.PolyMarker(scipy.asarray(slice[:, 1:3], dtype="float64"), marker="dot", labels=slice[:, 4], colour=wx.TheColourDatabase.Find(slice[0, 3])))
+					pRoc.append(wx.lib.plot.PolyMarker(scipy.asarray(slice[:, 1:3], dtype="float64"), marker="dot", colour=wx.TheColourDatabase.Find(slice[0, 3])))  # , labels=slice[:, 4] # ToDo: the API has changed
 				chkSum += len(slice)
 			if chkSum > 0:
 				self.parent.plcPsumm.Draw(wx.lib.plot.PlotGraphics(pRoc, title="p-value vs. Area under ROC", xLabel="log(p)", yLabel="Area under ROC"))

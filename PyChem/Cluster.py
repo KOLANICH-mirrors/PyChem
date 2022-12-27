@@ -513,12 +513,12 @@ class TitleBar(bp.ButtonPanel):
 		Line = []
 		count = 0
 		for i in range(len(order)):
-			Line.append(wx.lib.plot.PolyMarker(np.array([[0, count], [0, count]]), marker="dot", labels=[labels[int(order[i])], labels[int(order[i])]]))
+			Line.append(wx.lib.plot.PolyMarker(np.array([[0, count], [0, count]]), marker="dot"))  # , labels=[labels[int(order[i])], labels[int(order[i])]] # ToDo: the API has changed
 			count += 2
 
 		# plot distances
-		Line.append(wx.lib.plot.PolyMarker(np.array([[0, -2]]), marker="dot", labels="0"))
-		Line.append(wx.lib.plot.PolyMarker(np.array([[max(tree[:, 3]), -2]]), marker="dot", labels="% .2f" % max(tree[:, 3])))
+		Line.append(wx.lib.plot.PolyMarker(np.array([[0, -2]]), marker="dot"))  # , labels="0" # ToDo: restore labels
+		Line.append(wx.lib.plot.PolyMarker(np.array([[max(tree[:, 3]), -2]]), marker="dot"))  # , labels="% .2f" % max(tree[:, 3])  # ToDo: the API has changed
 
 		idx = scipy.reshape(scipy.arange(len(tree) + 1), (len(tree) + 1,))
 		Nodes = {}
