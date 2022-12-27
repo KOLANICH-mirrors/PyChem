@@ -1097,17 +1097,17 @@ class PyChemMain(wx.Frame):
 		wx.TheClipboard.Close()
 
 	def Reset(self, case=0):
-		varList = "'split':None,'processlist':[]," + "'pcscores':None,'pcloads':None,'pcpervar':None," + "'pceigs':None,'pcadata':None,'niporsvd':None," + "'plsloads':None,'pcatype':None," + "'dfscores':None,'dfloads':None,'dfeigs':None," + "'gadfachroms':None,'gadfascores':None," + "'gadfacurves':None,'gaplschroms':None," + "'gaplsscores':None,'gaplscurves':None," + "'gadfadfscores':None,'gadfadfaloads':None," + "'gaplsplsloads':None,'gridsel':None,'plotsel':None," + "'tree':None,'order':None,'plsfactors':None," + "'rmsec':None,'rmsepc':None,'rmsept':None," + "'gacurrentchrom':None,'plspred':None,'pcaloadsym':None," + "'dfaloadsym':None,'plsloadsym':None,'plst':None," + "'plstype':0,'pls_class':None,'gaplstreeorder':None," + "'gadfatreeorder':None,'utest':None,'p_aur':None," + "'indvarlist':None,'depvarlist':None,'plotp':None"
+		varList = {"split": None, "processlist": [], "pcscores": None, "pcloads": None, "pcpervar": None, "pceigs": None, "pcadata": None, "niporsvd": None, "plsloads": None, "pcatype": None, "dfscores": None, "dfloads": None, "dfeigs": None, "gadfachroms": None, "gadfascores": None, "gadfacurves": None, "gaplschroms": None, "gaplsscores": None, "gaplscurves": None, "gadfadfscores": None, "gadfadfaloads": None, "gaplsplsloads": None, "gridsel": None, "plotsel": None, "tree": None, "order": None, "plsfactors": None, "rmsec": None, "rmsepc": None, "rmsept": None, "gacurrentchrom": None, "plspred": None, "pcaloadsym": None, "dfaloadsym": None, "plsloadsym": None, "plst": None, "plstype": 0, "pls_class": None, "gaplstreeorder": None, "gadfatreeorder": None, "utest": None, "p_aur": None, "indvarlist": None, "depvarlist": None, "plotp": None}
 
 		if case == 0:
-			exec('self.data = {"raw":None,"proc":None,"exppath":None,"indlabels":None,' + '"class":None,"label":None,"validation":None,"xaxis":[],' + '"sampleidx":None,"variableidx":None,"rawtrunc":None,' + '"proctrunc":None,' + varList + "}")
+			self.data = {"raw": None, "proc": None, "exppath": None, "indlabels": None, "class": None, "label": None, "validation": None, "xaxis": [], "sampleidx": None, "variableidx": None, "rawtrunc": None, "proctrunc": None, **varList}
 			# disable options on file menu
 			mb = self.GetMenuBar()
 			mb.Enable(wxID_PYCHEMMAINMNUFILESAVEEXP, False)
 			mb.Enable(wxID_PYCHEMMAINMNUFILESAVEWS, False)
 			mb.Enable(wxID_PYCHEMMAINMNUFILELOADWS, False)
 		else:
-			exec('self.data = {"raw":self.data["raw"],"proc":self.data["raw"],' + '"exppath":self.data["exppath"],"indlabels":self.data["indlabels"],' + '"class":self.data["class"],"label":self.data["label"],' + '"validation":self.data["validation"],"xaxis":self.data["xaxis"],' + '"sampleidx":self.data["sampleidx"],"variableidx":self.data["variableidx"],' + '"rawtrunc":self.data["rawtrunc"],"proctrunc":self.data["proctrunc"],' + varList + "}")
+			self.data = {"raw": self.data["raw"], "proc": self.data["raw"], "exppath": self.data["exppath"], "indlabels": self.data["indlabels"], "class": self.data["class"], "label": self.data["label"], "validation": self.data["validation"], "xaxis": self.data["xaxis"], "sampleidx": self.data["sampleidx"], "variableidx": self.data["variableidx"], "rawtrunc": self.data["rawtrunc"], "proctrunc": self.data["proctrunc"], **varList}
 
 		# for returning application to default settings
 		self.plPreproc.Reset()
