@@ -364,7 +364,7 @@ class TitleBar(bp.ButtonPanel):
 				self.data["pls_class"] = self.data["class"]
 
 			# Run PLS
-			pls_output = mva.chemometrics.pls(xdata, self.data["pls_class"], self.data["validation"], self.spnPLSmaxfac.GetValue(), stb=self.parent.prnt.parent.sbMain, type=self.cbxPreprocType.GetSelection())
+			pls_output = chemometrics.pls(xdata, self.data["pls_class"], self.data["validation"], self.spnPLSmaxfac.GetValue(), stb=self.parent.prnt.parent.sbMain, type=self.cbxPreprocType.GetSelection())
 
 			self.data["plsloads"] = pls_output["W"]
 			self.data["plst"] = pls_output["plsscores"]
@@ -439,14 +439,14 @@ class TitleBar(bp.ButtonPanel):
 				n2.append(labels[i])
 
 		predy = scipy.take(predictions, _index(mask, 0), axis=0)
-		trngrad, trnyi, trnmserr, trnrmserr, trngerr, trnierr = mva.chemometrics.ols(n0, predy)
+		trngrad, trnyi, trnmserr, trnrmserr, trngerr, trnierr = chemometrics.ols(n0, predy)
 
 		predyv = scipy.take(predictions, _index(mask, 1), axis=0)
-		cvgrad, cvyi, cvmserr, cvrmserr, cvgerr, cvierr = mva.chemometrics.ols(n1, predyv)
+		cvgrad, cvyi, cvmserr, cvrmserr, cvgerr, cvierr = chemometrics.ols(n1, predyv)
 
 		if max(mask) == 2:
 			predyt = scipy.take(predictions, _index(mask, 2), axis=0)
-			tstgrad, tstyi, tstmserr, tstrmserr, tstgerr, tstierr = mva.chemometrics.ols(n2, predyt)
+			tstgrad, tstyi, tstmserr, tstrmserr, tstgerr, tstierr = chemometrics.ols(n2, predyt)
 		else:
 			tstgrad, tstyi, tstmserr, tstrmserr, tstgerr, tstierr = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
