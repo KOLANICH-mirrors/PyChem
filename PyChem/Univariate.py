@@ -189,8 +189,8 @@ class Univariate(wx.Panel):
 		self.plcBoxplot.xSpec = "min"
 
 		for each in list(objects.keys()):
-			##			  exec('self.' + each + '.SetXSpec("auto")')
-			exec("self." + each + ".Draw(wx.lib.plot.PlotGraphics([curve]," + 'objects["' + each + '"][0],' + 'objects["' + each + '"][1],' + 'objects["' + each + '"][2]))')
+			##			  getattr(self, each).SetXSpec("auto")
+			getattr(self, each).Draw(wx.lib.plot.PlotGraphics([curve], objects[each][0], objects[each][1], objects[each][2]))
 
 		# reset textbox
 		self.txtResTable.SetValue("Results Table")
@@ -315,16 +315,16 @@ class TitleBar(bp.ButtonPanel):
 					x = scipy.take(self.data["proctrunc"], [variable], 1)
 
 				# gather data
-				grp_list = ""
+				grp_list = []
 				for item in uG:
-					grp_list = grp_list + "x[np.array(self.data['label'])=='" + item + "'],"
+					grp_list.append(x[np.array(self.data["label"]) == item])
 
 				# apply test!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 				if self.cbxTest.GetSelection() == 0:  # run anova
-					exec("f,p = scipy.stats.f_oneway(" + grp_list[0 : len(grp_list) - 1] + ")")
+					f, p = scipy.stats.f_oneway(*grp_list)
 					p = p[0]
 				elif self.cbxTest.GetSelection() == 1:  # run kruskal-wallis (non-parametric anova)
-					exec("h,p = scipy.stats.kruskal(" + grp_list[0 : len(grp_list) - 1] + ")")
+					h, p = scipy.stats.kruskal(*grp_list)
 
 				# save some stuff for plotting
 				if variable == self.cbxVariable.GetSelection():
