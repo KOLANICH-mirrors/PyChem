@@ -513,9 +513,9 @@ class TitleBar(bp.ButtonPanel):
 		try:
 			if dlg.ShowModal() == wx.ID_OK:
 				if self.cbxData.GetSelection() == 0:
-					scipy.io.write_array(dlg.GetPath(), scipy.transpose(self.data["rawtrunc"]), "\t")
+					np.savetxt(dlg.GetPath(), scipy.transpose(self.data["rawtrunc"]), delimiter="\t")
 				else:
-					scipy.io.write_array(dlg.GetPath(), scipy.transpose(self.data["proctrunc"]), "\t")
+					np.savetxt(dlg.GetPath(), scipy.transpose(self.data["proctrunc"]), delimiter="\t")
 		finally:
 			dlg.Destroy()
 
