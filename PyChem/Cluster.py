@@ -709,9 +709,9 @@ class selFun(fpb.FoldPanelBar):
 		self.gbsLinkageMethod.AddGrowableCol(0)
 		self.gbsDistanceMeasure.AddGrowableCol(0)
 
-		self.clustType.SetSizer(self.gbsClusterMethod)
-		self.linkType.SetSizer(self.gbsLinkageMethod)
-		self.distType.SetSizer(self.gbsDistanceMeasure)
+		self.methPnl.SetSizer(self.gbsClusterMethod)
+		self.linkPnl.SetSizer(self.gbsLinkageMethod)
+		self.distPnl.SetSizer(self.gbsDistanceMeasure)
 
 	def _init_selfun_ctrls(self, prnt):
 		fpb.FoldPanelBar.__init__(self, prnt, -1, pos=wx.DefaultPosition, size=wx.DefaultSize, style=fpb.FPB_SINGLE_FOLD)

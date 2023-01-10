@@ -746,7 +746,7 @@ class selParam(fpb.FoldPanelBar):
 		self._init_coll_gbsGaParams_Items(self.gbsGaParams)
 		self._init_coll_gbsGaParams_Growables(self.gbsGaParams)
 
-		self.fpParams.SetSizer(self.gbsGaParams)
+		self.plParams.SetSizer(self.gbsGaParams)
 
 	def _init_selparam_ctrls(self, prnt):
 		fpb.FoldPanelBar.__init__(self, prnt, -1, pos=wx.DefaultPosition, size=wx.DefaultSize, style=fpb.FPB_SINGLE_FOLD)
