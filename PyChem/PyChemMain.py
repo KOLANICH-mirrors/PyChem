@@ -122,7 +122,7 @@ class PlotToolBar(wx.ToolBar):
 		self.stXlabel = wx.lib.stattext.GenStaticText(self, -1, "X-label:", pos=wx.Point(202, 5), style=wx.TRANSPARENT_WINDOW)
 		self.AddControl(self.stXlabel)
 
-		self.txtXlabel = wx.TextCtrl(id=-1, name="txtXlabel", parent=self, pos=wx.Point(240, 2), size=wx.Size(70, -1), style=wx.TE_DONTWRAP, value="X-label")
+		self.txtXlabel = wx.TextCtrl(id=-1, name="txtXlabel", parent=self, pos=wx.Point(240, 2), size=wx.Size(70, -1), style=wx.TE_DONTWRAP | wx.TE_PROCESS_ENTER, value="X-label")
 		self.txtXlabel.SetToolTip("Abscissa (X-axis) Label")
 		self.txtXlabel.Bind(wx.EVT_TEXT_ENTER, self.OnTxtXlabel)
 		self.AddControl(self.txtXlabel)
@@ -130,7 +130,7 @@ class PlotToolBar(wx.ToolBar):
 		self.stYlabel = wx.lib.stattext.GenStaticText(self, -1, "Y-label:", pos=wx.Point(314, 5), style=wx.TRANSPARENT_WINDOW)
 		self.AddControl(self.stYlabel)
 
-		self.txtYlabel = wx.TextCtrl(id=-1, name="txtYlabel", parent=self, pos=wx.Point(352, 2), size=wx.Size(70, -1), style=wx.TE_DONTWRAP, value="Y-label")
+		self.txtYlabel = wx.TextCtrl(id=-1, name="txtYlabel", parent=self, pos=wx.Point(352, 2), size=wx.Size(70, -1), style=wx.TE_DONTWRAP | wx.TE_PROCESS_ENTER, value="Y-label")
 		self.txtYlabel.SetToolTip("Ordinate (Y-axis) Label")
 		self.txtYlabel.Bind(wx.EVT_TEXT_ENTER, self.OnTxtYlabel)
 		self.AddControl(self.txtYlabel)
